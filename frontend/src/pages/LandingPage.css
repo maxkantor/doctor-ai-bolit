@@ -145,7 +145,6 @@
 /* Section Styling */
 .how-it-works,
 .pricing-preview,
-.reassurance-section,
 .informational-section {
   max-width: 1200px;
   margin: 0 auto;
@@ -166,28 +165,17 @@
   box-sizing: border-box;
 }
 
-.reassurance-section {
-  text-align: center;
-  padding: 0.5rem 1.5rem;
-  flex-shrink: 0;
-  margin-bottom: 0;
-}
-
-.reassurance-text {
-  font-size: clamp(1.125rem, 2.25vw, 1.375rem);
-  font-weight: 400;
-  line-height: 1.6;
-  color: #4a5568;
-  margin: 0;
-  font-style: italic;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-}
 
 .informational-section {
   text-align: center;
-  padding: 0.75rem 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 2px solid rgba(102, 126, 234, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  margin: 0.75rem auto;
+  max-width: 1000px;
 }
 
 .informational-list {
@@ -512,20 +500,9 @@
   }
 
   .how-it-works,
-  .pricing-preview,
-  .reassurance-section {
+  .pricing-preview {
     padding: 1rem 0.75rem;
     margin-bottom: 1rem;
-  }
-  
-  .reassurance-section {
-    padding: 1.5rem 1rem;
-  }
-  
-  .reassurance-text {
-    font-size: 0.9rem;
-    white-space: normal;
-    word-wrap: break-word;
   }
 
   .trust-badges {
@@ -627,7 +604,6 @@
   
   .how-it-works,
   .pricing-preview,
-  .reassurance-section,
   .informational-section {
     padding: 0.75rem 1.5rem;
   }
@@ -704,8 +680,7 @@
   }
   
   .how-it-works,
-  .pricing-preview,
-  .reassurance-section {
+  .pricing-preview {
     padding: 0.75rem 0.5rem;
   }
   

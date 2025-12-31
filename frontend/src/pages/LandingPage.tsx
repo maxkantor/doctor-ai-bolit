@@ -108,14 +108,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="reassurance-section">
-        <p className="reassurance-text">
-          You don't have to figure everything out right now. You just need a place to start. Get instant, private health guidance — no signup required.
-        </p>
-      </section>
-
       <section className="informational-section">
-        <h2 className="section-title">What DoctorAibolit Can & Can't Do</h2>
+        <h2 className="section-title">Doctor AI Bolit Can & Can't Do</h2>
         <ul className="informational-list">
           <li>Explain symptoms and health concepts</li>
           <li>Provide general wellness guidance</li>
