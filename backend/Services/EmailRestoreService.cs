@@ -1,6 +1,6 @@
-using AnxietyChatAI.Repositories;
+using DoctorAIBolit.Repositories;
 
-namespace AnxietyChatAI.Services;
+namespace DoctorAIBolit.Services;
 
 public class EmailRestoreService : IEmailRestoreService
 {

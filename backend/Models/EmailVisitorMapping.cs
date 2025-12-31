@@ -1,6 +1,6 @@
 using Amazon.DynamoDBv2.DataModel;
 
-namespace AnxietyChatAI.Models;
+namespace DoctorAIBolit.Models;
 
 [DynamoDBTable("EmailVisitorMapping")]
 public class EmailVisitorMapping

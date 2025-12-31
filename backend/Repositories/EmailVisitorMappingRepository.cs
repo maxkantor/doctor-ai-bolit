@@ -1,11 +1,11 @@
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
-using AnxietyChatAI.Models;
+using DoctorAIBolit.Models;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace AnxietyChatAI.Repositories;
+namespace DoctorAIBolit.Repositories;
 
 public class EmailVisitorMappingRepository : IEmailVisitorMappingRepository
 {

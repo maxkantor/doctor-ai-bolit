@@ -1,4 +1,4 @@
-namespace AnxietyChatAI.Services;
+namespace DoctorAIBolit.Services;
 
 public interface IEmailRestoreService
 {

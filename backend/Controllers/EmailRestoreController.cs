@@ -1,8 +1,8 @@
-using AnxietyChatAI.Services;
-using AnxietyChatAI.Repositories;
+using DoctorAIBolit.Services;
+using DoctorAIBolit.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AnxietyChatAI.Controllers;
+namespace DoctorAIBolit.Controllers;
 
 [ApiController]
 [Route("api/email-restore")]

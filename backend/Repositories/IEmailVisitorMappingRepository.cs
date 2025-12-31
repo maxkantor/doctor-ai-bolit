@@ -1,6 +1,6 @@
-using AnxietyChatAI.Models;
+using DoctorAIBolit.Models;
 
-namespace AnxietyChatAI.Repositories;
+namespace DoctorAIBolit.Repositories;
 
 public interface IEmailVisitorMappingRepository
 {

@@ -24,5 +24,19 @@
     <PackageReference Include="Stripe.net" Version="47.0.0" />
   </ItemGroup>
 
+  <!-- Auto-create backend.zip after publish -->
+  <Target Name="CreateBackendZip" AfterTargets="Publish">
+    <PropertyGroup>
+      <PublishDir>$(PublishDir)</PublishDir>
+      <ZipOutputPath>$(MSBuildProjectDirectory)/backend.zip</ZipOutputPath>
+    </PropertyGroup>
+    <Message Text="📦 Creating backend.zip at $(ZipOutputPath)" Importance="high" />
+    <Exec Command="cd &quot;$(PublishDir)&quot; &amp;&amp; zip -r &quot;$(ZipOutputPath)&quot; . -q" 
+          Condition="'$(OS)' != 'Windows_NT'" />
+    <Exec Command="powershell -Command &quot;Compress-Archive -Path '$(PublishDir)\*' -DestinationPath '$(ZipOutputPath)' -Force&quot;" 
+          Condition="'$(OS)' == 'Windows_NT'" />
+    <Message Text="✅ backend.zip created at $(ZipOutputPath)" Importance="high" />
+  </Target>
+
 </Project>
 
