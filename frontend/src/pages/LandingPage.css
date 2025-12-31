@@ -219,7 +219,7 @@
 @media (min-width: 769px) {
   .informational-list li:nth-child(2),
   .informational-list li:nth-child(4) {
-    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
   }
   
   .informational-list li:nth-child(3),
@@ -688,7 +688,7 @@
   }
   
   .informational-list li {
-    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
   }
   
   .informational-list li:last-child {
