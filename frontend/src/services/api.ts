@@ -2,23 +2,27 @@ import axios from 'axios'
 
 // Ensure API URL includes /api suffix
 const getApiBaseUrl = () => {
-  const envUrl = import.meta.env.VITE_API_URL || 'https://api.doctoraibolit.com/api'
+  let envUrl = import.meta.env.VITE_API_URL || 'https://api.doctoraibolit.com/api'
+  
+  // Remove trailing slash if present
+  envUrl = envUrl.trim().replace(/\/+$/, '')
+  
   // If URL doesn't end with /api, append it
   if (!envUrl.endsWith('/api')) {
-    return envUrl.endsWith('/') ? `${envUrl}api` : `${envUrl}/api`
+    envUrl = `${envUrl}/api`
   }
+  
   return envUrl
 }
 
 const API_BASE_URL = getApiBaseUrl()
 
-// Log API configuration for debugging
-if (import.meta.env.DEV) {
-  console.log('🔧 API Configuration:', {
-    baseURL: API_BASE_URL,
-    envVar: import.meta.env.VITE_API_URL,
-  })
-}
+// Log API configuration for debugging (always log to help diagnose issues)
+console.log('🔧 API Configuration:', {
+  baseURL: API_BASE_URL,
+  envVar: import.meta.env.VITE_API_URL,
+  envUrl: import.meta.env.VITE_API_URL || 'not set',
+})
 
 const api = axios.create({
   baseURL: API_BASE_URL,
