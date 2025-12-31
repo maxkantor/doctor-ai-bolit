@@ -274,17 +274,16 @@ export default function LandingPage() {
               </motion.div>
             )
           })}
-        </div>
-        {pricingPlans.length === 0 && (
-          <motion.p 
-            className="pricing-note"
-            initial="hidden"
-            animate={pricingInView ? "visible" : "hidden"}
-            variants={fadeInUp}
-          >
-            Pricing plans are being configured. Free tier is always available.
-          </motion.p>
-        )}
+          {pricingPlans.length === 0 && (
+            <motion.p 
+              className="pricing-note"
+              initial="hidden"
+              animate={pricingInView ? "visible" : "hidden"}
+              variants={fadeInUp}
+            >
+              Pricing plans are being configured. Free tier is always available.
+            </motion.p>
+          )}
         </motion.div>
       </section>
 
