@@ -110,7 +110,7 @@ export default function LandingPage() {
 
       <section className="reassurance-section">
         <p className="reassurance-text">
-          You don't have to fix everything right now. You just need a place to start. Get instant, private support for anxiety, panic, and stress - no signup required.
+          You don't have to figure everything out right now. You just need a place to start. Get instant, private health guidance — no signup required.
         </p>
       </section>
 
@@ -126,7 +126,7 @@ export default function LandingPage() {
       </section>
 
       <section className="pricing-preview">
-        <h2 className="section-title">Free Anxiety Support When You Need It — Pay Only If You Want More Messages</h2>
+        <h2 className="section-title">Free Health Guidance — Pay Only If You Want More Messages</h2>
         <div className="pricing-cards">
           <div className="pricing-card free-card">
             <h3>Free</h3>
