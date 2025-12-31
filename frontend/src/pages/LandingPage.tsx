@@ -109,7 +109,7 @@ export default function LandingPage() {
       </section>
 
       <section className="informational-section">
-        <h2 className="section-title">Doctor AI Bolit Can & Can't Do</h2>
+        <h2 className="section-title">What Doctor AI Bolit Can & Can't Do</h2>
         <ul className="informational-list">
           <li>Explain symptoms and health concepts</li>
           <li>Provide general wellness guidance</li>
