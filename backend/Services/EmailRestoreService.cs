@@ -100,10 +100,20 @@ public class EmailRestoreService : IEmailRestoreService
             await _emailService.SendVerificationCodeAsync(normalizedEmail, code);
             Console.WriteLine($"[EmailRestoreService] Verification code sent to: {normalizedEmail}");
         }
+        catch (Amazon.SimpleEmail.Model.MessageRejectedException ex)
+        {
+            Console.WriteLine($"[EmailRestoreService] Email rejected by SES: {ex.Message}");
+            throw new Exception($"Email could not be sent. Please verify your email address is correct and try again. Error: {ex.Message}");
+        }
         catch (Exception ex)
         {
             Console.WriteLine($"[EmailRestoreService] Error sending verification code: {ex.Message}");
-            throw new Exception("Failed to send verification code. Please try again.");
+            Console.WriteLine($"[EmailRestoreService] Stack trace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"[EmailRestoreService] Inner exception: {ex.InnerException.Message}");
+            }
+            throw new Exception($"Failed to send verification code: {ex.Message}. Please try again later.");
         }
 
         return code;
