@@ -92,20 +92,6 @@ export default function LandingPage() {
         <div className="steps">
           <div className="step">
             <div className="step-number">1</div>
-<<<<<<< HEAD
-            <h3>Start Chatting</h3>
-            <p>No signup or login needed. Just start talking about what's on your mind - anxiety, panic, stress, or anything you're feeling.</p>
-          </div>
-          <div className="step">
-            <div className="step-number">2</div>
-            <h3>Get Support</h3>
-            <p>Receive instant, empathetic AI-powered responses tailored to help with anxiety, panic attacks, and stress relief.</p>
-          </div>
-          <div className="step">
-            <div className="step-number">3</div>
-            <h3>Feel Better</h3>
-            <p>Learn coping strategies and feel more calm, supported, and in control of your anxiety and stress.</p>
-=======
             <h3>Describe your symptoms or health question</h3>
             <p>No signup needed. Just start talking about what's on your mind.</p>
           </div>
@@ -118,7 +104,6 @@ export default function LandingPage() {
             <div className="step-number">3</div>
             <h3>Understand next steps and when to seek professional care</h3>
             <p>Use coping strategies and feel more calm and in control.</p>
->>>>>>> 49bc256 (Update DynamoDB table names with DoctorAibolit prefix to avoid conflicts with AnxietyChatAI tables)
           </div>
         </div>
       </section>
@@ -160,17 +145,10 @@ export default function LandingPage() {
             
             if (plan.credits === 20 || plan.price === 1.99) {
               displayName = "20 Messages"
-<<<<<<< HEAD
-              displayDescription = "Continue your anxiety support conversation with 20 additional messages whenever you need help with panic, stress, or anxiety."
-            } else if (plan.credits === 50 || plan.price === 3.99) {
-              displayName = "50 Messages"
-              displayDescription = "Extended anxiety and stress support with 50 additional messages for ongoing conversations and deeper help."
-=======
               displayDescription = "Ask follow-up health questions and get more detailed guidance whenever you need it."
             } else if (plan.credits === 50 || plan.price === 3.99) {
               displayName = "50 Messages"
               displayDescription = "Ongoing health discussions, symptom clarification, and wellness insights."
->>>>>>> 49bc256 (Update DynamoDB table names with DoctorAibolit prefix to avoid conflicts with AnxietyChatAI tables)
             } else {
               displayName = `${plan.credits || 0} Messages`
               displayDescription = `Continue your conversation with ${plan.credits || 0} additional messages.`
