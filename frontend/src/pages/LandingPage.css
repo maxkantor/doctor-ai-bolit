@@ -13,16 +13,13 @@
   flex-direction: column;
   box-sizing: border-box;
   overflow-x: hidden;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
 }
 
-/* Desktop: allow scrolling for better UX on MacBook Air */
+/* Desktop: natural scrolling without forced scrollbars */
 @media (min-width: 769px) {
   .landing-page {
     min-height: 100vh;
     height: auto;
-    overflow-y: auto;
     overflow-x: hidden;
   }
 }
@@ -630,11 +627,9 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .landing-page {
-    overflow-y: auto;
     overflow-x: hidden;
     height: auto;
     min-height: 100vh;
-    max-height: none;
     padding-bottom: 2rem;
     width: 100%;
     max-width: 100vw;
@@ -747,7 +742,6 @@
   .landing-page {
     height: auto;
     min-height: 100vh;
-    overflow-y: auto;
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;

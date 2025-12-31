@@ -1,6 +1,16 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.doctoraibolit.com/api'
+// Ensure API URL includes /api suffix
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL || 'https://api.doctoraibolit.com/api'
+  // If URL doesn't end with /api, append it
+  if (!envUrl.endsWith('/api')) {
+    return envUrl.endsWith('/') ? `${envUrl}api` : `${envUrl}/api`
+  }
+  return envUrl
+}
+
+const API_BASE_URL = getApiBaseUrl()
 
 // Log API configuration for debugging
 if (import.meta.env.DEV) {
