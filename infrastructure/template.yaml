@@ -1,0 +1,213 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: DoctorAibolit Backend API
+
+Globals:
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      AllowHeaders: "'Content-Type,Authorization,X-ADMIN-KEY,X-Visitor-Id'"
+      AllowOrigin: "'*'"
+      MaxAge: "'600'"
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: dotnet8
+    Environment:
+      Variables:
+        DYNAMODB_TABLE_VISITORS: DoctorAibolitVisitors
+        DYNAMODB_TABLE_CHAT_SESSIONS: DoctorAibolitChatSessions
+        DYNAMODB_TABLE_CHAT_MESSAGES: DoctorAibolitChatMessages
+        DYNAMODB_TABLE_CONTACT_MESSAGES: DoctorAibolitContactMessages
+        DYNAMODB_TABLE_PRICING_CONFIG: DoctorAibolitPricingConfig
+        DYNAMODB_TABLE_PRICING_PLANS: DoctorAibolitPricingPlans
+        DYNAMODB_TABLE_VISITOR_SESSIONS: DoctorAibolitVisitorSessions
+        S3_BUCKET_OG_IMAGES: doctoraibolit-og-images
+        SES_FROM_EMAIL: noreply@doctoraibolit.com
+        SES_ADMIN_EMAIL: admin@doctoraibolit.com
+
+Resources:
+  DoctorAibolitApi:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: DoctorAIBolit.Api::DoctorAIBolit.LambdaEntryPoint::FunctionHandlerAsync
+      CodeUri: ../backend/
+      Events:
+        ApiRoot:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: ANY
+        ApiProxy:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+              Resource:
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/Visitors'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/ChatSessions'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/ChatMessages'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/ContactMessages'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PricingConfig'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PricingPlans'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/VisitorSessions'
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:doctoraibolit*'
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:DeleteObject
+              Resource: !Sub 'arn:aws:s3:::doctoraibolit-og-images/*'
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: '*'
+
+  VisitorsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Visitors
+      AttributeDefinitions:
+        - AttributeName: VisitorId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: VisitorId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  ChatSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ChatSessions
+      AttributeDefinitions:
+        - AttributeName: VisitorId
+          AttributeType: S
+        - AttributeName: SessionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: VisitorId
+          KeyType: HASH
+        - AttributeName: SessionId
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+  ChatMessagesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ChatMessages
+      AttributeDefinitions:
+        - AttributeName: SessionId
+          AttributeType: S
+        - AttributeName: Timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: SessionId
+          KeyType: HASH
+        - AttributeName: Timestamp
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+  ContactMessagesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ContactMessages
+      AttributeDefinitions:
+        - AttributeName: MessageId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: MessageId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  PricingConfigTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PricingConfig
+      AttributeDefinitions:
+        - AttributeName: ConfigId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ConfigId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  PricingPlansTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PricingPlans
+      AttributeDefinitions:
+        - AttributeName: PlanId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PlanId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  VisitorSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: VisitorSessions
+      AttributeDefinitions:
+        - AttributeName: VisitorId
+          AttributeType: S
+        - AttributeName: SessionDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: VisitorId
+          KeyType: HASH
+        - AttributeName: SessionDate
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+  OgImagesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: doctoraibolit-og-images
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - '*'
+            AllowedMethods:
+              - GET
+              - HEAD
+            AllowedHeaders:
+              - '*'
+
+  OgImagesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref OgImagesBucket
+      PolicyDocument:
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: '*'
+            Action: s3:GetObject
+            Resource: !Sub 'arn:aws:s3:::doctoraibolit-og-images/*'
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+    Export:
+      Name: DoctorAibolit-ApiUrl
+

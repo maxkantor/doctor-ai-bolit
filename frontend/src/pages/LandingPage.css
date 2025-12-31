@@ -1,0 +1,747 @@
+/* Modern SaaS Landing Page - Professional & Calming */
+
+.landing-page {
+  width: 100%;
+  background: 
+    linear-gradient(135deg, #667eea15 0%, #764ba215 50%, #f5f7fa 100%),
+    radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Desktop: fixed height, no overflow */
+@media (min-width: 769px) {
+  .landing-page {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 768px) {
+  .landing-page {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+  }
+}
+
+.landing-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(102, 126, 234, 0.02) 2px, rgba(102, 126, 234, 0.02) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(118, 75, 162, 0.02) 2px, rgba(118, 75, 162, 0.02) 4px);
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Hero Section */
+.hero {
+  position: relative;
+  padding: 1rem 1rem 0.75rem;
+  text-align: center;
+  max-width: 1100px;
+  margin: 0 auto;
+  flex-shrink: 0;
+  z-index: 1;
+  box-sizing: border-box;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title {
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #1a202c;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+  font-size: clamp(1rem, 1.75vw, 1.125rem);
+  color: #4a5568;
+  margin-bottom: 0.375rem;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.hero-free-text {
+  font-size: clamp(0.875rem, 1.25vw, 1rem);
+  color: #667eea;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.cta-button {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.75rem 1.75rem;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.3);
+  margin-bottom: 0.75rem;
+}
+
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px 0 rgba(102, 126, 234, 0.4);
+}
+
+.trust-badges {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #4a5568;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  line-height: 1.3;
+  text-align: center;
+}
+
+.badge span:not(.badge-icon) {
+  display: inline-block;
+}
+
+.badge-icon {
+  font-size: 0.9375rem;
+}
+
+/* Section Styling */
+.how-it-works,
+.pricing-preview,
+.reassurance-section,
+.informational-section {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1rem 0.75rem;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 1;
+  box-sizing: border-box;
+}
+
+.pricing-preview {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1rem 0.75rem 0;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 1;
+  box-sizing: border-box;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+/* Desktop: prevent overflow */
+@media (min-width: 769px) {
+  .how-it-works,
+  .pricing-preview {
+    overflow: hidden;
+  }
+}
+
+.pricing-preview {
+  padding: 1rem 0.75rem 0.5rem;
+  flex-shrink: 1;
+  overflow: hidden !important;
+  box-sizing: border-box;
+  margin-bottom: 0;
+}
+
+.reassurance-section {
+  text-align: center;
+  padding: 0.75rem 0.75rem;
+  flex-shrink: 0;
+  margin-bottom: 0.5rem;
+}
+
+.reassurance-text {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 400;
+  line-height: 1.5;
+  color: #4a5568;
+  margin: 0;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.informational-section {
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+
+.informational-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem auto 0;
+  max-width: 600px;
+  text-align: left;
+}
+
+.informational-list li {
+  padding: 0.5rem 0;
+  color: #4a5568;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.informational-list li:last-child {
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: clamp(1.125rem, 2vw, 1.375rem);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #1a202c;
+  text-align: center;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+/* How It Works Cards */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.step {
+  padding: 1rem 0.875rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  box-sizing: border-box;
+}
+
+.step:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 auto 0.75rem;
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+}
+
+.step h3 {
+  font-size: 1rem;
+  margin-bottom: 0.375rem;
+  color: #1a202c;
+  font-weight: 600;
+}
+
+.step p {
+  color: #718096;
+  line-height: 1.4;
+  font-size: 0.8125rem;
+  flex-grow: 1;
+  margin: 0;
+}
+
+/* Pricing Cards */
+.pricing-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+}
+
+.pricing-card {
+  position: relative;
+  padding: 1rem 0.875rem;
+  padding-top: 1.25rem; /* Extra space for badge */
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  box-sizing: border-box;
+  min-width: 0;
+  overflow: visible; /* Allow badge to show */
+}
+
+/* Make free card fit in grid */
+.pricing-card.free-card {
+  padding: 0.875rem 0.75rem;
+  max-width: none;
+  margin: 0;
+  display: block;
+  text-align: center;
+}
+
+.pricing-card.free-card h3 {
+  font-size: 0.9375rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.pricing-card.free-card .price {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.pricing-card.free-card ul {
+  padding-top: 0.5rem;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.375rem 0.75rem;
+  text-align: left;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.pricing-card.free-card li {
+  padding: 0.125rem 0;
+  font-size: 0.75rem;
+}
+
+.pricing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.pricing-card.featured {
+  border: 2px solid #667eea;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 249, 255, 0.98) 100%);
+}
+
+.featured-badge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.2rem 0.625rem;
+  border-radius: 12px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.pricing-card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #1a202c;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.pricing-card .price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.price-period {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #718096;
+  -webkit-text-fill-color: #718096;
+}
+
+.plan-credits {
+  font-size: 0.8125rem;
+  color: #718096;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  display: none; /* Hide "X messages" line */
+}
+
+.plan-duration {
+  font-size: 0.875rem;
+  color: #718096;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.plan-description {
+  font-size: 0.75rem;
+  color: #4a5568;
+  line-height: 1.5;
+  margin-bottom: 0.875rem;
+  min-height: auto;
+  flex-grow: 1;
+}
+
+.plan-button {
+  display: inline-block;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.plan-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.pricing-note {
+  text-align: center;
+  color: #718096;
+  font-size: 0.875rem;
+  margin-top: 1rem;
+}
+
+.pricing-card ul {
+  list-style: none;
+  text-align: left;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  margin-bottom: 0;
+}
+
+.pricing-card li {
+  padding: 0.375rem 0;
+  color: #4a5568;
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pricing-card li::before {
+  content: "✓";
+  color: #48bb78;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .landing-page {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    padding-bottom: 2rem;
+  }
+
+  .hero {
+    padding: 1.5rem 1rem 1rem;
+  }
+
+  .how-it-works,
+  .pricing-preview,
+  .reassurance-section {
+    padding: 1rem 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .reassurance-section {
+    padding: 1.5rem 1rem;
+  }
+  
+  .reassurance-text {
+    font-size: 0.9rem;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+
+  .trust-badges {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .pricing-cards {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+    padding: 0 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .pricing-card.free-card {
+    max-width: 100%;
+  }
+
+  .pricing-card.free-card ul {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  .step,
+  .pricing-card {
+    padding: 1rem 0.875rem;
+    padding-top: 1.25rem; /* Space for badge */
+    min-height: auto;
+  }
+  
+  .pricing-card h3 {
+    font-size: 0.9375rem;
+  }
+  
+  .pricing-card .price {
+    font-size: 1.375rem;
+  }
+  
+  .plan-description {
+    font-size: 0.6875rem;
+    min-height: auto;
+    margin-bottom: 0.875rem;
+  }
+  
+  .plan-button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8125rem;
+  }
+  
+  .featured-badge {
+    font-size: 0.5625rem;
+    padding: 0.15rem 0.5rem;
+    top: -6px;
+  }
+  
+  .section-title {
+    font-size: 1.125rem;
+    margin-bottom: 0.875rem;
+    padding: 0 0.5rem;
+  }
+}
+
+/* Medium screens (tablets, small laptops like MacBook Air) */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .landing-page {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  
+  .pricing-cards {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.625rem;
+    padding: 0 0.5rem;
+  }
+  
+  .pricing-card {
+    padding: 0.875rem 0.625rem;
+    padding-top: 1.125rem;
+  }
+  
+  .pricing-card h3 {
+    font-size: 0.9375rem;
+  }
+  
+  .pricing-card .price {
+    font-size: 1.375rem;
+  }
+  
+  .plan-description {
+    font-size: 0.6875rem;
+  }
+  
+  .plan-button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8125rem;
+  }
+  
+  .featured-badge {
+    font-size: 0.5625rem;
+    padding: 0.15rem 0.5rem;
+    top: -6px;
+  }
+  
+  .pricing-preview {
+    padding: 1rem 0.75rem 0;
+  }
+  
+  .hero {
+    padding: 0.75rem 1rem 0.5rem;
+  }
+  
+  .section-title {
+    font-size: clamp(1rem, 1.75vw, 1.25rem);
+  }
+  
+  .steps {
+    gap: 0.625rem;
+  }
+  
+  .step {
+    padding: 0.875rem 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-page {
+    padding-bottom: 1.5rem;
+  }
+  
+  .hero {
+    padding: 1.25rem 0.75rem 0.75rem;
+  }
+  
+  .hero-title {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.9375rem;
+    margin-bottom: 0.375rem;
+  }
+  
+  .hero-free-text {
+    font-size: 0.8125rem;
+    margin-bottom: 1rem;
+  }
+
+  .cta-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9375rem;
+    margin-bottom: 1rem;
+  }
+  
+  .how-it-works,
+  .pricing-preview,
+  .reassurance-section {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.125rem;
+    padding: 0 0.5rem;
+  }
+  
+  .step,
+  .pricing-card {
+    padding: 0.875rem 0.625rem;
+  }
+  
+  .pricing-cards {
+    gap: 0.75rem;
+    padding: 0 0.5rem;
+  }
+  
+  .pricing-card h3 {
+    font-size: 0.875rem;
+  }
+  
+  .pricing-card .price {
+    font-size: 1.25rem;
+  }
+  
+  .plan-description {
+    font-size: 0.625rem;
+    line-height: 1.4;
+  }
+  
+  .plan-button {
+    padding: 0.5625rem 1rem;
+    font-size: 0.75rem;
+  }
+  
+  .pricing-card.free-card {
+    padding: 0.875rem 0.625rem;
+  }
+  
+  .pricing-card.free-card h3 {
+    font-size: 0.875rem;
+  }
+  
+  .pricing-card.free-card .price {
+    font-size: 1.125rem;
+  }
+  
+  .pricing-card.free-card li {
+    font-size: 0.6875rem;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+}

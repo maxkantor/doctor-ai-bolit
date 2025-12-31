@@ -1,0 +1,75 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Prevent scrollbars on desktop only */
+@media (min-width: 769px) {
+  html {
+    overflow: hidden;
+    max-height: 100vh;
+  }
+  
+  body {
+    overflow: hidden;
+    max-height: 100vh;
+  }
+}
+
+/* Allow scrolling on mobile */
+@media (max-width: 768px) {
+  html {
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: none;
+  }
+  
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: none;
+  }
+}
+
+/* Allow scrolling on MacBook Air and tablets */
+@media (max-width: 1024px) and (min-width: 769px) {
+  html {
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: none;
+  }
+  
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: none;
+  }
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f7fa;
+  color: #1a202c;
+  line-height: 1.6;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+

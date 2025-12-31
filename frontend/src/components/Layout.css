@@ -1,0 +1,80 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Desktop: prevent overflow */
+@media (min-width: 769px) {
+  .layout {
+    max-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+  }
+}
+
+/* Mobile: allow scrolling */
+@media (max-width: 768px) {
+  .layout {
+    overflow: visible;
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+  }
+}
+
+/* MacBook Air and tablets: allow scrolling */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .layout {
+    overflow: visible;
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+  }
+}
+
+.main-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Desktop: prevent overflow */
+@media (min-width: 769px) {
+  .main-content {
+    overflow: hidden;
+  }
+  
+  .main-content:has(.landing-page) {
+    overflow: hidden;
+    height: 100vh;
+    max-height: 100vh;
+  }
+}
+
+/* Mobile: allow scrolling */
+@media (max-width: 768px) {
+  .main-content {
+    overflow: visible;
+  }
+  
+  .main-content:has(.landing-page) {
+    overflow: visible;
+    height: auto;
+    min-height: 100vh;
+  }
+}
+
+/* MacBook Air and tablets: allow scrolling */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .main-content {
+    overflow: visible;
+  }
+  
+  .main-content:has(.landing-page) {
+    overflow: visible;
+    height: auto;
+    min-height: 100vh;
+  }
+}
