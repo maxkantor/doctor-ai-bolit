@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, useInView } from 'framer-motion'
 import { pricingService } from '../services/pricingService'
 import { PricingPlan, PricingConfig } from '../types'
 import './LandingPage.css'
@@ -59,70 +60,175 @@ export default function LandingPage() {
     }).format(price)
   }
 
+  // Animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+  }
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  }
+
+  // Refs for scroll animations
+  const heroRef = useRef(null)
+  const howItWorksRef = useRef(null)
+  const infoRef = useRef(null)
+  const pricingRef = useRef(null)
+
+  const heroInView = useInView(heroRef, { once: true, margin: "-100px" })
+  const howItWorksInView = useInView(howItWorksRef, { once: true, margin: "-100px" })
+  const infoInView = useInView(infoRef, { once: true, margin: "-100px" })
+  const pricingInView = useInView(pricingRef, { once: true, margin: "-100px" })
 
   return (
-    <div className="landing-page">
-      <section className="hero">
+    <main className="landing-page" role="main">
+      <header className="hero" ref={heroRef}>
         <div className="hero-content">
-          <h1 className="hero-title">AI Health Guidance When You Need It Most</h1>
-          <p className="hero-subtitle">Get instant, private answers about symptoms, wellness, and next steps — no signup required.</p>
-          <p className="hero-free-text">Start chatting for free. No signup. No pressure.</p>
-          <Link to="/chat" className="cta-button">
-            Start Chatting
-          </Link>
-          <div className="trust-badges">
-            <div className="badge">
-              <span className="badge-icon">🔒</span>
+          <motion.h1 
+            className="hero-title"
+            initial="hidden"
+            animate={heroInView ? "visible" : "hidden"}
+            variants={fadeInUp}
+          >
+            AI Health Guidance When You Need It Most
+          </motion.h1>
+          <motion.p 
+            className="hero-subtitle"
+            initial="hidden"
+            animate={heroInView ? "visible" : "hidden"}
+            variants={fadeInUp}
+          >
+            Get instant, private answers about symptoms, wellness, and next steps — no signup required.
+          </motion.p>
+          <motion.p 
+            className="hero-free-text"
+            initial="hidden"
+            animate={heroInView ? "visible" : "hidden"}
+            variants={fadeInUp}
+          >
+            Start chatting for free. No signup. No pressure.
+          </motion.p>
+          <motion.div
+            initial="hidden"
+            animate={heroInView ? "visible" : "hidden"}
+            variants={fadeInUp}
+          >
+            <Link to="/chat" className="cta-button" aria-label="Start chatting with AI health guidance">
+              Start Chatting
+            </Link>
+          </motion.div>
+          <motion.div 
+            className="trust-badges"
+            initial="hidden"
+            animate={heroInView ? "visible" : "hidden"}
+            variants={staggerContainer}
+          >
+            <motion.div className="badge" variants={fadeInUp} aria-label="Private and secure">
+              <span className="badge-icon" aria-hidden="true">🔒</span>
               <span>Private</span>
-            </div>
-            <div className="badge">
-              <span className="badge-icon">👤</span>
+            </motion.div>
+            <motion.div className="badge" variants={fadeInUp} aria-label="No login required">
+              <span className="badge-icon" aria-hidden="true">👤</span>
               <span>No login</span>
-            </div>
-            <div className="badge">
-              <span className="badge-icon">💬</span>
+            </motion.div>
+            <motion.div className="badge" variants={fadeInUp} aria-label="Informational guidance only, not medical diagnosis">
+              <span className="badge-icon" aria-hidden="true">💬</span>
               <span>Informational guidance only<br />Not a diagnosis or treatment</span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
+      </header>
 
-      <section className="how-it-works">
-        <h2 className="section-title">How It Works</h2>
-        <div className="steps">
-          <div className="step">
+      <section className="how-it-works" ref={howItWorksRef} aria-labelledby="how-it-works-title">
+        <motion.h2 
+          id="how-it-works-title"
+          className="section-title"
+          initial="hidden"
+          animate={howItWorksInView ? "visible" : "hidden"}
+          variants={fadeInUp}
+        >
+          How It Works
+        </motion.h2>
+        <motion.div 
+          className="steps"
+          initial="hidden"
+          animate={howItWorksInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
+          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+            <div className="step-icon">💬</div>
             <div className="step-number">1</div>
             <h3>Describe your symptoms or health question</h3>
             <p>No signup needed. Just start talking about what's on your mind.</p>
-          </div>
-          <div className="step">
+          </motion.div>
+          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+            <div className="step-icon">🧠</div>
             <div className="step-number">2</div>
             <h3>Get clear, AI-powered health information and guidance</h3>
             <p>Receive empathetic, AI-powered responses tailored to your situation.</p>
-          </div>
-          <div className="step">
+          </motion.div>
+          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+            <div className="step-icon">🩺</div>
             <div className="step-number">3</div>
             <h3>Understand next steps and when to seek professional care</h3>
             <p>Use coping strategies and feel more calm and in control.</p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
-      <section className="informational-section">
-        <h2 className="section-title">What Doctor AI Bolit Can & Can't Do</h2>
-        <ul className="informational-list">
-          <li>Explain symptoms and health concepts</li>
-          <li>Provide general wellness guidance</li>
-          <li>Does NOT diagnose conditions</li>
-          <li>Does NOT prescribe medication</li>
-          <li>Does NOT replace a licensed doctor</li>
-        </ul>
+      <section className="informational-section" ref={infoRef} aria-labelledby="capabilities-title">
+        <motion.h2 
+          id="capabilities-title"
+          className="section-title"
+          initial="hidden"
+          animate={infoInView ? "visible" : "hidden"}
+          variants={fadeInUp}
+        >
+          What Doctor AI Bolit Can & Can't Do
+        </motion.h2>
+        <motion.ul 
+          className="informational-list"
+          initial="hidden"
+          animate={infoInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
+          <motion.li variants={fadeInUp}>✓ Explain symptoms and health concepts</motion.li>
+          <motion.li variants={fadeInUp}>✓ Provide general wellness guidance</motion.li>
+          <motion.li variants={fadeInUp}>✗ Does NOT diagnose conditions</motion.li>
+          <motion.li variants={fadeInUp}>✗ Does NOT prescribe medication</motion.li>
+          <motion.li variants={fadeInUp}>✗ Does NOT replace a licensed doctor</motion.li>
+        </motion.ul>
       </section>
 
-      <section className="pricing-preview">
-        <h2 className="section-title">Free Health Guidance — Pay Only If You Want More Messages</h2>
-        <div className="pricing-cards">
-          <div className="pricing-card free-card">
+      <section className="pricing-preview" ref={pricingRef} aria-labelledby="pricing-title">
+        <motion.h2 
+          id="pricing-title"
+          className="section-title"
+          initial="hidden"
+          animate={pricingInView ? "visible" : "hidden"}
+          variants={fadeInUp}
+        >
+          Free Health Guidance — Pay Only If You Want More Messages
+        </motion.h2>
+        <motion.div 
+          className="pricing-cards"
+          initial="hidden"
+          animate={pricingInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
+          <motion.div 
+            className="pricing-card free-card"
+            variants={fadeInUp}
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
             <h3>Free</h3>
             <p className="price">$0.00</p>
             <ul>
@@ -131,8 +237,8 @@ export default function LandingPage() {
               <li>Full AI quality</li>
               <li>Purchase more when needed</li>
             </ul>
-          </div>
-          {pricingPlans.map((plan) => {
+          </motion.div>
+          {pricingPlans.map((plan, index) => {
             // Force user-friendly names based on credits, regardless of plan.name
             let displayName = ""
             let displayDescription = ""
@@ -149,9 +255,12 @@ export default function LandingPage() {
             }
             
             return (
-              <div
+              <motion.div
                 key={plan.planId}
                 className={`pricing-card ${plan.isMostPopular ? 'featured' : ''}`}
+                variants={fadeInUp}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
               >
                 {plan.isMostPopular && (
                   <div className="featured-badge">Most Popular</div>
@@ -159,19 +268,37 @@ export default function LandingPage() {
                 <h3>{displayName}</h3>
                 <p className="price">{formatPrice(plan.price)}</p>
                 <p className="plan-description">{displayDescription}</p>
-                <Link to={`/chat?purchase=${plan.planId}`} className="plan-button">
+                <Link to={`/chat?purchase=${plan.planId}`} className="plan-button" aria-label={`Unlock ${plan.credits} messages for ${formatPrice(plan.price)}`}>
                   Unlock {plan.credits} Messages
                 </Link>
-              </div>
+              </motion.div>
             )
           })}
         </div>
         {pricingPlans.length === 0 && (
-          <p className="pricing-note">
+          <motion.p 
+            className="pricing-note"
+            initial="hidden"
+            animate={pricingInView ? "visible" : "hidden"}
+            variants={fadeInUp}
+          >
             Pricing plans are being configured. Free tier is always available.
-          </p>
+          </motion.p>
         )}
+        </motion.div>
       </section>
-    </div>
+
+      {/* Sticky CTA Button for Mobile */}
+      <motion.div 
+        className="sticky-cta-mobile"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        <Link to="/chat" className="sticky-cta-button" aria-label="Start chatting with AI health guidance">
+          Start Chatting
+        </Link>
+      </motion.div>
+    </main>
   )
 }

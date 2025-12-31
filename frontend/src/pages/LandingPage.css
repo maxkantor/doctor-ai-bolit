@@ -1,13 +1,13 @@
-/* Modern SaaS Landing Page - Professional & Calming */
+/* Modern Health-Trusting Landing Page - Professional & Calming */
 
 .landing-page {
   width: 100%;
   max-width: 100%;
   background: 
-    linear-gradient(135deg, #667eea15 0%, #764ba215 50%, #f5f7fa 100%),
-    radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.08) 0%, transparent 50%),
-    linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%);
+    linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(16, 185, 129, 0.08) 50%, #f0fdf4 100%),
+    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -24,16 +24,16 @@
   right: 0;
   bottom: 0;
   background-image: 
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(102, 126, 234, 0.02) 2px, rgba(102, 126, 234, 0.02) 4px),
-    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(118, 75, 162, 0.02) 2px, rgba(118, 75, 162, 0.02) 4px);
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(59, 130, 246, 0.02) 2px, rgba(59, 130, 246, 0.02) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(16, 185, 129, 0.02) 2px, rgba(16, 185, 129, 0.02) 4px);
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 /* Hero Section */
 .hero {
   position: relative;
-  padding: clamp(1rem, 2vh, 2rem) clamp(1rem, 4vw, 1.5rem) clamp(0.75rem, 1.5vh, 1rem);
+  padding: clamp(2rem, 5vh, 4rem) clamp(1rem, 4vw, 1.5rem) clamp(1.5rem, 3vh, 2.5rem);
   text-align: center;
   max-width: 1200px;
   width: 100%;
@@ -80,31 +80,42 @@
 
 .hero-free-text {
   font-size: clamp(0.875rem, 1.25vw, 1rem);
-  color: #667eea;
-  margin-bottom: 0.75rem;
-  font-weight: 500;
+  color: #10b981;
+  margin-bottom: 1rem;
+  font-weight: 600;
 }
 
 .cta-button {
   display: inline-block;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
   color: white;
-  padding: clamp(0.75rem, 1.5vh, 0.875rem) clamp(1.5rem, 4vw, 2rem);
+  padding: clamp(1rem, 2vh, 1.125rem) clamp(2rem, 5vw, 3rem);
   border-radius: 12px;
   text-decoration: none;
-  font-size: clamp(0.9375rem, 2vw, 1rem);
+  font-size: clamp(1rem, 2.5vw, 1.125rem);
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.3);
-  margin-bottom: 0.75rem;
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.4);
+  margin-bottom: 1.5rem;
   white-space: nowrap;
   max-width: calc(100% - 2rem);
   box-sizing: border-box;
+  cursor: pointer;
+  border: none;
+}
+
+.cta-button:focus {
+  outline: 3px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
 }
 
 .cta-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.5);
+}
+
+.cta-button:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .trust-badges {
@@ -164,13 +175,13 @@
 
 .informational-section {
   text-align: center;
-  padding: clamp(0.625rem, 1.5vh, 1rem) clamp(1rem, 3vw, 1.5rem);
+  padding: clamp(1.25rem, 3vh, 2rem) clamp(1rem, 3vw, 1.5rem);
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-radius: 12px;
-  border: 2px solid rgba(102, 126, 234, 0.15);
+  border-radius: 16px;
+  border: 2px solid rgba(59, 130, 246, 0.2);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  margin: clamp(0.5rem, 1vh, 1rem) auto;
+  margin: clamp(1rem, 2vh, 2rem) auto;
   max-width: 1000px;
   width: calc(100% - clamp(1rem, 4vw, 3rem));
   box-sizing: border-box;
@@ -190,13 +201,14 @@
 }
 
 .informational-list li {
-  padding: 0.25rem 0;
+  padding: 0.5rem 0;
   color: #4a5568;
-  font-size: 0.875rem;
-  line-height: 1.4;
-  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.1);
   min-width: 0;
   box-sizing: border-box;
+  font-weight: 500;
 }
 
 .informational-list li:last-child {
@@ -256,31 +268,39 @@
 }
 
 .step {
-  padding: clamp(0.875rem, 2vh, 1rem) clamp(0.75rem, 2vw, 0.875rem);
+  padding: clamp(1.25rem, 3vh, 1.75rem) clamp(1rem, 3vw, 1.25rem);
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
   text-align: center;
   height: 100%;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.15);
   box-sizing: border-box;
   min-width: 0;
+  cursor: default;
 }
 
 .step:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  border-color: rgba(102, 126, 234, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.step-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .step-number {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -289,7 +309,7 @@
   font-size: 1.125rem;
   font-weight: 700;
   margin: 0 auto 0.75rem;
-  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
 }
 
 .step h3 {
@@ -396,8 +416,8 @@
 }
 
 .pricing-card.featured {
-  border: 2px solid #667eea;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 249, 255, 0.98) 100%);
+  border: 2px solid #3b82f6;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 253, 244, 0.98) 100%);
 }
 
 .featured-badge {
@@ -405,13 +425,13 @@
   top: -8px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
   color: white;
-  padding: 0.2rem 0.625rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 12px;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
-  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
   white-space: nowrap;
   z-index: 10;
   max-width: calc(100% - 1rem);
@@ -433,7 +453,7 @@
 .pricing-card .price {
   font-size: clamp(1.25rem, 3vw, 1.5rem);
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -479,8 +499,8 @@
 .plan-button {
   display: inline-block;
   width: 100%;
-  padding: clamp(0.625rem, 1.5vh, 0.75rem) clamp(1rem, 3vw, 1.5rem);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: clamp(0.75rem, 2vh, 0.875rem) clamp(1rem, 3vw, 1.5rem);
+  background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -493,11 +513,21 @@
   box-sizing: border-box;
   white-space: normal;
   max-width: 100%;
+  cursor: pointer;
+}
+
+.plan-button:focus {
+  outline: 3px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
 }
 
 .plan-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.plan-button:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .pricing-note {
@@ -532,9 +562,9 @@
 
 .pricing-card li::before {
   content: "✓";
-  color: #48bb78;
+  color: #10b981;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.125rem;
   flex-shrink: 0;
 }
 
@@ -544,7 +574,7 @@
     overflow-x: hidden;
     height: auto;
     min-height: 100vh;
-    padding-bottom: 2rem;
+    padding-bottom: 5rem;
     width: 100%;
     max-width: 100%;
   }
@@ -569,8 +599,12 @@
   }
 
   .badge {
-    padding: 0.5rem 0.875rem;
-    font-size: 0.75rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+    min-height: 44px; /* Touch target */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .steps {
@@ -602,28 +636,37 @@
 
   .step,
   .pricing-card {
-    padding: 1rem 0.875rem;
-    padding-top: 1.25rem; /* Space for badge */
+    padding: 1.25rem 1rem;
+    padding-top: 1.5rem; /* Space for badge */
     min-height: auto;
   }
   
-  .pricing-card h3 {
+  .step h3 {
+    font-size: 1.125rem;
+  }
+
+  .step p {
     font-size: 0.9375rem;
   }
   
+  .pricing-card h3 {
+    font-size: 1.0625rem;
+  }
+  
   .pricing-card .price {
-    font-size: 1.375rem;
+    font-size: 1.5rem;
   }
   
   .plan-description {
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
     min-height: auto;
-    margin-bottom: 0.875rem;
+    margin-bottom: 1rem;
   }
   
   .plan-button {
-    padding: 0.625rem 1.25rem;
-    font-size: 0.8125rem;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9375rem;
+    min-height: 48px; /* Touch target */
   }
   
   .featured-badge {
@@ -724,15 +767,71 @@
   }
 }
 
+/* Sticky CTA Button for Mobile */
+.sticky-cta-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sticky-cta-mobile {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(59, 130, 246, 0.1);
+  }
+
+  .sticky-cta-button {
+    display: block;
+    width: 100%;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-size: 1.125rem;
+    font-weight: 600;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+  }
+
+  .sticky-cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  }
+
+  .sticky-cta-button:active {
+    transform: translateY(0);
+  }
+
+  .sticky-cta-button:focus {
+    outline: 3px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+  }
+
+  /* Add padding to bottom of landing page to account for sticky button */
+  .landing-page {
+    padding-bottom: 5rem;
+  }
+}
+
 @media (max-width: 480px) {
   .landing-page {
-    padding-bottom: 1.5rem;
+    padding-bottom: 5.5rem;
     width: 100%;
     max-width: 100%;
   }
   
   .hero {
-    padding: clamp(1rem, 2.5vh, 1.25rem) clamp(0.5rem, 3vw, 0.75rem) clamp(0.5rem, 1.5vh, 0.75rem);
+    padding: clamp(1.5rem, 4vh, 2rem) clamp(0.75rem, 4vw, 1rem) clamp(1rem, 2vh, 1.5rem);
     width: 100%;
     max-width: 100%;
   }
@@ -753,9 +852,10 @@
   }
 
   .cta-button {
-    padding: 0.75rem 1.5rem;
-    font-size: 0.9375rem;
-    margin-bottom: 1rem;
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+    min-height: 48px; /* Touch target size */
   }
   
   .how-it-works,
@@ -796,8 +896,9 @@
   }
   
   .plan-button {
-    padding: 0.5625rem 1rem;
-    font-size: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.875rem;
+    min-height: 44px; /* Touch target size */
   }
   
   .pricing-card.free-card {
