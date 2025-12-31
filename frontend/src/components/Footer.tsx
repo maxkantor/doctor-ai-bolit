@@ -31,7 +31,7 @@ export default function Footer() {
           </div>
           <div className="footer-copyright">
             <p className="footer-safety">If this is a medical emergency, contact emergency services immediately.</p>
-            <p>&copy; {new Date().getFullYear()} DoctorAibolit. Not a medical service.</p>
+            <p>&copy; {new Date().getFullYear()} DoctorAIBolit. Not a medical service.</p>
           </div>
         </div>
       </footer>
