@@ -146,67 +146,6 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <section className="how-it-works" ref={howItWorksRef} aria-labelledby="how-it-works-title">
-        <motion.h2 
-          id="how-it-works-title"
-          className="section-title"
-          initial="hidden"
-          animate={howItWorksInView ? "visible" : "hidden"}
-          variants={fadeInUp}
-        >
-          How It Works
-        </motion.h2>
-        <motion.div 
-          className="steps"
-          initial="hidden"
-          animate={howItWorksInView ? "visible" : "hidden"}
-          variants={staggerContainer}
-        >
-          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
-            <div className="step-icon">💬</div>
-            <div className="step-number">1</div>
-            <h3>Describe your symptoms or health question</h3>
-            <p>No signup needed. Our AI symptom checker helps you understand your health questions privately and anonymously.</p>
-          </motion.div>
-          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
-            <div className="step-icon">🧠</div>
-            <div className="step-number">2</div>
-            <h3>Get clear, AI-powered health information and guidance</h3>
-            <p>Receive empathetic, AI-powered health guidance and wellness advice tailored to your situation.</p>
-          </motion.div>
-          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
-            <div className="step-icon">🩺</div>
-            <div className="step-number">3</div>
-            <h3>Understand next steps and when to seek professional care</h3>
-            <p>Get guidance on next steps and learn when to seek professional medical care. Use coping strategies and feel more calm and in control.</p>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      <section className="informational-section" ref={infoRef} aria-labelledby="capabilities-title">
-        <motion.h2 
-          id="capabilities-title"
-          className="section-title"
-          initial="hidden"
-          animate={infoInView ? "visible" : "hidden"}
-          variants={fadeInUp}
-        >
-          What Doctor AI Bolit Can & Can't Do
-        </motion.h2>
-        <motion.ul 
-          className="informational-list"
-          initial="hidden"
-          animate={infoInView ? "visible" : "hidden"}
-          variants={staggerContainer}
-        >
-          <motion.li variants={fadeInUp}>✓ Explain symptoms and health concepts</motion.li>
-          <motion.li variants={fadeInUp}>✓ Provide general wellness guidance</motion.li>
-          <motion.li variants={fadeInUp}>✗ Does NOT diagnose conditions</motion.li>
-          <motion.li variants={fadeInUp}>✗ Does NOT prescribe medication</motion.li>
-          <motion.li variants={fadeInUp}>✗ Does NOT replace a licensed doctor</motion.li>
-        </motion.ul>
-      </section>
-
       <section className="pricing-preview" ref={pricingRef} aria-labelledby="pricing-title">
         <motion.h2 
           id="pricing-title"
@@ -285,6 +224,67 @@ export default function LandingPage() {
             </motion.p>
           )}
         </motion.div>
+      </section>
+
+      <section className="how-it-works" ref={howItWorksRef} aria-labelledby="how-it-works-title">
+        <motion.h2 
+          id="how-it-works-title"
+          className="section-title"
+          initial="hidden"
+          animate={howItWorksInView ? "visible" : "hidden"}
+          variants={fadeInUp}
+        >
+          How It Works
+        </motion.h2>
+        <motion.div 
+          className="steps"
+          initial="hidden"
+          animate={howItWorksInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
+          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+            <div className="step-icon">💬</div>
+            <div className="step-number">1</div>
+            <h3>Describe your symptoms or health question</h3>
+            <p>No signup needed. Our AI symptom checker helps you understand your health questions privately and anonymously.</p>
+          </motion.div>
+          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+            <div className="step-icon">🧠</div>
+            <div className="step-number">2</div>
+            <h3>Get clear, AI-powered health information and guidance</h3>
+            <p>Receive empathetic, AI-powered health guidance and wellness advice tailored to your situation.</p>
+          </motion.div>
+          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+            <div className="step-icon">🩺</div>
+            <div className="step-number">3</div>
+            <h3>Understand next steps and when to seek professional care</h3>
+            <p>Get guidance on next steps and learn when to seek professional medical care. Use coping strategies and feel more calm and in control.</p>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      <section className="informational-section" ref={infoRef} aria-labelledby="capabilities-title">
+        <motion.h2 
+          id="capabilities-title"
+          className="section-title"
+          initial="hidden"
+          animate={infoInView ? "visible" : "hidden"}
+          variants={fadeInUp}
+        >
+          What Doctor AI Bolit Can & Can't Do
+        </motion.h2>
+        <motion.ul 
+          className="informational-list"
+          initial="hidden"
+          animate={infoInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
+          <motion.li variants={fadeInUp}>✓ Explain symptoms and health concepts</motion.li>
+          <motion.li variants={fadeInUp}>✓ Provide general wellness guidance</motion.li>
+          <motion.li variants={fadeInUp}>✗ Does NOT diagnose conditions</motion.li>
+          <motion.li variants={fadeInUp}>✗ Does NOT prescribe medication</motion.li>
+          <motion.li variants={fadeInUp}>✗ Does NOT replace a licensed doctor</motion.li>
+        </motion.ul>
       </section>
 
       {/* Sticky CTA Button for Mobile */}
