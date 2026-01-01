@@ -37,9 +37,58 @@ export default function PaywallModal({
         filteredPlans = filteredPlans.filter(p => p.planId === selectedPlanId)
       }
       
+      // If no plans loaded, provide default plans as fallback
+      if (filteredPlans.length === 0) {
+        filteredPlans = [
+          {
+            planId: 'default-20',
+            name: '20 Messages',
+            price: 1.99,
+            credits: 20,
+            description: 'Continue your conversation with 20 additional messages.',
+            isActive: true,
+            isMostPopular: true,
+            displayOrder: 1,
+          },
+          {
+            planId: 'default-50',
+            name: '50 Messages',
+            price: 3.99,
+            credits: 50,
+            description: 'Extended support with 50 additional messages for ongoing conversations.',
+            isActive: true,
+            isMostPopular: false,
+            displayOrder: 2,
+          },
+        ]
+      }
+      
       setPlans(filteredPlans)
     } catch (error) {
       console.error('Failed to load plans:', error)
+      // Set default plans on error
+      setPlans([
+        {
+          planId: 'default-20',
+          name: '20 Messages',
+          price: 1.99,
+          credits: 20,
+          description: 'Continue your conversation with 20 additional messages.',
+          isActive: true,
+          isMostPopular: true,
+          displayOrder: 1,
+        },
+        {
+          planId: 'default-50',
+          name: '50 Messages',
+          price: 3.99,
+          credits: 50,
+          description: 'Extended support with 50 additional messages for ongoing conversations.',
+          isActive: true,
+          isMostPopular: false,
+          displayOrder: 2,
+        },
+      ])
     } finally {
       setIsLoading(false)
     }
@@ -80,8 +129,13 @@ export default function PaywallModal({
         <div className="paywall-content">
           {isLoading ? (
             <div className="loading-plans">Loading plans...</div>
+          ) : plans.length === 0 ? (
+            <div className="loading-plans">No plans available. Please try again later.</div>
           ) : (
             <>
+              <p className="paywall-message">
+                Choose a plan to continue your conversation and get more AI health guidance.
+              </p>
               <div className="pricing-plans">
                 {plans.map((plan) => (
                   <div
@@ -100,7 +154,7 @@ export default function PaywallModal({
                       disabled={isProcessing}
                       className={`plan-button ${plan.isMostPopular ? 'popular-button' : ''}`}
                     >
-                      {isProcessing ? 'Processing...' : 'Purchase'}
+                      {isProcessing ? 'Processing...' : `Unlock ${plan.credits} Messages`}
                     </button>
                   </div>
                 ))}
