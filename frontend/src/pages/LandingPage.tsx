@@ -97,7 +97,7 @@ export default function LandingPage() {
             animate={heroInView ? "visible" : "hidden"}
             variants={fadeInUp}
           >
-            AI Health Guidance When You Need It Most
+            AI Health Guidance & Private Symptom Support
           </motion.h1>
           <motion.p 
             className="hero-subtitle"
@@ -105,7 +105,7 @@ export default function LandingPage() {
             animate={heroInView ? "visible" : "hidden"}
             variants={fadeInUp}
           >
-            Get instant, private answers about symptoms, wellness, and next steps — no signup required.
+            Get instant, private answers about symptoms, wellness, and next steps with our AI health information chatbot — no signup required.
           </motion.p>
           <motion.p 
             className="hero-free-text"
@@ -166,19 +166,19 @@ export default function LandingPage() {
             <div className="step-icon">💬</div>
             <div className="step-number">1</div>
             <h3>Describe your symptoms or health question</h3>
-            <p>No signup needed. Just start talking about what's on your mind.</p>
+            <p>No signup needed. Our AI symptom checker helps you understand your health questions privately and anonymously.</p>
           </motion.div>
           <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
             <div className="step-icon">🧠</div>
             <div className="step-number">2</div>
             <h3>Get clear, AI-powered health information and guidance</h3>
-            <p>Receive empathetic, AI-powered responses tailored to your situation.</p>
+            <p>Receive empathetic, AI-powered health guidance and wellness advice tailored to your situation.</p>
           </motion.div>
           <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
             <div className="step-icon">🩺</div>
             <div className="step-number">3</div>
             <h3>Understand next steps and when to seek professional care</h3>
-            <p>Use coping strategies and feel more calm and in control.</p>
+            <p>Get guidance on next steps and learn when to seek professional medical care. Use coping strategies and feel more calm and in control.</p>
           </motion.div>
         </motion.div>
       </section>
