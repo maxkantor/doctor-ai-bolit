@@ -73,6 +73,13 @@
   min-height: 0;
 }
 
+.pricing-plans-single {
+  grid-template-columns: 1fr;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .pricing-plan {
   border: 2px solid #e5e7eb;
   border-radius: 12px;
@@ -189,6 +196,24 @@
 .end-session-btn:hover {
   background: #f9fafb;
   border-color: #d1d5db;
+}
+
+.back-to-plans-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 0;
+  margin-bottom: 16px;
+  text-align: left;
+  transition: color 0.2s;
+}
+
+.back-to-plans-btn:hover {
+  color: #2563eb;
+  text-decoration: underline;
 }
 
 .loading-plans {
