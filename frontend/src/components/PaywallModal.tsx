@@ -17,28 +17,30 @@ export default function PaywallModal({
   freeMessageLimit,
   onClose,
   onPurchaseComplete,
-  selectedPlanId,
+  selectedPlanId: propSelectedPlanId,
 }: PaywallModalProps) {
-  const [plans, setPlans] = useState<PricingPlan[]>([])
   const [allPlans, setAllPlans] = useState<PricingPlan[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [selectedPlanIdState, setSelectedPlanIdState] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'all' | 'single'>(propSelectedPlanId ? 'single' : 'all')
+  const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null)
 
   useEffect(() => {
     loadPlans()
-    // Reset selectedPlanIdState when plans are reloaded (e.g., if prop selectedPlanId changes)
-    setSelectedPlanIdState(null)
-  }, [selectedPlanId])
+  }, [propSelectedPlanId])
 
   const loadPlans = async () => {
     try {
       const activePlans = await pricingService.getPlans()
       let filteredPlans = activePlans.filter(p => p.isActive).sort((a, b) => a.displayOrder - b.displayOrder)
       
-      // If selectedPlanId is provided, show only that plan
-      if (selectedPlanId) {
-        filteredPlans = filteredPlans.filter(p => p.planId === selectedPlanId)
+      // If propSelectedPlanId is provided, show only that plan
+      if (propSelectedPlanId) {
+        filteredPlans = filteredPlans.filter(p => p.planId === propSelectedPlanId)
+        if (filteredPlans.length > 0) {
+          setSelectedPlan(filteredPlans[0])
+          setViewMode('single')
+        }
       }
       
       // If no plans loaded, provide default plans as fallback
@@ -68,7 +70,6 @@ export default function PaywallModal({
       }
       
       setAllPlans(filteredPlans)
-      setPlans(filteredPlans)
     } catch (error) {
       console.error('Failed to load plans:', error)
       // Set default plans on error
@@ -95,33 +96,21 @@ export default function PaywallModal({
         },
       ]
       setAllPlans(defaultPlans)
-      setPlans(defaultPlans)
     } finally {
       setIsLoading(false)
     }
   }
 
   const handlePlanSelect = (plan: PricingPlan) => {
-    // Show only the selected plan by filtering plans array
-    console.log('Selecting plan:', plan.name, plan.planId, 'Current plans:', plans.length)
-    // Update both states in a way that ensures React sees the change
-    setSelectedPlanIdState(plan.planId)
-    // Force update by creating a new array reference
-    const singlePlan = [plan]
-    console.log('Setting plans to:', singlePlan.length, 'plan(s)')
-    setPlans(singlePlan)
+    console.log('Selecting plan:', plan.name, plan.planId)
+    setSelectedPlan(plan)
+    setViewMode('single')
   }
 
   const handleBack = () => {
-    // Show all plans again
     console.log('Going back to all plans')
-    setSelectedPlanIdState(null)
-    if (selectedPlanId) {
-      const filtered = allPlans.filter(p => p.planId === selectedPlanId)
-      setPlans(filtered.length > 0 ? filtered : allPlans)
-    } else {
-      setPlans(allPlans)
-    }
+    setSelectedPlan(null)
+    setViewMode('all')
   }
 
   const handlePurchase = async (plan: PricingPlan) => {
@@ -148,6 +137,9 @@ export default function PaywallModal({
     }).format(price)
   }
 
+  // Determine which plans to display
+  const displayPlans = viewMode === 'single' && selectedPlan ? [selectedPlan] : allPlans
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="paywall-modal" onClick={(e) => e.stopPropagation()}>
@@ -159,77 +151,70 @@ export default function PaywallModal({
         <div className="paywall-content">
           {isLoading ? (
             <div className="loading-plans">Loading plans...</div>
-          ) : selectedPlanIdState ? (
-            <>
-              <button onClick={handleBack} className="back-to-plans-btn">
-                ← Back to all plans
-              </button>
-              <p className="paywall-message">
-                Confirm your selection to continue your conversation.
-              </p>
-              <div className="pricing-plans pricing-plans-single">
-                {(() => {
-                  // Find the selected plan from allPlans or use the single plan in plans array
-                  const planToShow = allPlans.find(p => p.planId === selectedPlanIdState) || plans[0]
-                  if (!planToShow) return <div>Plan not found</div>
-                  
-                  return (
-                    <div
-                      key={planToShow.planId}
-                      className={`pricing-plan ${planToShow.isMostPopular ? 'most-popular' : ''}`}
-                    >
-                      {planToShow.isMostPopular && (
-                        <div className="popular-badge">Most Popular</div>
-                      )}
-                      <h3>{planToShow.name}</h3>
-                      <div className="plan-price">{formatPrice(planToShow.price)}</div>
-                      <div className="plan-credits">{planToShow.credits} messages</div>
-                      <p className="plan-description">{planToShow.description}</p>
-                      <button
-                        onClick={() => handlePurchase(planToShow)}
-                        disabled={isProcessing}
-                        className={`plan-button ${planToShow.isMostPopular ? 'popular-button' : ''}`}
-                      >
-                        {isProcessing ? 'Processing...' : `Purchase ${planToShow.credits} Messages`}
-                      </button>
-                    </div>
-                  )
-                })()}
-              </div>
-              <button onClick={onClose} className="end-session-btn">
-                End session
-              </button>
-            </>
+          ) : displayPlans.length === 0 ? (
+            <div className="loading-plans">No plans available. Please try again later.</div>
           ) : (
             <>
-              <p className="paywall-message">
-                Choose a plan to continue your conversation and get more AI health guidance.
-              </p>
-              <div className="pricing-plans">
-                {(allPlans.length > 0 ? allPlans : plans).map((plan) => (
-                  <div
-                    key={plan.planId}
-                    className={`pricing-plan ${plan.isMostPopular ? 'most-popular' : ''}`}
-                  >
-                    {plan.isMostPopular && (
-                      <div className="popular-badge">Most Popular</div>
-                    )}
-                    <h3>{plan.name}</h3>
-                    <div className="plan-price">{formatPrice(plan.price)}</div>
-                    <div className="plan-credits">{plan.credits} messages</div>
-                    <p className="plan-description">{plan.description}</p>
-                    <button
-                      onClick={() => {
-                        console.log('Button clicked for plan:', plan.name)
-                        handlePlanSelect(plan)
-                      }}
-                      className={`plan-button ${plan.isMostPopular ? 'popular-button' : ''}`}
+              {viewMode === 'single' && selectedPlan ? (
+                <>
+                  <button onClick={handleBack} className="back-to-plans-btn">
+                    ← Back to all plans
+                  </button>
+                  <p className="paywall-message">
+                    Confirm your selection to continue your conversation.
+                  </p>
+                  <div className="pricing-plans pricing-plans-single">
+                    <div
+                      key={selectedPlan.planId}
+                      className={`pricing-plan ${selectedPlan.isMostPopular ? 'most-popular' : ''}`}
                     >
-                      {`Unlock ${plan.credits} Messages`}
-                    </button>
+                      {selectedPlan.isMostPopular && (
+                        <div className="popular-badge">Most Popular</div>
+                      )}
+                      <h3>{selectedPlan.name}</h3>
+                      <div className="plan-price">{formatPrice(selectedPlan.price)}</div>
+                      <div className="plan-credits">{selectedPlan.credits} messages</div>
+                      <p className="plan-description">{selectedPlan.description}</p>
+                      <button
+                        onClick={() => handlePurchase(selectedPlan)}
+                        disabled={isProcessing}
+                        className={`plan-button ${selectedPlan.isMostPopular ? 'popular-button' : ''}`}
+                      >
+                        {isProcessing ? 'Processing...' : `Purchase ${selectedPlan.credits} Messages`}
+                      </button>
+                    </div>
                   </div>
-                ))}
-              </div>
+                </>
+              ) : (
+                <>
+                  <p className="paywall-message">
+                    Choose a plan to continue your conversation and get more AI health guidance.
+                  </p>
+                  <div className="pricing-plans">
+                    {allPlans.map((plan) => (
+                      <div
+                        key={plan.planId}
+                        className={`pricing-plan ${plan.isMostPopular ? 'most-popular' : ''}`}
+                      >
+                        {plan.isMostPopular && (
+                          <div className="popular-badge">Most Popular</div>
+                        )}
+                        <h3>{plan.name}</h3>
+                        <div className="plan-price">{formatPrice(plan.price)}</div>
+                        <div className="plan-credits">{plan.credits} messages</div>
+                        <p className="plan-description">{plan.description}</p>
+                        <button
+                          onClick={() => handlePlanSelect(plan)}
+                          className={`plan-button ${plan.isMostPopular ? 'popular-button' : ''}`}
+                        >
+                          {`Unlock ${plan.credits} Messages`}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
               <button onClick={onClose} className="end-session-btn">
                 End session
               </button>
@@ -245,4 +230,3 @@ export default function PaywallModal({
     </div>
   )
 }
-
