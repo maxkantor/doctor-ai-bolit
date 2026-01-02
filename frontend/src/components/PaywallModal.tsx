@@ -31,25 +31,11 @@ export default function PaywallModal({
   const loadPlans = async () => {
     try {
       const activePlans = await pricingService.getPlans()
-      let filteredPlans = activePlans.filter(p => p.isActive).sort((a, b) => a.displayOrder - b.displayOrder)
+      let allActivePlans = activePlans.filter(p => p.isActive).sort((a, b) => a.displayOrder - b.displayOrder)
       
-      // If propSelectedPlanId is provided, show only that plan
-      if (propSelectedPlanId) {
-        filteredPlans = filteredPlans.filter(p => p.planId === propSelectedPlanId)
-        if (filteredPlans.length > 0) {
-          setSelectedPlan(filteredPlans[0])
-        }
-      } else {
-        // Default: show the most popular plan, or first plan if none is marked as most popular
-        const mostPopular = filteredPlans.find(p => p.isMostPopular) || filteredPlans[0]
-        if (mostPopular) {
-          setSelectedPlan(mostPopular)
-        }
-      }
-      
-      // If no plans loaded, provide default plans as fallback
-      if (filteredPlans.length === 0) {
-        filteredPlans = [
+      // If no plans loaded from API, use default plans
+      if (allActivePlans.length === 0) {
+        allActivePlans = [
           {
             planId: 'default-20',
             name: '20 Messages',
@@ -71,11 +57,50 @@ export default function PaywallModal({
             displayOrder: 2,
           },
         ]
-        // Set the most popular plan as selected
-        setSelectedPlan(filteredPlans[0])
       }
       
-      setAllPlans(filteredPlans)
+      setAllPlans(allActivePlans)
+      
+      // Determine which plan to show
+      if (propSelectedPlanId) {
+        // Try to find plan by exact planId match
+        let foundPlan = allActivePlans.find(p => p.planId === propSelectedPlanId)
+        
+        // If not found, try to infer from planId (e.g., if it contains "50" or "20")
+        if (!foundPlan) {
+          if (propSelectedPlanId.includes('50') || propSelectedPlanId.toLowerCase().includes('fifty')) {
+            foundPlan = allActivePlans.find(p => p.credits === 50 || p.price === 3.99)
+          } else if (propSelectedPlanId.includes('20') || propSelectedPlanId.toLowerCase().includes('twenty')) {
+            foundPlan = allActivePlans.find(p => p.credits === 20 || p.price === 1.99)
+          }
+        }
+        
+        // If still not found, try matching by credits or price from the planId context
+        if (!foundPlan) {
+          // Try to find by matching the planId with any plan that has similar characteristics
+          // This is a fallback for edge cases
+          foundPlan = allActivePlans.find(p => 
+            p.planId === propSelectedPlanId || 
+            (propSelectedPlanId && p.planId && p.planId.toLowerCase() === propSelectedPlanId.toLowerCase())
+          )
+        }
+        
+        if (foundPlan) {
+          setSelectedPlan(foundPlan)
+        } else {
+          // Fallback: show most popular if selected plan not found
+          const mostPopular = allActivePlans.find(p => p.isMostPopular) || allActivePlans[0]
+          if (mostPopular) {
+            setSelectedPlan(mostPopular)
+          }
+        }
+      } else {
+        // Default: show the most popular plan, or first plan if none is marked as most popular
+        const mostPopular = allActivePlans.find(p => p.isMostPopular) || allActivePlans[0]
+        if (mostPopular) {
+          setSelectedPlan(mostPopular)
+        }
+      }
     } catch (error) {
       console.error('Failed to load plans:', error)
       // Set default plans on error
@@ -85,7 +110,7 @@ export default function PaywallModal({
           name: '20 Messages',
           price: 1.99,
           credits: 20,
-          description: 'Continue your conversation with 20 additional messages.',
+          description: 'Continue your conversation with 20 additional messages whenever you need support.',
           isActive: true,
           isMostPopular: true,
           displayOrder: 1,
@@ -102,8 +127,17 @@ export default function PaywallModal({
         },
       ]
       setAllPlans(defaultPlans)
-      // Set the most popular plan as selected
-      setSelectedPlan(defaultPlans[0])
+      
+      // If propSelectedPlanId is provided, try to find matching default plan
+      if (propSelectedPlanId) {
+        if (propSelectedPlanId.includes('50') || propSelectedPlanId === 'default-50') {
+          setSelectedPlan(defaultPlans[1]) // 50 Messages
+        } else {
+          setSelectedPlan(defaultPlans[0]) // 20 Messages (default)
+        }
+      } else {
+        setSelectedPlan(defaultPlans[0]) // Most popular
+      }
     } finally {
       setIsLoading(false)
     }
