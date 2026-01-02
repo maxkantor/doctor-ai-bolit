@@ -27,6 +27,8 @@ export default function PaywallModal({
 
   useEffect(() => {
     loadPlans()
+    // Reset selectedPlan when plans are reloaded (e.g., if selectedPlanId changes)
+    setSelectedPlan(null)
   }, [selectedPlanId])
 
   const loadPlans = async () => {
@@ -101,8 +103,9 @@ export default function PaywallModal({
 
   const handlePlanSelect = (plan: PricingPlan) => {
     // Show only the selected plan
+    console.log('Selecting plan:', plan.name)
     setSelectedPlan(plan)
-    setPlans([plan])
+    // Don't update plans here - let the render use selectedPlan
   }
 
   const handleBack = () => {
@@ -155,7 +158,7 @@ export default function PaywallModal({
             <div className="loading-plans">No plans available. Please try again later.</div>
           ) : (
             <>
-              {selectedPlan ? (
+              {selectedPlan !== null ? (
                 <>
                   <button onClick={handleBack} className="back-to-plans-btn">
                     ← Back to all plans
