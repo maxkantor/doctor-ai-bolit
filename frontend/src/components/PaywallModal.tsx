@@ -155,68 +155,69 @@ export default function PaywallModal({
         <div className="paywall-content">
           {isLoading ? (
             <div className="loading-plans">Loading plans...</div>
+          ) : selectedPlan ? (
+            <>
+              <button onClick={handleBack} className="back-to-plans-btn">
+                ← Back to all plans
+              </button>
+              <p className="paywall-message">
+                Confirm your selection to continue your conversation.
+              </p>
+              <div className="pricing-plans pricing-plans-single">
+                <div
+                  key={selectedPlan.planId}
+                  className={`pricing-plan ${selectedPlan.isMostPopular ? 'most-popular' : ''}`}
+                >
+                  {selectedPlan.isMostPopular && (
+                    <div className="popular-badge">Most Popular</div>
+                  )}
+                  <h3>{selectedPlan.name}</h3>
+                  <div className="plan-price">{formatPrice(selectedPlan.price)}</div>
+                  <div className="plan-credits">{selectedPlan.credits} messages</div>
+                  <p className="plan-description">{selectedPlan.description}</p>
+                  <button
+                    onClick={() => handlePurchase(selectedPlan)}
+                    disabled={isProcessing}
+                    className={`plan-button ${selectedPlan.isMostPopular ? 'popular-button' : ''}`}
+                  >
+                    {isProcessing ? 'Processing...' : `Purchase ${selectedPlan.credits} Messages`}
+                  </button>
+                </div>
+              </div>
+              <button onClick={onClose} className="end-session-btn">
+                End session
+              </button>
+            </>
           ) : (
             <>
-              {selectedPlan ? (
-                <>
-                  <button onClick={handleBack} className="back-to-plans-btn">
-                    ← Back to all plans
-                  </button>
-                  <p className="paywall-message">
-                    Confirm your selection to continue your conversation.
-                  </p>
-                  <div className="pricing-plans pricing-plans-single">
-                    <div
-                      key={selectedPlan.planId}
-                      className={`pricing-plan ${selectedPlan.isMostPopular ? 'most-popular' : ''}`}
+              <p className="paywall-message">
+                Choose a plan to continue your conversation and get more AI health guidance.
+              </p>
+              <div className="pricing-plans">
+                {(allPlans.length > 0 ? allPlans : plans).map((plan) => (
+                  <div
+                    key={plan.planId}
+                    className={`pricing-plan ${plan.isMostPopular ? 'most-popular' : ''}`}
+                  >
+                    {plan.isMostPopular && (
+                      <div className="popular-badge">Most Popular</div>
+                    )}
+                    <h3>{plan.name}</h3>
+                    <div className="plan-price">{formatPrice(plan.price)}</div>
+                    <div className="plan-credits">{plan.credits} messages</div>
+                    <p className="plan-description">{plan.description}</p>
+                    <button
+                      onClick={() => {
+                        console.log('Button clicked for plan:', plan.name)
+                        handlePlanSelect(plan)
+                      }}
+                      className={`plan-button ${plan.isMostPopular ? 'popular-button' : ''}`}
                     >
-                      {selectedPlan.isMostPopular && (
-                        <div className="popular-badge">Most Popular</div>
-                      )}
-                      <h3>{selectedPlan.name}</h3>
-                      <div className="plan-price">{formatPrice(selectedPlan.price)}</div>
-                      <div className="plan-credits">{selectedPlan.credits} messages</div>
-                      <p className="plan-description">{selectedPlan.description}</p>
-                      <button
-                        onClick={() => handlePurchase(selectedPlan)}
-                        disabled={isProcessing}
-                        className={`plan-button ${selectedPlan.isMostPopular ? 'popular-button' : ''}`}
-                      >
-                        {isProcessing ? 'Processing...' : `Purchase ${selectedPlan.credits} Messages`}
-                      </button>
-                    </div>
+                      {`Unlock ${plan.credits} Messages`}
+                    </button>
                   </div>
-                </>
-              ) : (
-                <>
-                  <p className="paywall-message">
-                    Choose a plan to continue your conversation and get more AI health guidance.
-                  </p>
-                  <div className="pricing-plans">
-                    {(allPlans.length > 0 ? allPlans : plans).map((plan) => (
-                      <div
-                        key={plan.planId}
-                        className={`pricing-plan ${plan.isMostPopular ? 'most-popular' : ''}`}
-                      >
-                        {plan.isMostPopular && (
-                          <div className="popular-badge">Most Popular</div>
-                        )}
-                        <h3>{plan.name}</h3>
-                        <div className="plan-price">{formatPrice(plan.price)}</div>
-                        <div className="plan-credits">{plan.credits} messages</div>
-                        <p className="plan-description">{plan.description}</p>
-                        <button
-                          onClick={() => handlePlanSelect(plan)}
-                          className={`plan-button ${plan.isMostPopular ? 'popular-button' : ''}`}
-                        >
-                          {`Unlock ${plan.credits} Messages`}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-
+                ))}
+              </div>
               <button onClick={onClose} className="end-session-btn">
                 End session
               </button>
