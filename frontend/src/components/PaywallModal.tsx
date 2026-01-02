@@ -102,14 +102,15 @@ export default function PaywallModal({
   }
 
   const handlePlanSelect = (plan: PricingPlan) => {
-    // Show only the selected plan
-    console.log('Selecting plan:', plan.name)
+    // Show only the selected plan - update both selectedPlan and plans
+    console.log('Selecting plan:', plan.name, plan.planId)
     setSelectedPlan(plan)
-    // Don't update plans here - let the render use selectedPlan
+    setPlans([plan]) // Also update plans to ensure only one is shown
   }
 
   const handleBack = () => {
     // Show all plans again
+    console.log('Going back to all plans')
     setSelectedPlan(null)
     if (selectedPlanId) {
       const filtered = allPlans.filter(p => p.planId === selectedPlanId)
@@ -194,7 +195,7 @@ export default function PaywallModal({
                     Choose a plan to continue your conversation and get more AI health guidance.
                   </p>
                   <div className="pricing-plans">
-                    {plans.map((plan) => (
+                    {allPlans.length > 0 ? allPlans.map((plan) => (
                       <div
                         key={plan.planId}
                         className={`pricing-plan ${plan.isMostPopular ? 'most-popular' : ''}`}
@@ -207,7 +208,34 @@ export default function PaywallModal({
                         <div className="plan-credits">{plan.credits} messages</div>
                         <p className="plan-description">{plan.description}</p>
                         <button
-                          onClick={() => handlePlanSelect(plan)}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            handlePlanSelect(plan)
+                          }}
+                          className={`plan-button ${plan.isMostPopular ? 'popular-button' : ''}`}
+                        >
+                          {`Unlock ${plan.credits} Messages`}
+                        </button>
+                      </div>
+                    )) : plans.map((plan) => (
+                      <div
+                        key={plan.planId}
+                        className={`pricing-plan ${plan.isMostPopular ? 'most-popular' : ''}`}
+                      >
+                        {plan.isMostPopular && (
+                          <div className="popular-badge">Most Popular</div>
+                        )}
+                        <h3>{plan.name}</h3>
+                        <div className="plan-price">{formatPrice(plan.price)}</div>
+                        <div className="plan-credits">{plan.credits} messages</div>
+                        <p className="plan-description">{plan.description}</p>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            handlePlanSelect(plan)
+                          }}
                           className={`plan-button ${plan.isMostPopular ? 'popular-button' : ''}`}
                         >
                           {`Unlock ${plan.credits} Messages`}
