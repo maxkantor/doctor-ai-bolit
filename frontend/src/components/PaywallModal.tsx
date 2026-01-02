@@ -156,35 +156,27 @@ export default function PaywallModal({
           ) : (
             <>
               {viewMode === 'single' && selectedPlan ? (
-                <>
-                  <button onClick={handleBack} className="back-to-plans-btn">
-                    ← Back to all plans
-                  </button>
-                  <p className="paywall-message">
-                    Confirm your selection to continue your conversation.
-                  </p>
-                  <div className="pricing-plans pricing-plans-single">
-                    <div
-                      key={selectedPlan.planId}
-                      className={`pricing-plan ${selectedPlan.isMostPopular ? 'most-popular' : ''}`}
+                <div className="pricing-plans pricing-plans-single">
+                  <div
+                    key={selectedPlan.planId}
+                    className={`pricing-plan ${selectedPlan.isMostPopular ? 'most-popular' : ''}`}
+                  >
+                    {selectedPlan.isMostPopular && (
+                      <div className="popular-badge">Most Popular</div>
+                    )}
+                    <h3>{selectedPlan.name}</h3>
+                    <div className="plan-price">{formatPrice(selectedPlan.price)}</div>
+                    <div className="plan-credits">{selectedPlan.credits} messages</div>
+                    <p className="plan-description">{selectedPlan.description}</p>
+                    <button
+                      onClick={() => handlePurchase(selectedPlan)}
+                      disabled={isProcessing}
+                      className={`plan-button ${selectedPlan.isMostPopular ? 'popular-button' : ''}`}
                     >
-                      {selectedPlan.isMostPopular && (
-                        <div className="popular-badge">Most Popular</div>
-                      )}
-                      <h3>{selectedPlan.name}</h3>
-                      <div className="plan-price">{formatPrice(selectedPlan.price)}</div>
-                      <div className="plan-credits">{selectedPlan.credits} messages</div>
-                      <p className="plan-description">{selectedPlan.description}</p>
-                      <button
-                        onClick={() => handlePurchase(selectedPlan)}
-                        disabled={isProcessing}
-                        className={`plan-button ${selectedPlan.isMostPopular ? 'popular-button' : ''}`}
-                      >
-                        {isProcessing ? 'Processing...' : `Purchase ${selectedPlan.credits} Messages`}
-                      </button>
-                    </div>
+                      {isProcessing ? 'Processing...' : 'Purchase'}
+                    </button>
                   </div>
-                </>
+                </div>
               ) : (
                 <>
                   <p className="paywall-message">
