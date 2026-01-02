@@ -103,8 +103,9 @@ export default function PaywallModal({
 
   const handlePlanSelect = (plan: PricingPlan) => {
     // Show only the selected plan
-    console.log('Selecting plan:', plan.name, plan.planId, plan)
-    setSelectedPlan(plan)
+    console.log('Selecting plan:', plan.name, plan.planId)
+    // Use a function to ensure state update happens immediately
+    setSelectedPlan(() => plan)
   }
 
   const handleBack = () => {
