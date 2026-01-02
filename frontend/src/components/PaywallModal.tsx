@@ -23,12 +23,12 @@ export default function PaywallModal({
   const [allPlans, setAllPlans] = useState<PricingPlan[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
+  const [selectedPlanIdState, setSelectedPlanIdState] = useState<string | null>(null)
 
   useEffect(() => {
     loadPlans()
-    // Reset selectedPlanId when plans are reloaded (e.g., if prop selectedPlanId changes)
-    setSelectedPlanId(null)
+    // Reset selectedPlanIdState when plans are reloaded (e.g., if prop selectedPlanId changes)
+    setSelectedPlanIdState(null)
   }, [selectedPlanId])
 
   const loadPlans = async () => {
@@ -104,14 +104,14 @@ export default function PaywallModal({
   const handlePlanSelect = (plan: PricingPlan) => {
     // Show only the selected plan by filtering plans array
     console.log('Selecting plan:', plan.name, plan.planId)
-    setSelectedPlanId(plan.planId)
+    setSelectedPlanIdState(plan.planId)
     setPlans([plan]) // Immediately show only this plan
   }
 
   const handleBack = () => {
     // Show all plans again
     console.log('Going back to all plans')
-    setSelectedPlanId(null)
+    setSelectedPlanIdState(null)
     if (selectedPlanId) {
       const filtered = allPlans.filter(p => p.planId === selectedPlanId)
       setPlans(filtered.length > 0 ? filtered : allPlans)
@@ -119,9 +119,6 @@ export default function PaywallModal({
       setPlans(allPlans)
     }
   }
-  
-  // Get the currently selected plan object
-  const selectedPlan = selectedPlanId ? plans.find(p => p.planId === selectedPlanId) || null : null
 
   const handlePurchase = async (plan: PricingPlan) => {
     setIsProcessing(true)
@@ -158,7 +155,7 @@ export default function PaywallModal({
         <div className="paywall-content">
           {isLoading ? (
             <div className="loading-plans">Loading plans...</div>
-          ) : selectedPlanId && plans.length === 1 ? (
+          ) : selectedPlanIdState && plans.length === 1 ? (
             <>
               <button onClick={handleBack} className="back-to-plans-btn">
                 ← Back to all plans
