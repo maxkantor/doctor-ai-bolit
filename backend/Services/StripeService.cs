@@ -131,15 +131,40 @@ public class StripeService : IStripeService
             }
         }
         
+        // Final fallback: if we still don't have a plan but have credits, use defaults
+        if (planPrice <= 0 && credits.HasValue)
+        {
+            Console.WriteLine($"[StripeService] Using fallback pricing for {credits.Value} credits");
+            if (credits.Value == 20)
+            {
+                planPrice = 1.99m;
+                planName = "20 Messages";
+                planDescription = "Continue your conversation with 20 additional messages whenever you need support.";
+            }
+            else if (credits.Value == 50)
+            {
+                planPrice = 3.99m;
+                planName = "50 Messages";
+                planDescription = "Extended support with 50 additional messages for ongoing conversations.";
+            }
+            else
+            {
+                planPrice = (credits.Value * 0.1m);
+                planName = $"{credits.Value} Messages";
+                planDescription = $"Continue your conversation with {credits.Value} additional messages.";
+            }
+            planCredits = credits.Value;
+        }
+        
         // Validate we have required information
         if (planPrice <= 0)
         {
-            throw new Exception($"Invalid price for plan {planName}: ${planPrice}. Price must be greater than 0.");
+            throw new Exception($"Invalid price for plan {planName}: ${planPrice}. Price must be greater than 0. Credits provided: {credits}, PlanId: {priceId}");
         }
         
         if (!planCredits.HasValue || planCredits.Value <= 0)
         {
-            throw new Exception($"Invalid credits for plan {planName}: {planCredits}. Credits must be greater than 0.");
+            throw new Exception($"Invalid credits for plan {planName}: {planCredits}. Credits must be greater than 0. Credits provided: {credits}, PlanId: {priceId}");
         }
 
         // All plans are now credit packs (one-time payments)
@@ -155,7 +180,19 @@ public class StripeService : IStripeService
             { "credits", finalCredits.ToString() }
         };
         
+        // Final validation before Stripe call
+        if (planPrice <= 0)
+        {
+            throw new Exception($"Cannot create checkout: Invalid price ${planPrice} for {planName}. Credits: {planCredits}, PlanId: {priceId}");
+        }
+        
+        if (!planCredits.HasValue || planCredits.Value <= 0)
+        {
+            throw new Exception($"Cannot create checkout: Invalid credits {planCredits} for {planName}. PlanId: {priceId}");
+        }
+        
         var baseUrl = GetBaseUrl();
+        Console.WriteLine($"[StripeService] Creating Stripe checkout - Plan: {planName}, Price: ${planPrice}, Credits: {planCredits.Value}, BaseUrl: {baseUrl}");
         
         // Create checkout session using price_data instead of price_id
         // This allows us to use dynamic pricing without pre-creating Stripe products
