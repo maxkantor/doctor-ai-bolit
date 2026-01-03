@@ -94,30 +94,47 @@ public class VisitorRepository : IVisitorRepository
         {
             Console.WriteLine($"[GetAllVisitorsAsync] Starting scan of Visitors table");
             
-            // Use ScanAsync with GetRemainingAsync - this automatically handles pagination
+            // Use ScanAsync with explicit pagination handling to ensure we get ALL visitors
             var scan = _context.ScanAsync<Visitor>(new List<ScanCondition>());
-            var visitors = await scan.GetRemainingAsync();
+            var allVisitors = new List<Visitor>();
+            int pageCount = 0;
             
-            Console.WriteLine($"[GetAllVisitorsAsync] Found {visitors.Count} visitors via context scan");
+            // Explicitly handle pagination to ensure we get everything
+            do
+            {
+                var page = await scan.GetNextSetAsync();
+                allVisitors.AddRange(page);
+                pageCount++;
+                Console.WriteLine($"[GetAllVisitorsAsync] Page {pageCount}: Retrieved {page.Count} visitors (total so far: {allVisitors.Count})");
+            } while (!scan.IsDone);
+            
+            Console.WriteLine($"[GetAllVisitorsAsync] Scan complete: Found {allVisitors.Count} total visitors across {pageCount} page(s)");
             
             // Sort by CreatedAt descending (newest first) for better UX
-            visitors = visitors.OrderByDescending(v => v.CreatedAt).ToList();
+            var sortedVisitors = allVisitors.OrderByDescending(v => v.CreatedAt).ToList();
             
-            // Log sample of dates for debugging
-            if (visitors.Count > 0)
+            // Log detailed date information for debugging
+            if (sortedVisitors.Count > 0)
             {
-                var oldest = visitors.OrderBy(v => v.CreatedAt).First();
-                var newest = visitors.OrderByDescending(v => v.CreatedAt).First();
+                var oldest = sortedVisitors.OrderBy(v => v.CreatedAt).First();
+                var newest = sortedVisitors.OrderByDescending(v => v.CreatedAt).First();
                 Console.WriteLine($"[GetAllVisitorsAsync] Date range: Oldest={oldest.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC, Newest={newest.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC");
-                Console.WriteLine($"[GetAllVisitorsAsync] Sample visitor IDs: {string.Join(", ", visitors.Take(3).Select(v => $"{v.VisitorId.Substring(0, 8)}... (Created: {v.CreatedAt:yyyy-MM-dd})"))}");
+                
+                // Group by date to show distribution
+                var byDate = sortedVisitors.GroupBy(v => v.CreatedAt.Date).OrderByDescending(g => g.Key);
+                Console.WriteLine($"[GetAllVisitorsAsync] Visitors by date: {string.Join(", ", byDate.Select(g => $"{g.Key:yyyy-MM-dd} ({g.Count()})"))}");
+                
+                // Show all visitor IDs (first 10) for debugging
+                var sampleIds = sortedVisitors.Take(10).Select(v => $"{v.VisitorId.Substring(0, 8)}... (Created: {v.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC)");
+                Console.WriteLine($"[GetAllVisitorsAsync] Visitor IDs (first 10): {string.Join(", ", sampleIds)}");
             }
             else
             {
                 Console.WriteLine($"[GetAllVisitorsAsync] No visitors found - this could be normal if no users have used the service yet");
             }
             
-            Console.WriteLine($"[GetAllVisitorsAsync] Returning {visitors.Count} visitors (sorted by CreatedAt descending)");
-            return visitors;
+            Console.WriteLine($"[GetAllVisitorsAsync] Returning {sortedVisitors.Count} visitors (sorted by CreatedAt descending)");
+            return sortedVisitors;
         }
         catch (Exception ex)
         {
