@@ -34,7 +34,7 @@ export default function PaywallModal({
       const activePlans = await pricingService.getPlans()
       let allActivePlans = activePlans.filter(p => p.isActive).sort((a, b) => a.displayOrder - b.displayOrder)
       
-      // If no plans loaded from API, use default plans
+      // If no plans loaded from API, use default plans (for display only)
       if (allActivePlans.length === 0) {
         allActivePlans = [
           {
@@ -58,6 +58,9 @@ export default function PaywallModal({
             displayOrder: 2,
           },
         ]
+        setIsUsingDefaultPlans(true)
+      } else {
+        setIsUsingDefaultPlans(false)
       }
       
       setAllPlans(allActivePlans)
@@ -128,6 +131,7 @@ export default function PaywallModal({
         },
       ]
       setAllPlans(defaultPlans)
+      setIsUsingDefaultPlans(true)
       
       // If propSelectedPlanId is provided, try to find matching default plan
       if (propSelectedPlanId) {
