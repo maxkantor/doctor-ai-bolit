@@ -196,6 +196,12 @@ public class StripeService : IStripeService
         
         // Create checkout session using price_data instead of price_id
         // This allows us to use dynamic pricing without pre-creating Stripe products
+        var successUrl = $"{baseUrl}/chat?session_id={{CHECKOUT_SESSION_ID}}";
+        var cancelUrl = $"{baseUrl}/chat";
+        
+        Console.WriteLine($"[StripeService] SuccessUrl: {successUrl}");
+        Console.WriteLine($"[StripeService] CancelUrl: {cancelUrl}");
+        
         var options = new SessionCreateOptions
         {
             PaymentMethodTypes = new List<string> { "card" },
@@ -210,16 +216,18 @@ public class StripeService : IStripeService
                         ProductData = new SessionLineItemPriceDataProductDataOptions
                         {
                             Name = planName,
-                            Description = planDescription
+                            Description = string.IsNullOrWhiteSpace(planDescription) ? planName : planDescription
                         }
                     },
                     Quantity = 1,
                 },
             },
             Mode = mode,
-            SuccessUrl = $"{baseUrl}/chat?session_id={{CHECKOUT_SESSION_ID}}",
-            CancelUrl = $"{baseUrl}/chat",
-            Metadata = metadata
+            SuccessUrl = successUrl,
+            CancelUrl = cancelUrl,
+            Metadata = metadata,
+            // Add customer email collection for better experience
+            CustomerCreation = "always"
         };
         
             try
