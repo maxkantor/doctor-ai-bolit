@@ -122,7 +122,14 @@ export default function LandingPage() {
             style={{ marginBottom: '0.5rem' }}
           >
             <Link to="/chat" className="cta-button" aria-label="Start chatting with AI health guidance">
-              Start Chatting
+              <span className="cta-button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                  <circle cx="9" cy="10" r="1"/>
+                  <circle cx="15" cy="10" r="1"/>
+                </svg>
+              </span>
+              <span>Start Chatting</span>
             </Link>
           </motion.div>
           <motion.div 
