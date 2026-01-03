@@ -47,6 +47,7 @@ public class Startup
         services.AddScoped<DoctorAIBolit.Repositories.IChatRepository, DoctorAIBolit.Repositories.ChatRepository>();
         services.AddScoped<DoctorAIBolit.Repositories.IContactRepository, DoctorAIBolit.Repositories.ContactRepository>();
         services.AddScoped<DoctorAIBolit.Repositories.IPaymentHistoryRepository, DoctorAIBolit.Repositories.PaymentHistoryRepository>();
+        services.AddScoped<DoctorAIBolit.Repositories.IEmailVisitorMappingRepository, DoctorAIBolit.Repositories.EmailVisitorMappingRepository>();
 
         // Secrets Service (singleton for caching)
         services.AddSingleton<SecretsService>();
