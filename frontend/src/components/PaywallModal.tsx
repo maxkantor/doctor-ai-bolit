@@ -23,6 +23,7 @@ export default function PaywallModal({
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null)
+  const [isUsingDefaultPlans, setIsUsingDefaultPlans] = useState(false)
 
   useEffect(() => {
     loadPlans()
@@ -144,6 +145,12 @@ export default function PaywallModal({
   }
 
   const handlePurchase = async (plan: PricingPlan) => {
+    // Prevent purchase if using default plans (they don't exist in database)
+    if (isUsingDefaultPlans || plan.planId.startsWith('default-')) {
+      alert('Pricing plans are not configured. Please contact support or try again later.')
+      return
+    }
+
     setIsProcessing(true)
     try {
       // Use planId - backend will look up price and create checkout dynamically
@@ -153,9 +160,18 @@ export default function PaywallModal({
         credits: plan.credits,
       })
       window.location.href = checkoutUrl
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create checkout:', error)
-      alert('Failed to start checkout. Please try again.')
+      
+      // Extract error message from API response
+      let errorMessage = 'Failed to start checkout. Please try again.'
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error?.message) {
+        errorMessage = error.message
+      }
+      
+      alert(errorMessage)
       setIsProcessing(false)
     }
   }
