@@ -55,6 +55,71 @@ public class StripeService : IStripeService
         string planDescription = "";
         
         var plan = await _pricingConfigService.GetPlanAsync(priceId);
+        
+        // If plan not found by ID, try to find by credits or create default plan
+        if (plan == null)
+        {
+            Console.WriteLine($"[StripeService] Plan not found by ID: {priceId}, attempting to find by credits: {credits}");
+            
+            // Try to find plan by credits
+            var allPlans = await _pricingConfigService.GetAllPlansAsync();
+            if (credits.HasValue)
+            {
+                plan = allPlans.FirstOrDefault(p => p.Credits == credits.Value);
+            }
+            
+            // If still not found and we have credits, create a default plan on the fly
+            if (plan == null && credits.HasValue)
+            {
+                Console.WriteLine($"[StripeService] Creating plan on-the-fly for {credits} credits");
+                
+                // Determine price and details based on credits
+                if (credits.Value == 20)
+                {
+                    planPrice = 1.99m;
+                    planName = "20 Messages";
+                    planDescription = "Continue your conversation with 20 additional messages whenever you need support.";
+                }
+                else if (credits.Value == 50)
+                {
+                    planPrice = 3.99m;
+                    planName = "50 Messages";
+                    planDescription = "Extended support with 50 additional messages for ongoing conversations.";
+                }
+                else
+                {
+                    // Generic plan
+                    planPrice = (credits.Value * 0.1m); // $0.10 per message default
+                    planName = $"{credits.Value} Messages";
+                    planDescription = $"Continue your conversation with {credits.Value} additional messages.";
+                }
+                
+                planCredits = credits.Value;
+                
+                // Create and save the plan
+                plan = new PricingPlan
+                {
+                    PlanId = Guid.NewGuid().ToString(),
+                    Name = planName,
+                    Price = planPrice,
+                    Credits = planCredits.Value,
+                    Description = planDescription,
+                    IsActive = true,
+                    IsMostPopular = credits.Value == 20,
+                    DisplayOrder = credits.Value == 20 ? 1 : 2,
+                    CreatedAt = DateTime.UtcNow
+                };
+                
+                await _pricingConfigService.SavePlanAsync(plan);
+                Console.WriteLine($"[StripeService] Created new plan: {plan.PlanId} - {planName} for ${planPrice}");
+            }
+            else if (plan == null)
+            {
+                throw new Exception($"Plan not found: {priceId} and no credits provided. Please ensure the plan exists in the database or provide credits.");
+            }
+        }
+        
+        // Use plan data
         if (plan != null)
         {
             planPrice = plan.Price;
@@ -64,10 +129,6 @@ public class StripeService : IStripeService
             {
                 planCredits = plan.Credits;
             }
-        }
-        else
-        {
-            throw new Exception($"Plan not found: {priceId}. Please ensure the plan exists in the database.");
         }
         
         // Validate we have required information

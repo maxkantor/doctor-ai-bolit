@@ -36,8 +36,18 @@ public class StripeController : ControllerBase
         catch (Exception ex)
         {
             Console.WriteLine($"[StripeController] Error creating checkout: {ex.Message}");
+            Console.WriteLine($"[StripeController] Inner exception: {ex.InnerException?.Message}");
             Console.WriteLine($"[StripeController] Stack trace: {ex.StackTrace}");
-            return StatusCode(500, new { success = false, message = ex.Message });
+            
+            // Return more detailed error for debugging
+            var errorResponse = new { 
+                success = false, 
+                message = ex.Message,
+                innerMessage = ex.InnerException?.Message,
+                stackTrace = ex.StackTrace
+            };
+            
+            return StatusCode(500, errorResponse);
         }
     }
 
