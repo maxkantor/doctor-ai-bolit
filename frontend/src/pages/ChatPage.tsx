@@ -46,6 +46,8 @@ export default function ChatPage() {
   const [showPaywallModal, setShowPaywallModal] = useState(false)
   const [showEmailRestoreModal, setShowEmailRestoreModal] = useState(false)
   const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>(undefined)
+  const [paymentSuccessMessage, setPaymentSuccessMessage] = useState<{ credits: number; visible: boolean } | null>(null)
+  const previousCreditBalanceRef = useRef<number>(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isSendingRef = useRef(false) // Use ref to track if request is in flight (prevents race conditions)
   const navigate = useNavigate()
@@ -69,6 +71,10 @@ export default function ChatPage() {
       newUrl.searchParams.delete('session_id')
       window.history.replaceState({}, '', newUrl.toString())
       
+      // Store initial credit balance before polling
+      const initialBalance = creditBalance || 0
+      previousCreditBalanceRef.current = initialBalance
+      
       // Poll for credit updates - webhook processing can take time
       console.log('🔄 Starting credit refresh polling after Stripe checkout...')
       let attempts = 0
@@ -76,13 +82,42 @@ export default function ChatPage() {
       const pollInterval = setInterval(async () => {
         attempts++
         console.log(`🔄 Polling attempt ${attempts}/${maxAttempts} for credit update...`)
-        await loadRemainingMessages()
+        const previousBalance = previousCreditBalanceRef.current
         
-        // Check if credits were updated (assuming user had 5 before purchase)
-        // If we get more than 5, the webhook processed successfully
-        if (attempts >= maxAttempts) {
-          clearInterval(pollInterval)
-          console.log('⏱️ Polling complete. If credits still not updated, check webhook configuration.')
+        // Load messages and check response
+        try {
+          const response = await chatService.getRemainingMessages(visitorId)
+          const currentBalance = typeof response === 'object' && 'creditBalance' in response 
+            ? (response.creditBalance || 0) 
+            : creditBalance
+          
+          // Update state
+          setRemainingMessages(response.remainingMessages || response)
+          if (typeof response === 'object' && 'creditBalance' in response) {
+            setCreditBalance(response.creditBalance || 0)
+            setFreeMessagesRemaining(response.freeMessagesRemaining || 0)
+          }
+          
+          // Check if credits increased
+          if (currentBalance > previousBalance) {
+            const creditsAdded = currentBalance - previousBalance
+            console.log(`✅ Credits increased! Added ${creditsAdded} credits.`)
+            setPaymentSuccessMessage({ credits: creditsAdded, visible: true })
+            clearInterval(pollInterval)
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+              setPaymentSuccessMessage(prev => prev ? { ...prev, visible: false } : null)
+            }, 10000)
+          } else if (attempts >= maxAttempts) {
+            clearInterval(pollInterval)
+            console.log('⏱️ Polling complete. If credits still not updated, check webhook configuration.')
+          }
+          previousCreditBalanceRef.current = currentBalance
+        } catch (error) {
+          console.error('Error polling for credits:', error)
+          if (attempts >= maxAttempts) {
+            clearInterval(pollInterval)
+          }
         }
       }, 3000) // Poll every 3 seconds
       
@@ -91,6 +126,11 @@ export default function ChatPage() {
         await loadRemainingMessages()
       }
       refreshCredits()
+      
+      // Cleanup interval on unmount
+      return () => {
+        clearInterval(pollInterval)
+      }
     }
     
     // Check if user came from landing page with purchase parameter
@@ -325,6 +365,23 @@ export default function ChatPage() {
         </div>
 
         <div className="chat-main">
+          {paymentSuccessMessage?.visible && (
+            <div className="payment-success-banner">
+              <div className="payment-success-content">
+                <span className="payment-success-icon">✅</span>
+                <span className="payment-success-text">
+                  Successfully added {paymentSuccessMessage.credits} {paymentSuccessMessage.credits === 1 ? 'credit' : 'credits'} to your account!
+                </span>
+              </div>
+              <button 
+                className="payment-success-close"
+                onClick={() => setPaymentSuccessMessage(prev => prev ? { ...prev, visible: false } : null)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+          )}
           <div className="chat-header">
             <div className="chat-header-left">
               <Link to="/" className="back-button">← Back</Link>

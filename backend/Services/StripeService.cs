@@ -296,6 +296,12 @@ public class StripeService : IStripeService
                 return false;
             }
             
+            // Set Stripe API key for session retrieval
+            if (!string.IsNullOrWhiteSpace(secrets.Stripe.SecretKey))
+            {
+                StripeConfiguration.ApiKey = secrets.Stripe.SecretKey;
+            }
+            
             // Use throwOnApiVersionMismatch: false to handle version mismatches gracefully
             // This allows processing webhooks even if Stripe sends events with newer API versions
             var stripeEvent = EventUtility.ConstructEvent(json, signature, webhookSecret, 
@@ -309,7 +315,7 @@ public class StripeService : IStripeService
                 var session = stripeEvent.Data.Object as Session;
                 
                 // Retrieve full session details from Stripe to ensure we have all metadata
-                if (session != null)
+                if (session != null && !string.IsNullOrWhiteSpace(secrets.Stripe.SecretKey))
                 {
                     try
                     {
