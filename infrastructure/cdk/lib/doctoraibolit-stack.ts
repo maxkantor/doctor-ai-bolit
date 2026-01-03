@@ -131,6 +131,9 @@ export class DoctorAibolitStack extends cdk.Stack {
         S3_BUCKET_OG_IMAGES: ogImagesBucket.bucketName,
         SES_FROM_EMAIL: 'noreply@doctoraibolit.com',
         SES_ADMIN_EMAIL: 'admin@doctoraibolit.com',
+        // BASE_URL: Set your frontend URL here (e.g., https://main.xxxxx.amplifyapp.com or https://doctoraibolit.com)
+        // Can be overridden via CDK context: cdk deploy -c baseUrl=https://your-frontend-url.com
+        BASE_URL: this.node.tryGetContext('baseUrl') || 'https://doctoraibolit.com',
       },
     });
 
