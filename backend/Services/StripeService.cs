@@ -130,9 +130,25 @@ public class StripeService : IStripeService
         }
         catch (StripeException ex)
         {
+            Console.WriteLine($"[StripeService] Stripe error creating checkout: {ex.Message}");
+            Console.WriteLine($"[StripeService] Stripe error type: {ex.StripeError?.Type}, Code: {ex.StripeError?.Code}");
+            
             // Provide more helpful error messages for common issues
             string errorMessage = ex.Message;
             var stripeError = ex.StripeError;
+            
+            if (stripeError != null)
+            {
+                if (stripeError.Code == "api_key_expired" || stripeError.Type == "invalid_request_error")
+                {
+                    errorMessage = "Stripe API key is invalid or expired. Please check your Stripe configuration in AWS Secrets Manager.";
+                }
+                else if (stripeError.Message != null)
+                {
+                    errorMessage = stripeError.Message;
+                }
+            }
+            
             if (ex.Message.Contains("test mode") && ex.Message.Contains("live mode"))
             {
                 errorMessage = "Stripe mode mismatch: The Price ID is from live mode, but you're using a test mode API key (or vice versa). Please ensure your Stripe API key matches the mode of your Price IDs.";

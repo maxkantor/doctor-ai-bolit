@@ -82,6 +82,52 @@ public class ChatController : ControllerBase
     public async Task<ActionResult> GetPricingPlans([FromServices] IPricingConfigService pricingService)
     {
         var plans = await pricingService.GetAllPlansAsync();
+        
+        // Auto-seed default plans if none exist (first-time setup)
+        if (plans.Count == 0)
+        {
+            try
+            {
+                // Create default 20 Messages plan
+                var plan20 = new PricingPlan
+                {
+                    PlanId = Guid.NewGuid().ToString(),
+                    Name = "20 Messages",
+                    Price = 1.99m,
+                    Credits = 20,
+                    Description = "Continue your conversation with 20 additional messages whenever you need support.",
+                    IsActive = true,
+                    IsMostPopular = true,
+                    DisplayOrder = 1,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await pricingService.SavePlanAsync(plan20);
+
+                // Create default 50 Messages plan
+                var plan50 = new PricingPlan
+                {
+                    PlanId = Guid.NewGuid().ToString(),
+                    Name = "50 Messages",
+                    Price = 3.99m,
+                    Credits = 50,
+                    Description = "Extended support with 50 additional messages for ongoing conversations.",
+                    IsActive = true,
+                    IsMostPopular = false,
+                    DisplayOrder = 2,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await pricingService.SavePlanAsync(plan50);
+
+                // Reload plans after seeding
+                plans = await pricingService.GetAllPlansAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ChatController.GetPricingPlans] Error auto-seeding plans: {ex.Message}");
+                // Continue and return empty list if seeding fails
+            }
+        }
+        
         return Ok(plans);
     }
 
