@@ -94,7 +94,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  background: #20b2aa; /* Turquoise/teal color from image */
+  background: #20b2aa; /* Vibrant teal/turquoise matching image */
   color: #ffffff;
   padding: clamp(1rem, 2vh, 1.25rem) clamp(2rem, 5vw, 3rem);
   border-radius: 16px; /* More rounded corners */
@@ -102,7 +102,7 @@
   font-size: clamp(1rem, 2.5vw, 1.125rem);
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(32, 178, 170, 0.3); /* Subtle soft shadow */
+  box-shadow: 0 4px 12px 0 rgba(32, 178, 170, 0.4);
   margin-bottom: 0.75rem;
   white-space: nowrap;
   max-width: calc(100% - 2rem);
@@ -114,39 +114,28 @@
 }
 
 .cta-button:focus {
-  outline: 3px solid rgba(59, 130, 246, 0.5);
+  outline: 3px solid rgba(32, 178, 170, 0.5);
   outline-offset: 2px;
-}
-
-.cta-button:hover {
-  background: #1a9b94; /* Slightly darker turquoise on hover */
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(32, 178, 170, 0.4);
-}
-
-.cta-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(32, 178, 170, 0.3);
 }
 
 .cta-button-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 20px;
+  height: 20px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
-.cta-button-icon svg {
-  width: 100%;
-  height: 100%;
-  stroke: currentColor;
-  fill: none;
+.cta-button:hover {
+  background: #1a9b94; /* Slightly darker teal on hover */
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px 0 rgba(32, 178, 170, 0.5);
 }
 
-.cta-button-icon svg circle[fill] {
-  fill: currentColor;
+.cta-button:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .trust-badges {
