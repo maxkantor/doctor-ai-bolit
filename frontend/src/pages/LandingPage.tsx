@@ -119,6 +119,7 @@ export default function LandingPage() {
             initial="hidden"
             animate={heroInView ? "visible" : "hidden"}
             variants={fadeInUp}
+            style={{ marginBottom: '0.5rem' }}
           >
             <Link to="/chat" className="cta-button" aria-label="Start chatting with AI health guidance">
               Start Chatting
