@@ -94,19 +94,29 @@ public class VisitorRepository : IVisitorRepository
         {
             Console.WriteLine($"[GetAllVisitorsAsync] Starting scan of Visitors table");
             
-            // Try using the context scan first
+            // Use ScanAsync with GetRemainingAsync - this automatically handles pagination
             var scan = _context.ScanAsync<Visitor>(new List<ScanCondition>());
             var visitors = await scan.GetRemainingAsync();
             
             Console.WriteLine($"[GetAllVisitorsAsync] Found {visitors.Count} visitors via context scan");
             
-            // Log additional details for debugging
-            if (visitors.Count == 0)
+            // Sort by CreatedAt descending (newest first) for better UX
+            visitors = visitors.OrderByDescending(v => v.CreatedAt).ToList();
+            
+            // Log sample of dates for debugging
+            if (visitors.Count > 0)
+            {
+                var oldest = visitors.OrderBy(v => v.CreatedAt).First();
+                var newest = visitors.OrderByDescending(v => v.CreatedAt).First();
+                Console.WriteLine($"[GetAllVisitorsAsync] Date range: Oldest={oldest.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC, Newest={newest.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC");
+                Console.WriteLine($"[GetAllVisitorsAsync] Sample visitor IDs: {string.Join(", ", visitors.Take(3).Select(v => $"{v.VisitorId.Substring(0, 8)}... (Created: {v.CreatedAt:yyyy-MM-dd})"))}");
+            }
+            else
             {
                 Console.WriteLine($"[GetAllVisitorsAsync] No visitors found - this could be normal if no users have used the service yet");
             }
             
-            Console.WriteLine($"[GetAllVisitorsAsync] Returning {visitors.Count} visitors");
+            Console.WriteLine($"[GetAllVisitorsAsync] Returning {visitors.Count} visitors (sorted by CreatedAt descending)");
             return visitors;
         }
         catch (Exception ex)
