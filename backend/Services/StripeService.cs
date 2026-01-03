@@ -222,9 +222,20 @@ public class StripeService : IStripeService
             Metadata = metadata
         };
         
-            var service = new SessionService();
-            var session = await service.CreateAsync(options);
-            return session.Url;
+            try
+            {
+                var service = new SessionService();
+                Console.WriteLine($"[StripeService] Calling Stripe API to create checkout session...");
+                var session = await service.CreateAsync(options);
+                Console.WriteLine($"[StripeService] ✅ Stripe checkout session created successfully: {session.Id}");
+                return session.Url ?? throw new Exception("Stripe returned null checkout URL");
+            }
+            catch (StripeException stripeEx)
+            {
+                Console.WriteLine($"[StripeService] ❌ Stripe API error: {stripeEx.Message}");
+                Console.WriteLine($"[StripeService] Stripe error type: {stripeEx.StripeError?.Type}, Code: {stripeEx.StripeError?.Code}");
+                throw; // Re-throw to be caught by outer catch block
+            }
         }
         catch (StripeException ex)
         {
