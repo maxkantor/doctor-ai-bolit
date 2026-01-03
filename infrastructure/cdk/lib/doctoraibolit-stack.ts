@@ -66,6 +66,20 @@ export class DoctorAibolitStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
+    const paymentHistoryTable = new dynamodb.Table(this, 'PaymentHistoryTable', {
+      tableName: 'DoctorAibolitPaymentHistory',
+      partitionKey: { name: 'PaymentId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    const emailVisitorMappingTable = new dynamodb.Table(this, 'EmailVisitorMappingTable', {
+      tableName: 'EmailVisitorMapping',
+      partitionKey: { name: 'Email', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
     // S3 Bucket for OG Images
     const ogImagesBucket = new s3.Bucket(this, 'OgImagesBucket', {
       bucketName: 'doctoraibolit-og-images',
@@ -110,6 +124,8 @@ export class DoctorAibolitStack extends cdk.Stack {
         DYNAMODB_TABLE_PRICING_CONFIG: pricingConfigTable.tableName,
         DYNAMODB_TABLE_PRICING_PLANS: pricingPlansTable.tableName,
         DYNAMODB_TABLE_VISITOR_SESSIONS: visitorSessionsTable.tableName,
+        DYNAMODB_TABLE_PAYMENT_HISTORY: paymentHistoryTable.tableName,
+        DYNAMODB_TABLE_EMAIL_VISITOR_MAPPING: emailVisitorMappingTable.tableName,
         S3_BUCKET_OG_IMAGES: ogImagesBucket.bucketName,
         SES_FROM_EMAIL: 'noreply@doctoraibolit.com',
         SES_ADMIN_EMAIL: 'admin@doctoraibolit.com',
@@ -124,6 +140,8 @@ export class DoctorAibolitStack extends cdk.Stack {
     pricingConfigTable.grantReadWriteData(lambdaFunction);
     pricingPlansTable.grantReadWriteData(lambdaFunction);
     visitorSessionsTable.grantReadWriteData(lambdaFunction);
+    paymentHistoryTable.grantReadWriteData(lambdaFunction);
+    emailVisitorMappingTable.grantReadWriteData(lambdaFunction);
 
     // Grant S3 permissions
     ogImagesBucket.grantReadWrite(lambdaFunction);
