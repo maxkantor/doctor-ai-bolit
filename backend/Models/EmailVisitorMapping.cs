@@ -2,7 +2,7 @@ using Amazon.DynamoDBv2.DataModel;
 
 namespace DoctorAIBolit.Models;
 
-[DynamoDBTable("EmailVisitorMapping")]
+[DynamoDBTable("DoctorAibolitEmailVisitorMapping")]
 public class EmailVisitorMapping
 {
     [DynamoDBHashKey]

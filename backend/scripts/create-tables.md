@@ -4,7 +4,7 @@
 
 ### 1. PaymentHistory Table
 
-**Table Name:** `PaymentHistory`
+**Table Name:** `DoctorAibolitPaymentHistory`
 
 **Partition Key (Hash Key):**
 - Name: `PaymentId`
@@ -21,7 +21,7 @@
 **How to Create:**
 1. Go to AWS DynamoDB Console
 2. Click "Create table"
-3. Table name: `PaymentHistory`
+3. Table name: `DoctorAibolitPaymentHistory`
 4. Partition key: `PaymentId` (String)
 5. Sort key: `VisitorId` (String)
 6. Table settings: Use default settings or choose "On-demand"
@@ -29,7 +29,7 @@
 
 ### 2. EmailVisitorMapping Table
 
-**Table Name:** `EmailVisitorMapping`
+**Table Name:** `DoctorAibolitEmailVisitorMapping`
 
 **Partition Key (Hash Key):**
 - Name: `Email`
@@ -46,7 +46,7 @@
 **How to Create:**
 1. Go to AWS DynamoDB Console
 2. Click "Create table"
-3. Table name: `EmailVisitorMapping`
+3. Table name: `DoctorAibolitEmailVisitorMapping`
 4. Partition key: `Email` (String)
 5. Sort key: `VisitorId` (String)
 6. Table settings: Use default settings or choose "On-demand"
@@ -71,10 +71,10 @@ Make sure your Lambda role has these permissions:
                 "dynamodb:Scan"
             ],
             "Resource": [
-                "arn:aws:dynamodb:us-east-1:718522948657:table/PaymentHistory",
-                "arn:aws:dynamodb:us-east-1:718522948657:table/PaymentHistory/*",
-                "arn:aws:dynamodb:us-east-1:718522948657:table/EmailVisitorMapping",
-                "arn:aws:dynamodb:us-east-1:718522948657:table/EmailVisitorMapping/*"
+                "arn:aws:dynamodb:us-east-1:718522948657:table/DoctorAibolitPaymentHistory",
+                "arn:aws:dynamodb:us-east-1:718522948657:table/DoctorAibolitPaymentHistory/*",
+                "arn:aws:dynamodb:us-east-1:718522948657:table/DoctorAibolitEmailVisitorMapping",
+                "arn:aws:dynamodb:us-east-1:718522948657:table/DoctorAibolitEmailVisitorMapping/*"
             ]
         }
     ]
@@ -85,6 +85,6 @@ Make sure your Lambda role has these permissions:
 
 After creating the tables, verify they exist:
 1. Go to DynamoDB → Tables
-2. You should see both `PaymentHistory` and `EmailVisitorMapping` in the list
+2. You should see both `DoctorAibolitPaymentHistory` and `DoctorAibolitEmailVisitorMapping` in the list
 3. Check that the partition key and sort key match the specifications above
 

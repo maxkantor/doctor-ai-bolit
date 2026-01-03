@@ -75,7 +75,7 @@ export class DoctorAibolitStack extends cdk.Stack {
     });
 
     const emailVisitorMappingTable = new dynamodb.Table(this, 'EmailVisitorMappingTable', {
-      tableName: 'EmailVisitorMapping',
+      tableName: 'DoctorAibolitEmailVisitorMapping',
       partitionKey: { name: 'Email', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'VisitorId', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
