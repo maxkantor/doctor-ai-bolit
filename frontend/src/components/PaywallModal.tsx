@@ -29,6 +29,17 @@ export default function PaywallModal({
     loadPlans()
   }, [propSelectedPlanId])
 
+  // Retry loading plans if we got empty results (backend might need time to auto-seed)
+  useEffect(() => {
+    if (!isLoading && allPlans.length === 0 && !isUsingDefaultPlans) {
+      console.log('No plans loaded, retrying in 1 second...')
+      const retryTimer = setTimeout(() => {
+        loadPlans()
+      }, 1000)
+      return () => clearTimeout(retryTimer)
+    }
+  }, [isLoading, allPlans.length, isUsingDefaultPlans])
+
   const loadPlans = async () => {
     try {
       const activePlans = await pricingService.getPlans()
@@ -149,15 +160,37 @@ export default function PaywallModal({
   }
 
   const handlePurchase = async (plan: PricingPlan) => {
-    // Prevent purchase if using default plans (they don't exist in database)
-    if (isUsingDefaultPlans || plan.planId.startsWith('default-')) {
-      alert('Pricing plans are not configured. Please contact support or try again later.')
-      return
-    }
-
     setIsProcessing(true)
     try {
+      // If using default plans, reload plans first to trigger auto-seeding
+      if (isUsingDefaultPlans || plan.planId.startsWith('default-')) {
+        console.log('Default plan detected, reloading plans to trigger auto-seed...')
+        await loadPlans()
+        
+        // Wait a moment for backend to process
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Reload plans again to get the newly seeded plans
+        await loadPlans()
+        
+        // Find the actual plan from the reloaded list
+        const actualPlan = allPlans.find(p => 
+          (p.credits === plan.credits && p.price === plan.price) || 
+          (plan.credits === 20 && p.credits === 20) ||
+          (plan.credits === 50 && p.credits === 50)
+        )
+        
+        if (actualPlan && !actualPlan.planId.startsWith('default-')) {
+          // Use the actual plan from database
+          plan = actualPlan
+        } else {
+          // If still no real plan, try with the default planId - backend will handle it
+          console.log('Using plan with credits/price matching, backend will handle lookup')
+        }
+      }
+
       // Use planId - backend will look up price and create checkout dynamically
+      // Backend auto-seeds plans if they don't exist, so we can proceed
       const checkoutUrl = await stripeService.createCheckout({
         visitorId,
         priceId: plan.planId,
@@ -173,6 +206,35 @@ export default function PaywallModal({
         errorMessage = error.response.data.message
       } else if (error?.message) {
         errorMessage = error.message
+      }
+      
+      // If error mentions plan not found, try reloading plans and retry once
+      if (errorMessage.includes('Plan not found') || errorMessage.includes('plan exists')) {
+        console.log('Plan not found error, reloading plans and retrying...')
+        await loadPlans()
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Find matching plan by credits/price
+        const matchingPlan = allPlans.find(p => 
+          (p.credits === plan.credits && p.price === plan.price) ||
+          (plan.credits === 20 && p.credits === 20) ||
+          (plan.credits === 50 && p.credits === 50)
+        )
+        
+        if (matchingPlan && !matchingPlan.planId.startsWith('default-')) {
+          try {
+            const checkoutUrl = await stripeService.createCheckout({
+              visitorId,
+              priceId: matchingPlan.planId,
+              credits: matchingPlan.credits,
+            })
+            window.location.href = checkoutUrl
+            return // Success, exit early
+          } catch (retryError: any) {
+            console.error('Retry also failed:', retryError)
+            errorMessage = retryError?.response?.data?.message || retryError?.message || errorMessage
+          }
+        }
       }
       
       alert(errorMessage)
