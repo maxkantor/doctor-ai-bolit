@@ -123,10 +123,11 @@ export default function LandingPage() {
           >
             <Link to="/chat" className="cta-button" aria-label="Start chatting with AI health guidance">
               <span className="cta-button-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
-                  <circle cx="9" cy="10" r="1"/>
-                  <circle cx="15" cy="10" r="1"/>
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  <circle cx="9" cy="10" r="1" fill="currentColor"/>
+                  <circle cx="15" cy="10" r="1" fill="currentColor"/>
+                  <circle cx="12" cy="10" r="1" fill="currentColor"/>
                 </svg>
               </span>
               <span>Start Chatting</span>

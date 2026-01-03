@@ -141,6 +141,11 @@
 .cta-button-icon svg {
   width: 100%;
   height: 100%;
+  stroke: currentColor;
+  fill: none;
+}
+
+.cta-button-icon svg circle[fill] {
   fill: currentColor;
 }
 
