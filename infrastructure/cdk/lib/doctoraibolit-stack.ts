@@ -131,11 +131,10 @@ export class DoctorAibolitStack extends cdk.Stack {
         S3_BUCKET_OG_IMAGES: ogImagesBucket.bucketName,
         SES_FROM_EMAIL: 'noreply@doctoraibolit.com',
         SES_ADMIN_EMAIL: 'admin@doctoraibolit.com',
-        // BASE_URL: Frontend URL for Stripe redirects
-        // Currently using Amplify temporary URL. To switch to custom domain:
-        // Option 1: Deploy with context: cdk deploy -c baseUrl=https://doctoraibolit.com
-        // Option 2: Update the default value below to 'https://doctoraibolit.com'
-        BASE_URL: this.node.tryGetContext('baseUrl') || 'https://main.dlblu9p737sk0.amplifyapp.com',
+        // BASE_URL: Frontend URL for Stripe redirects and email links
+        // Defaults to production domain. To override:
+        // Deploy with context: cdk deploy -c baseUrl=https://yourdomain.com
+        BASE_URL: this.node.tryGetContext('baseUrl') || 'https://doctoraibolit.com',
       },
     });
 

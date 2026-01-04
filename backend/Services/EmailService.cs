@@ -289,7 +289,7 @@ Payment Method: {paymentMethod ?? "Not provided"}
 ✅ This payment has been processed and {credits} credits have been added to the user's account.
 
 View in Admin Dashboard:
-https://main.dlblu9p737sk0.amplifyapp.com/admin/user/{visitorId}";
+{GetBaseUrl()}/admin/user/{visitorId}";
 
             var request = new SendEmailRequest
             {
@@ -405,6 +405,32 @@ AnxietyChatAI Team";
             Console.WriteLine($"[EmailService] Error sending verification code email: {ex.Message}");
             throw;
         }
+    }
+
+    private string GetBaseUrl()
+    {
+        // Priority order:
+        // 1. BASE_URL (preferred - use this)
+        // 2. FRONTEND_URL (legacy/fallback - kept for backward compatibility)
+        // 3. Default fallback URL
+        
+        var configBaseUrl = _configuration["BASE_URL"];
+        var envBaseUrl = Environment.GetEnvironmentVariable("BASE_URL");
+        var configFrontendUrl = _configuration["FRONTEND_URL"];
+        var envFrontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+        
+        var baseUrl = configBaseUrl 
+            ?? envBaseUrl
+            ?? configFrontendUrl  // Legacy fallback
+            ?? envFrontendUrl;    // Legacy fallback
+        
+        if (!string.IsNullOrWhiteSpace(baseUrl))
+        {
+            return baseUrl.TrimEnd('/');
+        }
+        
+        // Fallback URL - Production domain
+        return "https://doctoraibolit.com";
     }
 }
 
