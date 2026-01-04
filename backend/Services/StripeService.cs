@@ -519,12 +519,39 @@ public class StripeService : IStripeService
                         // Send admin notification (always send, even if customer email is missing)
                         try
                         {
-                            await _emailService.SendPaymentNotificationToAdminAsync(visitorId, customerEmail ?? "No email provided", amount, credits, planName, session.Id);
+                            // Format billing address
+                            var billingAddressStr = string.IsNullOrWhiteSpace(billingAddressLine1) 
+                                ? "Not provided" 
+                                : $"{billingAddressLine1}" +
+                                  (string.IsNullOrWhiteSpace(billingAddressLine2) ? "" : $", {billingAddressLine2}") +
+                                  (string.IsNullOrWhiteSpace(billingCity) ? "" : $", {billingCity}") +
+                                  (string.IsNullOrWhiteSpace(billingState) ? "" : $", {billingState}") +
+                                  (string.IsNullOrWhiteSpace(billingPostalCode) ? "" : $" {billingPostalCode}") +
+                                  (string.IsNullOrWhiteSpace(billingCountry) ? "" : $", {billingCountry}");
+                            
+                            // Format payment method
+                            var paymentMethodStr = string.IsNullOrWhiteSpace(paymentMethodBrand) || string.IsNullOrWhiteSpace(paymentMethodLast4)
+                                ? "Not provided"
+                                : $"{paymentMethodBrand?.ToUpper()} •••• {paymentMethodLast4}" +
+                                  (string.IsNullOrWhiteSpace(paymentMethodType) ? "" : $" ({paymentMethodType})");
+                            
+                            await _emailService.SendPaymentNotificationToAdminAsync(
+                                visitorId, 
+                                customerEmail ?? "No email provided", 
+                                amount, 
+                                credits, 
+                                planName, 
+                                session.Id,
+                                customerName,
+                                customerPhone,
+                                billingAddressStr,
+                                paymentMethodStr);
                             Console.WriteLine($"[StripeService] ✅ Admin notification email sent");
                         }
                         catch (Exception ex)
                         {
                             Console.WriteLine($"[StripeService] ❌ Error sending admin notification: {ex.Message}");
+                            Console.WriteLine($"[StripeService] Stack trace: {ex.StackTrace}");
                             // Don't fail the webhook if admin email fails
                         }
                     }
@@ -734,7 +761,34 @@ public class StripeService : IStripeService
                                     try
                                     {
                                         Console.WriteLine($"[StripeService] Sending admin notification email for payment: SessionId={fullSession.Id}, VisitorId={visitorId}, Amount=${amount}, Credits={credits}");
-                                        await _emailService.SendPaymentNotificationToAdminAsync(visitorId, customerEmail ?? "No email provided", amount, credits, planName, fullSession.Id);
+                                        
+                                        // Format billing address
+                                        var billingAddressStr = string.IsNullOrWhiteSpace(billingAddressLine1) 
+                                            ? "Not provided" 
+                                            : $"{billingAddressLine1}" +
+                                              (string.IsNullOrWhiteSpace(billingAddressLine2) ? "" : $", {billingAddressLine2}") +
+                                              (string.IsNullOrWhiteSpace(billingCity) ? "" : $", {billingCity}") +
+                                              (string.IsNullOrWhiteSpace(billingState) ? "" : $", {billingState}") +
+                                              (string.IsNullOrWhiteSpace(billingPostalCode) ? "" : $" {billingPostalCode}") +
+                                              (string.IsNullOrWhiteSpace(billingCountry) ? "" : $", {billingCountry}");
+                                        
+                                        // Format payment method
+                                        var paymentMethodStr = string.IsNullOrWhiteSpace(paymentMethodBrand) || string.IsNullOrWhiteSpace(paymentMethodLast4)
+                                            ? "Not provided"
+                                            : $"{paymentMethodBrand?.ToUpper()} •••• {paymentMethodLast4}" +
+                                              (string.IsNullOrWhiteSpace(paymentMethodType) ? "" : $" ({paymentMethodType})");
+                                        
+                                        await _emailService.SendPaymentNotificationToAdminAsync(
+                                            visitorId, 
+                                            customerEmail ?? "No email provided", 
+                                            amount, 
+                                            credits, 
+                                            planName, 
+                                            fullSession.Id,
+                                            customerName,
+                                            customerPhone,
+                                            billingAddressStr,
+                                            paymentMethodStr);
                                         Console.WriteLine($"[StripeService] ✅ Admin notification email sent successfully");
                                     }
                                     catch (Exception ex)

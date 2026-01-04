@@ -206,23 +206,57 @@ This is an automated confirmation email. Please do not reply to this message.";
 
     public async Task SendPaymentNotificationToAdminAsync(string visitorId, string customerEmail, decimal amount, int credits, string planName, string stripeSessionId)
     {
+        await SendPaymentNotificationToAdminAsync(visitorId, customerEmail, amount, credits, planName, stripeSessionId, null, null, null, null);
+    }
+
+    public async Task SendPaymentNotificationToAdminAsync(string visitorId, string customerEmail, decimal amount, int credits, string planName, string stripeSessionId, string? customerName, string? customerPhone, string? billingAddress, string? paymentMethod)
+    {
         try
         {
             var fromEmail = await GetFromEmailAsync();
             var adminEmail = await GetAdminEmailAsync();
             
-            var subject = $"New Payment Received - {planName}";
-            var body = $@"New payment received:
+            if (string.IsNullOrWhiteSpace(adminEmail))
+            {
+                Console.WriteLine($"[EmailService] ⚠️ WARNING: Admin email is not configured. Cannot send payment notification.");
+                Console.WriteLine($"[EmailService] Please configure ADMIN_EMAIL in Secrets Manager or environment variable.");
+                return;
+            }
+            
+            Console.WriteLine($"[EmailService] Preparing admin notification email to: {adminEmail}");
+            
+            var subject = $"💰 New Payment Received - {planName} - ${amount:F2}";
+            var body = $@"🎉 NEW PAYMENT RECEIVED
 
-Visitor ID: {visitorId}
-Customer Email: {customerEmail ?? "Not provided"}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAYMENT DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Plan: {planName}
 Amount: ${amount:F2}
 Credits: {credits} messages
-Stripe Session ID: {stripeSessionId}
 Payment Date: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC
+Stripe Session ID: {stripeSessionId}
 
-This payment has been processed and credits have been added to the user's account.";
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CUSTOMER INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Visitor ID: {visitorId}
+Name: {customerName ?? "Not provided"}
+Email: {customerEmail ?? "Not provided"}
+Phone: {customerPhone ?? "Not provided"}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BILLING INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Billing Address: {billingAddress ?? "Not provided"}
+Payment Method: {paymentMethod ?? "Not provided"}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ This payment has been processed and {credits} credits have been added to the user's account.
+
+View in Admin Dashboard:
+https://main.dlblu9p737sk0.amplifyapp.com/admin/user/{visitorId}";
 
             var request = new SendEmailRequest
             {
@@ -241,12 +275,19 @@ This payment has been processed and credits have been added to the user's accoun
                 }
             };
 
+            Console.WriteLine($"[EmailService] Sending admin notification email...");
             var response = await _ses.SendEmailAsync(request);
-            Console.WriteLine($"[EmailService] Payment notification sent to admin. MessageId: {response.MessageId}");
+            Console.WriteLine($"[EmailService] ✅ Payment notification sent to admin ({adminEmail}). MessageId: {response.MessageId}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[EmailService] Error sending payment notification to admin: {ex.Message}");
+            Console.WriteLine($"[EmailService] ❌ ERROR sending payment notification to admin: {ex.Message}");
+            Console.WriteLine($"[EmailService] Exception type: {ex.GetType().Name}");
+            Console.WriteLine($"[EmailService] Stack trace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"[EmailService] Inner exception: {ex.InnerException.Message}");
+            }
             // Don't throw - payment should still succeed even if admin email fails
         }
     }
