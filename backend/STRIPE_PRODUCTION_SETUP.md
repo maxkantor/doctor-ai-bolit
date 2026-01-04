@@ -59,14 +59,28 @@ If you changed your Stripe webhook to production but still see test mode, you ne
    - Click "Reveal" next to "Signing secret"
    - Copy the **Signing secret** (starts with `whsec_...`)
 
-#### 2. Create Production Products and Prices in Stripe
+#### 2. Create Production Webhook in Stripe
 
-**Important:** You need to create new products and prices in **Production mode**:
+**Note:** You can use your existing test mode products and prices. Only the API keys need to be switched to production.
 
-1. Switch Stripe Dashboard to **Production mode**
-2. Go to **Products** → **Add product**
-3. Create products matching your pricing plans (e.g., "20 Messages", "50 Messages")
-4. For each product, add a price:
+1. In Stripe Dashboard (Production mode), go to **Developers → Webhooks**
+2. Click **Add endpoint**
+3. **Endpoint URL**: Use your API Gateway URL:
+   - Format: `https://YOUR-API-ID.execute-api.us-east-1.amazonaws.com/api/stripe/webhook`
+   - Example: `https://i4fxx5fur9.execute-api.us-east-1.amazonaws.com/api/stripe/webhook`
+   - **To find your API Gateway URL**: 
+     - Go to AWS API Gateway Console → Your API → Copy "Invoke URL"
+     - Append `/api/stripe/webhook` to it
+4. **Description**: "Production webhook for DoctorAibolit"
+5. **Events to send**: Select:
+   - `checkout.session.completed` (required)
+   - `charge.succeeded` (optional, as fallback)
+6. Click **Add endpoint**
+7. After creation, click on the webhook endpoint
+8. Click **Reveal** next to "Signing secret"
+9. Copy the signing secret (starts with `whsec_...`)
+
+#### 3. Update AWS Secrets Manager
    - **Recurring**: One time
    - **Price**: Set your price (e.g., $1.99)
    - **Currency**: USD
