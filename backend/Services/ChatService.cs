@@ -12,6 +12,22 @@ public class ChatService : IChatService
     private readonly IVisitorRepository _visitorRepository;
     private readonly IOpenAIService _openAIService;
     private const string AffiliateLinkPlaceholder = "{{AFFILIATE_LINK}}";
+    
+    // Lock dictionary to serialize message processing per visitor (prevents race conditions)
+    private static readonly Dictionary<string, SemaphoreSlim> _processingLocks = new Dictionary<string, SemaphoreSlim>();
+    private static readonly object _lockDictionaryLock = new object();
+
+    private SemaphoreSlim GetProcessingLock(string visitorId)
+    {
+        lock (_lockDictionaryLock)
+        {
+            if (!_processingLocks.ContainsKey(visitorId))
+            {
+                _processingLocks[visitorId] = new SemaphoreSlim(1, 1);
+            }
+            return _processingLocks[visitorId];
+        }
+    }
 
     public ChatService(
         IVisitorService visitorService,
@@ -31,25 +47,93 @@ public class ChatService : IChatService
         var messagePreview = string.IsNullOrEmpty(request.Message) ? "(empty)" : (request.Message.Length > 50 ? request.Message.Substring(0, 50) + "..." : request.Message);
         Console.WriteLine($"[ChatService-{requestId}] Processing message for visitor: {request.VisitorId}, session: {request.SessionId}, message: {messagePreview}");
         
-        // IDEMPOTENCY CHECK: Check if this exact message was already processed recently (within last 10 seconds)
-        // This prevents duplicate deductions from retries or double-clicks
+        // CRITICAL: Acquire processing lock FIRST to serialize all message processing for this visitor
+        // This prevents race conditions where two requests check for duplicates simultaneously
+        var processingLock = GetProcessingLock(request.VisitorId);
+        Console.WriteLine($"[ChatService-{requestId}] Acquiring processing lock for visitor: {request.VisitorId}");
+        await processingLock.WaitAsync();
+        Console.WriteLine($"[ChatService-{requestId}] Processing lock acquired");
+        
+        try
+        {
+            // AGGRESSIVE IDEMPOTENCY CHECK: Check for ANY recent user message in last 3 seconds (not just same content)
+        // This prevents race conditions where two requests check simultaneously before either saves
         var recentMessages = await _chatRepository.GetMessagesAsync(request.SessionId);
-        var recentUserMessages = recentMessages
+        var veryRecentUserMessages = recentMessages
+            .Where(m => m.Role == "user" && (DateTime.UtcNow - m.Timestamp).TotalSeconds < 3)
+            .OrderByDescending(m => m.Timestamp)
+            .ToList();
+        
+        // Also check for exact duplicate in last 30 seconds
+        var exactDuplicateMessages = recentMessages
             .Where(m => m.Role == "user" && 
                        m.Content == request.Message && 
-                       (DateTime.UtcNow - m.Timestamp).TotalSeconds < 10)
+                       (DateTime.UtcNow - m.Timestamp).TotalSeconds < 30)
             .OrderByDescending(m => m.Timestamp)
             .ToList();
         
         bool isDuplicate = false;
         string? existingAssistantResponse = null;
         
-        if (recentUserMessages.Any())
+        // If we find a very recent user message (within 3 seconds), it's likely a duplicate request
+        if (veryRecentUserMessages.Any())
         {
-            var duplicateMessage = recentUserMessages.First();
-            Console.WriteLine($"[ChatService-{requestId}] ⚠️ DUPLICATE MESSAGE DETECTED - Same message '{messagePreview}' was already processed at {duplicateMessage.Timestamp:yyyy-MM-dd HH:mm:ss} UTC ({(DateTime.UtcNow - duplicateMessage.Timestamp).TotalSeconds:F2} seconds ago)");
+            var recentMessage = veryRecentUserMessages.First();
+            var timeSince = (DateTime.UtcNow - recentMessage.Timestamp).TotalSeconds;
+            Console.WriteLine($"[ChatService-{requestId}] ⚠️ VERY RECENT USER MESSAGE DETECTED - Message saved {timeSince:F2} seconds ago (within 3s window)");
             
-            // Find the corresponding assistant response (should be the next message after the duplicate user message)
+            // Check if it's the exact same message
+            if (recentMessage.Content == request.Message)
+            {
+                Console.WriteLine($"[ChatService-{requestId}] Exact duplicate message detected - checking for existing response");
+                
+                // Find the corresponding assistant response
+                var allMessages = await _chatRepository.GetMessagesAsync(request.SessionId);
+                var duplicateIndex = allMessages.FindIndex(m => m.Timestamp == recentMessage.Timestamp);
+                if (duplicateIndex >= 0 && duplicateIndex + 1 < allMessages.Count)
+                {
+                    var existingResponse = allMessages[duplicateIndex + 1];
+                    if (existingResponse.Role == "assistant")
+                    {
+                        existingAssistantResponse = existingResponse.Content;
+                        isDuplicate = true;
+                        Console.WriteLine($"[ChatService-{requestId}] Found existing assistant response - returning it without processing");
+                    }
+                }
+                
+                if (isDuplicate && existingAssistantResponse != null)
+                {
+                    // Return existing response immediately - no deduction, no processing
+                    var remainingCreditsForDuplicate = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
+                    Console.WriteLine($"[ChatService-{requestId}] ✅ Returning existing assistant response (no deduction, no processing)");
+                    Console.WriteLine($"[ChatService-{requestId}] Releasing processing lock");
+                    processingLock.Release();
+                    return new ChatResponse
+                    {
+                        Message = existingAssistantResponse,
+                        RemainingMessages = remainingCreditsForDuplicate,
+                        RequiresPayment = false
+                    };
+                }
+                
+                // Exact duplicate but no assistant response - skip deduction (already deducted)
+                isDuplicate = true;
+                Console.WriteLine($"[ChatService-{requestId}] ⚠️ Exact duplicate user message found but no assistant response - continuing processing but SKIPPING deduction");
+            }
+            else
+            {
+                // Different message but very recent - might be rapid-fire requests, be cautious
+                Console.WriteLine($"[ChatService-{requestId}] ⚠️ Different message but very recent user message exists - possible rapid-fire requests");
+            }
+        }
+        
+        // Also check for exact duplicate in longer window (30 seconds)
+        if (!isDuplicate && exactDuplicateMessages.Any())
+        {
+            var duplicateMessage = exactDuplicateMessages.First();
+            Console.WriteLine($"[ChatService-{requestId}] ⚠️ EXACT DUPLICATE MESSAGE DETECTED (30s window) - Same message '{messagePreview}' was already processed at {duplicateMessage.Timestamp:yyyy-MM-dd HH:mm:ss} UTC");
+            
+            // Find the corresponding assistant response
             var allMessages = await _chatRepository.GetMessagesAsync(request.SessionId);
             var duplicateIndex = allMessages.FindIndex(m => m.Timestamp == duplicateMessage.Timestamp);
             if (duplicateIndex >= 0 && duplicateIndex + 1 < allMessages.Count)
@@ -65,9 +149,10 @@ public class ChatService : IChatService
             
             if (isDuplicate && existingAssistantResponse != null)
             {
-                // Return existing response immediately - no deduction, no processing
                 var remainingCreditsForDuplicate = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
-                Console.WriteLine($"[ChatService-{requestId}] Returning existing assistant response (no deduction, no processing)");
+                Console.WriteLine($"[ChatService-{requestId}] ✅ Returning existing assistant response (no deduction, no processing)");
+                Console.WriteLine($"[ChatService-{requestId}] Releasing processing lock");
+                processingLock.Release();
                 return new ChatResponse
                 {
                     Message = existingAssistantResponse,
@@ -76,27 +161,28 @@ public class ChatService : IChatService
                 };
             }
             
-            // If duplicate user message exists but no assistant response, it means first request failed after saving user message
-            // Continue processing but SKIP deduction (already deducted in first request)
-            if (recentUserMessages.Any())
+            // Exact duplicate but no assistant response - skip deduction
+            if (exactDuplicateMessages.Any())
             {
                 isDuplicate = true;
-                Console.WriteLine($"[ChatService-{requestId}] Duplicate user message found but no assistant response - continuing processing but SKIPPING deduction");
+                Console.WriteLine($"[ChatService-{requestId}] ⚠️ Exact duplicate user message found but no assistant response - continuing processing but SKIPPING deduction");
             }
         }
         
-        // Check if visitor can send message (has credits) - this loads visitor but doesn't modify it
-        var canSend = await _visitorService.CanSendMessageAsync(request.VisitorId);
-        if (!canSend)
-        {
-            var remainingCredits = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
-            return new ChatResponse
+            // Check if visitor can send message (has credits) - this loads visitor but doesn't modify it
+            var canSend = await _visitorService.CanSendMessageAsync(request.VisitorId);
+            if (!canSend)
             {
-                Message = string.Empty,
-                RemainingMessages = remainingCredits,
-                RequiresPayment = true
-            };
-        }
+                var remainingCredits = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
+                Console.WriteLine($"[ChatService-{requestId}] Releasing processing lock (no credits)");
+                processingLock.Release();
+                return new ChatResponse
+                {
+                    Message = string.Empty,
+                    RemainingMessages = remainingCredits,
+                    RequiresPayment = true
+                };
+            }
 
         // Deduct credit for QUESTION (user message) only - SKIP if duplicate was detected
         if (!isDuplicate)
@@ -107,6 +193,8 @@ public class ChatService : IChatService
             if (!creditDeducted)
             {
                 var remainingCreditsAfterCheck = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
+                Console.WriteLine($"[ChatService-{requestId}] Releasing processing lock (deduction failed)");
+                processingLock.Release();
                 return new ChatResponse
                 {
                     Message = string.Empty,
@@ -174,16 +262,22 @@ public class ChatService : IChatService
         };
         await _chatRepository.SaveMessageAsync(assistantMessage);
 
-        // Get remaining credits AFTER deduction (only for question)
-        var remaining = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
-        Console.WriteLine($"[ChatService-{requestId}] Returning response with remainingMessages: {remaining}");
+            // Get remaining credits AFTER deduction (only for question)
+            var remaining = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
+            Console.WriteLine($"[ChatService-{requestId}] Returning response with remainingMessages: {remaining}");
 
-        return new ChatResponse
+            return new ChatResponse
+            {
+                Message = aiResponse,
+                RemainingMessages = remaining,
+                RequiresPayment = false
+            };
+        }
+        finally
         {
-            Message = aiResponse,
-            RemainingMessages = remaining,
-            RequiresPayment = false
-        };
+            Console.WriteLine($"[ChatService-{requestId}] Releasing processing lock");
+            processingLock.Release();
+        }
     }
 
     public async Task<List<ChatSession>> GetSessionsAsync(string visitorId)
