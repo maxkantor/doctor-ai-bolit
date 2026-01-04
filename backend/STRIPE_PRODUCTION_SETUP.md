@@ -124,7 +124,7 @@ aws secretsmanager update-secret \
   }'
 ```
 
-### 3. Verify the Keys
+### 4. Verify the Keys
 
 **Test keys start with:**
 - `sk_test_...` (API key)
@@ -134,7 +134,7 @@ aws secretsmanager update-secret \
 - `sk_live_...` (API key)
 - `whsec_...` (webhook secret - same format for both, but different values)
 
-### 4. Redeploy Lambda (Important!)
+### 5. Redeploy Lambda (Important!)
 
 After updating secrets, you need to:
 1. **Redeploy your Lambda function** OR
@@ -144,7 +144,7 @@ The easiest way is to:
 - Upload a new backend zip to Lambda
 - Or trigger a cold start by waiting a few minutes
 
-### 5. Verify It's Working
+### 6. Verify It's Working
 
 **Check CloudWatch Logs:**
 - Look for `[StripeService]` logs
@@ -172,6 +172,8 @@ The easiest way is to:
 ## Verification Checklist
 
 - [ ] Stripe dashboard is in **Production mode**
+- [ ] Production webhook endpoint created in Stripe with correct URL
+- [ ] Webhook URL format: `https://YOUR-API-ID.execute-api.us-east-1.amazonaws.com/api/stripe/webhook`
 - [ ] `STRIPE_SECRET_KEY` in Secrets Manager starts with `sk_live_`
 - [ ] `STRIPE_WEBHOOK_SECRET` in Secrets Manager matches the production webhook signing secret
 - [ ] Lambda function has been redeployed after updating secrets

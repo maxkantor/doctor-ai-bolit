@@ -92,39 +92,21 @@ Update any hardcoded URLs in your frontend:
    - Click "Reveal" next to "Signing secret"
    - Copy the **Signing secret** (starts with `whsec_...`)
 
-### Step 2: Create Production Products and Prices in Stripe
+### Step 2: Create Production Webhook in Stripe
 
-**Important:** You need to create new products and prices in **Production mode**:
-
-1. Switch Stripe Dashboard to **Production mode** (top right toggle)
-2. Go to **Products** → **Add product**
-3. Create products matching your pricing plans:
-   - **Name**: "20 Messages" (or your plan name)
-   - **Description**: "20 AI health guidance messages"
-4. For each product, add a price:
-   - **Pricing model**: Standard pricing
-   - **Price**: Set your price (e.g., $1.99)
-   - **Billing period**: One time
-   - **Currency**: USD
-5. Click **Save product**
-6. Copy the **Price ID** for each product (starts with `price_...`)
-   - Example: `price_1ABC123def456GHI789`
-
-### Step 3: Update Pricing Plans in Admin Dashboard
-
-1. Go to your Admin Dashboard → **Pricing** tab
-2. For each plan, click **Edit**
-3. Update the **Stripe Price ID** field with the production Price IDs from step 2
-4. Save each plan
-5. Verify all plans have production Price IDs
-
-### Step 4: Create Production Webhook in Stripe
+**Note:** You can use your existing test mode products and prices. Only the API keys need to be switched to production.
 
 1. In Stripe Dashboard (Production mode), go to **Developers → Webhooks**
 2. Click **Add endpoint**
-3. **Endpoint URL**: `https://your-api-domain.com/api/stripe/webhook`
-   - Replace `your-api-domain.com` with your actual API Gateway domain
-   - Example: `https://abc123.execute-api.us-east-1.amazonaws.com/api/stripe/webhook`
+3. **Endpoint URL**: Use one of these formats:
+   - **API Gateway URL**: `https://YOUR-API-ID.execute-api.us-east-1.amazonaws.com/api/stripe/webhook`
+     - Example: `https://i4fxx5fur9.execute-api.us-east-1.amazonaws.com/api/stripe/webhook`
+   - **Custom Domain** (if configured): `https://api.doctoraibolit.com/api/stripe/webhook`
+   - **To find your API Gateway URL**: 
+     - Go to AWS API Gateway Console
+     - Select your API
+     - Copy the "Invoke URL" from the API details
+     - Append `/api/stripe/webhook` to it
 4. **Description**: "Production webhook for DoctorAibolit"
 5. **Events to send**: Select:
    - `checkout.session.completed` (required)
@@ -134,7 +116,7 @@ Update any hardcoded URLs in your frontend:
 8. Click **Reveal** next to "Signing secret"
 9. Copy the signing secret (starts with `whsec_...`)
 
-### Step 5: Update AWS Secrets Manager
+### Step 3: Update AWS Secrets Manager
 
 **Option A: Using AWS Console (Recommended)**
 1. Go to **AWS Secrets Manager** → https://console.aws.amazon.com/secretsmanager
@@ -173,7 +155,7 @@ aws secretsmanager update-secret \
   }'
 ```
 
-### Step 6: Redeploy Lambda Function
+### Step 4: Redeploy Lambda Function
 
 **Important:** After updating secrets, you must redeploy your Lambda function because secrets are cached on first load.
 
@@ -186,7 +168,7 @@ aws secretsmanager update-secret \
 - Wait 5-10 minutes for Lambda to cold start
 - This will reload secrets from Secrets Manager
 
-### Step 7: Verify Production Mode
+### Step 5: Verify Production Mode
 
 **Check CloudWatch Logs:**
 1. Go to AWS CloudWatch → Log groups
@@ -215,9 +197,8 @@ aws secretsmanager update-secret \
 
 ### Stripe Production
 - [ ] Stripe dashboard is in **Production mode**
-- [ ] Production products and prices created in Stripe
-- [ ] Pricing plans in Admin Dashboard updated with production Price IDs
-- [ ] Production webhook endpoint created in Stripe
+- [ ] Production webhook endpoint created in Stripe with correct URL
+- [ ] Webhook URL format: `https://YOUR-API-ID.execute-api.us-east-1.amazonaws.com/api/stripe/webhook`
 - [ ] `STRIPE_SECRET_KEY` in Secrets Manager starts with `sk_live_`
 - [ ] `STRIPE_WEBHOOK_SECRET` in Secrets Manager matches production webhook
 - [ ] Lambda function redeployed after updating secrets
@@ -254,8 +235,8 @@ aws secretsmanager update-secret \
 - **Fix**: Redeploy Lambda or wait for cold start (secrets are cached on first load)
 
 **Issue: Price ID not found**
-- **Cause**: Using test Price IDs in production mode (or vice versa)
-- **Fix**: Create new products/prices in production mode and update Admin Dashboard
+- **Cause**: Price ID doesn't exist or is from wrong mode
+- **Fix**: Verify Price IDs in Admin Dashboard match your Stripe products (can use test mode products with production API keys)
 
 **Issue: Webhook not received**
 - **Cause**: Webhook URL incorrect or API Gateway not accessible
