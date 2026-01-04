@@ -225,6 +225,38 @@ public class AdminController : ControllerBase
         await _pricingConfigService.DeletePlanAsync(planId);
         return Ok(new { success = true });
     }
+
+    [HttpPost("test-email")]
+    public async Task<ActionResult> TestEmail()
+    {
+        if (!IsAuthorized()) return Unauthorized();
+
+        try
+        {
+            Console.WriteLine("[AdminController] TestEmail endpoint called");
+            
+            // Send a test payment notification
+            await _emailService.SendPaymentNotificationToAdminAsync(
+                "test-visitor-id",
+                "test@example.com",
+                1.99m,
+                20,
+                "Test Plan",
+                "test-session-id",
+                "Test Customer",
+                "+1234567890",
+                "123 Test St, Test City, TS 12345, US",
+                "VISA •••• 4242 (card)");
+            
+            return Ok(new { success = true, message = "Test email sent successfully. Check your inbox and spam folder." });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdminController] Error sending test email: {ex.Message}");
+            Console.WriteLine($"[AdminController] Stack trace: {ex.StackTrace}");
+            return StatusCode(500, new { success = false, message = ex.Message, details = ex.ToString() });
+        }
+    }
 }
 
 public class AddCreditsRequest

@@ -213,13 +213,26 @@ This is an automated confirmation email. Please do not reply to this message.";
     {
         try
         {
+            Console.WriteLine($"[EmailService] ========== STARTING ADMIN PAYMENT NOTIFICATION ==========");
+            Console.WriteLine($"[EmailService] VisitorId: {visitorId}, Amount: ${amount}, Credits: {credits}, Plan: {planName}");
+            
             var fromEmail = await GetFromEmailAsync();
             var adminEmail = await GetAdminEmailAsync();
+            
+            Console.WriteLine($"[EmailService] FROM_EMAIL: {fromEmail ?? "NULL"}");
+            Console.WriteLine($"[EmailService] ADMIN_EMAIL: {adminEmail ?? "NULL"}");
             
             if (string.IsNullOrWhiteSpace(adminEmail))
             {
                 Console.WriteLine($"[EmailService] ⚠️ WARNING: Admin email is not configured. Cannot send payment notification.");
                 Console.WriteLine($"[EmailService] Please configure ADMIN_EMAIL in Secrets Manager or environment variable.");
+                return;
+            }
+            
+            if (string.IsNullOrWhiteSpace(fromEmail))
+            {
+                Console.WriteLine($"[EmailService] ⚠️ WARNING: From email is not configured. Cannot send payment notification.");
+                Console.WriteLine($"[EmailService] Please configure FROM_EMAIL in Secrets Manager or environment variable.");
                 return;
             }
             
@@ -276,8 +289,31 @@ https://main.dlblu9p737sk0.amplifyapp.com/admin/user/{visitorId}";
             };
 
             Console.WriteLine($"[EmailService] Sending admin notification email...");
+            Console.WriteLine($"[EmailService] Request details - From: {fromEmail}, To: {adminEmail}, Subject: {subject}");
+            
             var response = await _ses.SendEmailAsync(request);
+            
             Console.WriteLine($"[EmailService] ✅ Payment notification sent to admin ({adminEmail}). MessageId: {response.MessageId}");
+            Console.WriteLine($"[EmailService] Response HTTP Status: {response.HttpStatusCode}");
+            Console.WriteLine($"[EmailService] ========== ADMIN PAYMENT NOTIFICATION SENT SUCCESSFULLY ==========");
+        }
+        catch (Amazon.SimpleEmail.Model.MessageRejectedException ex)
+        {
+            var fromEmailForError = await GetFromEmailAsync();
+            var adminEmailForError = await GetAdminEmailAsync();
+            
+            Console.WriteLine($"[EmailService] ❌ MESSAGE REJECTED by SES: {ex.Message}");
+            Console.WriteLine($"[EmailService] This usually means:");
+            Console.WriteLine($"[EmailService]   1. The FROM_EMAIL ({fromEmailForError}) is not verified in AWS SES");
+            Console.WriteLine($"[EmailService]   2. The ADMIN_EMAIL ({adminEmailForError}) is not verified (if in SES sandbox mode)");
+            Console.WriteLine($"[EmailService]   3. The email address format is invalid");
+            Console.WriteLine($"[EmailService] Exception type: {ex.GetType().Name}");
+            Console.WriteLine($"[EmailService] Stack trace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"[EmailService] Inner exception: {ex.InnerException.Message}");
+            }
+            // Don't throw - payment should still succeed even if admin email fails
         }
         catch (Exception ex)
         {
