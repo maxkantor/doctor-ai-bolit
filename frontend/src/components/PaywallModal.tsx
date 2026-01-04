@@ -98,8 +98,8 @@ export default function PaywallModal({
             p.planId === propSelectedPlanId || 
             (propSelectedPlanId && p.planId && p.planId.toLowerCase() === propSelectedPlanId.toLowerCase())
           )
-        }
-        
+      }
+      
         if (foundPlan) {
           setSelectedPlan(foundPlan)
         } else {
@@ -265,25 +265,25 @@ export default function PaywallModal({
           ) : (
             <>
               <div className="pricing-plans pricing-plans-single">
-                <div
+                  <div
                   key={selectedPlan.planId}
                   className={`pricing-plan ${selectedPlan.isMostPopular ? 'most-popular' : ''}`}
-                >
+                  >
                   {selectedPlan.isMostPopular && (
-                    <div className="popular-badge">Most Popular</div>
-                  )}
+                      <div className="popular-badge">Most Popular</div>
+                    )}
                   <h3>{selectedPlan.name}</h3>
                   <div className="plan-price">{formatPrice(selectedPlan.price)}</div>
                   <div className="plan-credits">{selectedPlan.credits} messages</div>
                   <p className="plan-description">{selectedPlan.description}</p>
-                  <button
+                    <button
                     onClick={() => handlePurchase(selectedPlan)}
-                    disabled={isProcessing}
+                      disabled={isProcessing}
                     className={`plan-button ${selectedPlan.isMostPopular ? 'popular-button' : ''}`}
-                  >
-                    {isProcessing ? 'Processing...' : 'Purchase'}
-                  </button>
-                </div>
+                    >
+                      {isProcessing ? 'Processing...' : 'Purchase'}
+                    </button>
+                  </div>
               </div>
 
               <button onClick={onClose} className="end-session-btn">

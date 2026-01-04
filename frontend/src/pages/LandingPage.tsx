@@ -2,12 +2,15 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
 import { pricingService } from '../services/pricingService'
+import { stripeService } from '../services/stripeService'
+import { getOrCreateVisitorId } from '../utils/visitorId'
 import { PricingPlan, PricingConfig } from '../types'
 import './LandingPage.css'
 
 export default function LandingPage() {
   // Show default pricing immediately for fast loading
   const [pricingConfig, setPricingConfig] = useState<PricingConfig>({ freeMessageLimit: 5 })
+  const [processingPlanId, setProcessingPlanId] = useState<string | null>(null)
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([
     {
       planId: 'default-20',
@@ -58,6 +61,40 @@ export default function LandingPage() {
       style: 'currency',
       currency: 'USD',
     }).format(price)
+  }
+
+  const handleUnlock = async (plan: PricingPlan) => {
+    // Prevent double-clicks
+    if (processingPlanId) return
+    
+    setProcessingPlanId(plan.planId)
+    try {
+      // Get or create visitor ID
+      const visitorId = getOrCreateVisitorId()
+      
+      // Create Stripe checkout session
+      const checkoutUrl = await stripeService.createCheckout({
+        visitorId,
+        priceId: plan.planId,
+        credits: plan.credits,
+      })
+      
+      // Redirect to Stripe checkout
+      window.location.href = checkoutUrl
+    } catch (error: any) {
+      console.error('Failed to create checkout:', error)
+      
+      // Extract error message from API response
+      let errorMessage = 'Failed to start checkout. Please try again.'
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error?.message) {
+        errorMessage = error.message
+      }
+      
+      alert(errorMessage)
+      setProcessingPlanId(null)
+    }
   }
 
   // Animation variants
@@ -209,9 +246,14 @@ export default function LandingPage() {
                 <h3>{displayName}</h3>
                 <p className="price">{formatPrice(plan.price)}</p>
                 <p className="plan-description">{displayDescription}</p>
-                <Link to={`/chat?purchase=${plan.planId}`} className="plan-button" aria-label={`Unlock ${plan.credits} messages for ${formatPrice(plan.price)}`}>
-                  Unlock {plan.credits} Messages
-                </Link>
+                <button 
+                  onClick={() => handleUnlock(plan)}
+                  disabled={processingPlanId !== null}
+                  className="plan-button" 
+                  aria-label={`Unlock ${plan.credits} messages for ${formatPrice(plan.price)}`}
+                >
+                  {processingPlanId === plan.planId ? 'Processing...' : `Unlock ${plan.credits} Messages`}
+                </button>
               </motion.div>
             )
           })}

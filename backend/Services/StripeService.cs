@@ -197,7 +197,7 @@ public class StripeService : IStripeService
         // Create checkout session using price_data instead of price_id
         // This allows us to use dynamic pricing without pre-creating Stripe products
         var successUrl = $"{baseUrl}/chat?session_id={{CHECKOUT_SESSION_ID}}";
-        var cancelUrl = $"{baseUrl}/chat";
+        var cancelUrl = $"{baseUrl}/";
         
         Console.WriteLine($"[StripeService] SuccessUrl: {successUrl}");
         Console.WriteLine($"[StripeService] CancelUrl: {cancelUrl}");
@@ -227,7 +227,12 @@ public class StripeService : IStripeService
             CancelUrl = cancelUrl,
             Metadata = metadata,
             // Add customer email collection for better experience
-            CustomerCreation = "always"
+            CustomerCreation = "always",
+            // Set payment intent data to customize statement descriptor
+            PaymentIntentData = new SessionPaymentIntentDataOptions
+            {
+                StatementDescriptor = "DOCTORAIBOLIT"
+            }
         };
         
             try
