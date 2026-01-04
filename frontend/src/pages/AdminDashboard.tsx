@@ -126,7 +126,8 @@ export default function AdminDashboard() {
     setDataError(null)
     try {
       console.log('🔍 Loading admin data...')
-      console.log('📡 API Base URL:', import.meta.env.VITE_API_URL || 'https://api.doctoraibolit.com/api')
+      const apiDomain = import.meta.env.VITE_API_DOMAIN || 'api.doctoraibolit.com'
+      console.log('📡 API Base URL:', import.meta.env.VITE_API_URL || `https://${apiDomain}/api`)
       console.log('🔑 Admin Key:', sessionStorage.getItem('doctoraibolit_admin_key') ? 'Present' : 'Missing')
       
       const [visitorsData, emailsData] = await Promise.all([

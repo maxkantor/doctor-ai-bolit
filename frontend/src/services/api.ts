@@ -2,7 +2,9 @@ import axios from 'axios'
 
 // Ensure API URL includes /api suffix
 const getApiBaseUrl = () => {
-  let envUrl = import.meta.env.VITE_API_URL || 'https://api.doctoraibolit.com/api'
+  // Use VITE_API_URL if set, otherwise construct from VITE_API_DOMAIN or default
+  const apiDomain = import.meta.env.VITE_API_DOMAIN || 'api.doctoraibolit.com'
+  let envUrl = import.meta.env.VITE_API_URL || `https://${apiDomain}/api`
   
   // Remove trailing slash if present
   envUrl = envUrl.trim().replace(/\/+$/, '')
