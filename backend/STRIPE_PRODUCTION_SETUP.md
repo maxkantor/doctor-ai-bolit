@@ -96,28 +96,39 @@ If you changed your Stripe webhook to production but still see test mode, you ne
 
 1. In Stripe Dashboard (Production mode), go to **Developers → Webhooks**
 2. Click **Add endpoint**
-3. **Endpoint URL**: `https://your-api-domain.com/api/stripe/webhook`
-   - Replace `your-api-domain.com` with your actual API Gateway domain
-4. **Events to send**: Select:
-   - `checkout.session.completed`
+3. **Endpoint URL**: Use your API Gateway URL:
+   - Format: `https://YOUR-API-ID.execute-api.us-east-1.amazonaws.com/api/stripe/webhook`
+   - Example: `https://i4fxx5fur9.execute-api.us-east-1.amazonaws.com/api/stripe/webhook`
+   - **To find your API Gateway URL**: 
+     - Go to AWS API Gateway Console → Your API → Copy "Invoke URL"
+     - Append `/api/stripe/webhook` to it
+4. **Description**: "Production webhook for DoctorAibolit"
+5. **Events to send**: Select:
+   - `checkout.session.completed` (required)
    - `charge.succeeded` (optional, as fallback)
-5. Click **Add endpoint**
-6. Click **Reveal** next to "Signing secret" and copy it
+6. Click **Add endpoint**
+7. After creation, click on the webhook endpoint
+8. Click **Reveal** next to "Signing secret"
+9. Copy the signing secret (starts with `whsec_...`)
 
-#### 5. Update AWS Secrets Manager
+#### 3. Update AWS Secrets Manager
 
 **Option A: Using AWS Console**
 1. Go to **AWS Secrets Manager**
 2. Find the secret named: `doctoraibolit`
 3. Click **Edit**
-4. Update these two keys:
+4. Update these two keys (keep all other existing keys):
    ```json
    {
+     "ADMIN_SECRET": "your-existing-admin-key",
+     "OPENAI_API_KEY": "your-existing-openai-key",
      "STRIPE_SECRET_KEY": "sk_live_YOUR_PRODUCTION_SECRET_KEY",
-     "STRIPE_WEBHOOK_SECRET": "whsec_YOUR_PRODUCTION_WEBHOOK_SECRET"
+     "STRIPE_WEBHOOK_SECRET": "whsec_YOUR_PRODUCTION_WEBHOOK_SECRET",
+     "FROM_EMAIL": "your-existing-email",
+     "ADMIN_EMAIL": "your-existing-admin-email"
    }
    ```
-5. **Important:** Keep all other existing keys (ADMIN_SECRET, OPENAI_API_KEY, etc.)
+5. **Important:** Replace only the Stripe keys, keep all other existing values
 6. Save changes
 
 **Option B: Using AWS CLI**
