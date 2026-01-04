@@ -358,7 +358,16 @@ export default function ChatPage() {
                   navigate(`/chat?session=${session.sessionId}`, { replace: true })
                 }}
               >
-                {session.title || 'Untitled Session'}
+                <div className="session-title">{session.title || 'Untitled Session'}</div>
+                <div className="session-date">
+                  {new Date(session.createdAt).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                  })}
+                </div>
               </div>
             ))}
           </div>
