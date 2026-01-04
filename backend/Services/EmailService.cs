@@ -22,20 +22,30 @@ public class EmailService : IEmailService
     {
         if (_fromEmail == null)
         {
-            // First check environment variables (Lambda configuration)
-            _fromEmail = _configuration["SES_FROM_EMAIL"] 
-                ?? Environment.GetEnvironmentVariable("SES_FROM_EMAIL");
+            // First check Secrets Manager (primary source)
+            var secrets = await _secretsService.GetSecretsAsync();
+            _fromEmail = secrets.FromEmail;
             
-            // If not in environment variables, check Secrets Manager
-            if (string.IsNullOrWhiteSpace(_fromEmail))
+            // If Secrets Manager has a valid email, use it
+            if (!string.IsNullOrWhiteSpace(_fromEmail) && _fromEmail != "noreply@doctoraibolit.com")
             {
-                var secrets = await _secretsService.GetSecretsAsync();
-                _fromEmail = secrets.FromEmail;
                 Console.WriteLine($"[EmailService] Using FROM_EMAIL from Secrets Manager: {_fromEmail}");
             }
             else
             {
-                Console.WriteLine($"[EmailService] Using FROM_EMAIL from environment variable: {_fromEmail}");
+                // Fall back to environment variables if Secrets Manager has default value
+                _fromEmail = _configuration["SES_FROM_EMAIL"] 
+                    ?? Environment.GetEnvironmentVariable("SES_FROM_EMAIL")
+                    ?? _fromEmail; // Keep Secrets Manager value if env var is also empty
+                
+                if (!string.IsNullOrWhiteSpace(_fromEmail))
+                {
+                    Console.WriteLine($"[EmailService] Using FROM_EMAIL from environment variable: {_fromEmail}");
+                }
+                else
+                {
+                    Console.WriteLine($"[EmailService] Using FROM_EMAIL default value: {_fromEmail}");
+                }
             }
         }
         return _fromEmail;
@@ -45,20 +55,30 @@ public class EmailService : IEmailService
     {
         if (_adminEmail == null)
         {
-            // First check environment variables (Lambda configuration)
-            _adminEmail = _configuration["SES_ADMIN_EMAIL"] 
-                ?? Environment.GetEnvironmentVariable("SES_ADMIN_EMAIL");
+            // First check Secrets Manager (primary source)
+            var secrets = await _secretsService.GetSecretsAsync();
+            _adminEmail = secrets.AdminEmail;
             
-            // If not in environment variables, check Secrets Manager
-            if (string.IsNullOrWhiteSpace(_adminEmail))
+            // If Secrets Manager has a valid email, use it
+            if (!string.IsNullOrWhiteSpace(_adminEmail) && _adminEmail != "admin@doctoraibolit.com")
             {
-                var secrets = await _secretsService.GetSecretsAsync();
-                _adminEmail = secrets.AdminEmail;
                 Console.WriteLine($"[EmailService] Using ADMIN_EMAIL from Secrets Manager: {_adminEmail}");
             }
             else
             {
-                Console.WriteLine($"[EmailService] Using ADMIN_EMAIL from environment variable: {_adminEmail}");
+                // Fall back to environment variables if Secrets Manager has default value
+                _adminEmail = _configuration["SES_ADMIN_EMAIL"] 
+                    ?? Environment.GetEnvironmentVariable("SES_ADMIN_EMAIL")
+                    ?? _adminEmail; // Keep Secrets Manager value if env var is also empty
+                
+                if (!string.IsNullOrWhiteSpace(_adminEmail))
+                {
+                    Console.WriteLine($"[EmailService] Using ADMIN_EMAIL from environment variable: {_adminEmail}");
+                }
+                else
+                {
+                    Console.WriteLine($"[EmailService] Using ADMIN_EMAIL default value: {_adminEmail}");
+                }
             }
         }
         return _adminEmail;
