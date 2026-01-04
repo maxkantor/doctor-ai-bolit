@@ -4,11 +4,12 @@ frontend:
     preBuild:
       commands:
         - npm install --prefix frontend
-        # Set domain from Amplify environment variables (defaults to doctoraibolit.com)
-        - export VITE_DOMAIN=${VITE_DOMAIN:-doctoraibolit.com}
-        - export VITE_API_DOMAIN=${VITE_API_DOMAIN:-api.doctoraibolit.com}
-        - echo "Building with domain: $VITE_DOMAIN"
-        - echo "Building with API domain: $VITE_API_DOMAIN"
+        - |
+          # Set domain from Amplify environment variables (defaults to doctoraibolit.com)
+          export VITE_DOMAIN=${VITE_DOMAIN:-doctoraibolit.com}
+          export VITE_API_DOMAIN=${VITE_API_DOMAIN:-api.doctoraibolit.com}
+          echo "Building with domain: $VITE_DOMAIN"
+          echo "Building with API domain: $VITE_API_DOMAIN"
     build:
       commands:
         - npm run build --prefix frontend
