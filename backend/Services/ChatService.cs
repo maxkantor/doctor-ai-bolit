@@ -31,6 +31,60 @@ public class ChatService : IChatService
         var messagePreview = string.IsNullOrEmpty(request.Message) ? "(empty)" : (request.Message.Length > 50 ? request.Message.Substring(0, 50) + "..." : request.Message);
         Console.WriteLine($"[ChatService-{requestId}] Processing message for visitor: {request.VisitorId}, session: {request.SessionId}, message: {messagePreview}");
         
+        // IDEMPOTENCY CHECK: Check if this exact message was already processed recently (within last 10 seconds)
+        // This prevents duplicate deductions from retries or double-clicks
+        var recentMessages = await _chatRepository.GetMessagesAsync(request.SessionId);
+        var recentUserMessages = recentMessages
+            .Where(m => m.Role == "user" && 
+                       m.Content == request.Message && 
+                       (DateTime.UtcNow - m.Timestamp).TotalSeconds < 10)
+            .OrderByDescending(m => m.Timestamp)
+            .ToList();
+        
+        bool isDuplicate = false;
+        string? existingAssistantResponse = null;
+        
+        if (recentUserMessages.Any())
+        {
+            var duplicateMessage = recentUserMessages.First();
+            Console.WriteLine($"[ChatService-{requestId}] ⚠️ DUPLICATE MESSAGE DETECTED - Same message '{messagePreview}' was already processed at {duplicateMessage.Timestamp:yyyy-MM-dd HH:mm:ss} UTC ({(DateTime.UtcNow - duplicateMessage.Timestamp).TotalSeconds:F2} seconds ago)");
+            
+            // Find the corresponding assistant response (should be the next message after the duplicate user message)
+            var allMessages = await _chatRepository.GetMessagesAsync(request.SessionId);
+            var duplicateIndex = allMessages.FindIndex(m => m.Timestamp == duplicateMessage.Timestamp);
+            if (duplicateIndex >= 0 && duplicateIndex + 1 < allMessages.Count)
+            {
+                var existingResponse = allMessages[duplicateIndex + 1];
+                if (existingResponse.Role == "assistant")
+                {
+                    existingAssistantResponse = existingResponse.Content;
+                    isDuplicate = true;
+                    Console.WriteLine($"[ChatService-{requestId}] Found existing assistant response - returning it without processing");
+                }
+            }
+            
+            if (isDuplicate && existingAssistantResponse != null)
+            {
+                // Return existing response immediately - no deduction, no processing
+                var remainingCreditsForDuplicate = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
+                Console.WriteLine($"[ChatService-{requestId}] Returning existing assistant response (no deduction, no processing)");
+                return new ChatResponse
+                {
+                    Message = existingAssistantResponse,
+                    RemainingMessages = remainingCreditsForDuplicate,
+                    RequiresPayment = false
+                };
+            }
+            
+            // If duplicate user message exists but no assistant response, it means first request failed after saving user message
+            // Continue processing but SKIP deduction (already deducted in first request)
+            if (recentUserMessages.Any())
+            {
+                isDuplicate = true;
+                Console.WriteLine($"[ChatService-{requestId}] Duplicate user message found but no assistant response - continuing processing but SKIPPING deduction");
+            }
+        }
+        
         // Check if visitor can send message (has credits) - this loads visitor but doesn't modify it
         var canSend = await _visitorService.CanSendMessageAsync(request.VisitorId);
         if (!canSend)
@@ -44,19 +98,26 @@ public class ChatService : IChatService
             };
         }
 
-        // Deduct credit for QUESTION (user message) only - this method handles loading, deducting, and saving atomically
-        Console.WriteLine($"[ChatService-{requestId}] Deducting credit for QUESTION (visitor: {request.VisitorId})");
-        var creditDeducted = await _visitorService.DeductCreditAsync(request.VisitorId);
-        Console.WriteLine($"[ChatService-{requestId}] Credit deduction result: {creditDeducted}");
-        if (!creditDeducted)
+        // Deduct credit for QUESTION (user message) only - SKIP if duplicate was detected
+        if (!isDuplicate)
         {
-            var remainingCreditsAfterCheck = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
-            return new ChatResponse
+            Console.WriteLine($"[ChatService-{requestId}] Deducting credit for QUESTION (visitor: {request.VisitorId})");
+            var creditDeducted = await _visitorService.DeductCreditAsync(request.VisitorId);
+            Console.WriteLine($"[ChatService-{requestId}] Credit deduction result: {creditDeducted}");
+            if (!creditDeducted)
             {
-                Message = string.Empty,
-                RemainingMessages = remainingCreditsAfterCheck,
-                RequiresPayment = true
-            };
+                var remainingCreditsAfterCheck = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
+                return new ChatResponse
+                {
+                    Message = string.Empty,
+                    RemainingMessages = remainingCreditsAfterCheck,
+                    RequiresPayment = true
+                };
+            }
+        }
+        else
+        {
+            Console.WriteLine($"[ChatService-{requestId}] ⚠️ SKIPPING credit deduction - duplicate message detected (already deducted in previous request)");
         }
 
         // Check if session exists, create if it doesn't
@@ -76,15 +137,23 @@ public class ChatService : IChatService
             Console.WriteLine($"[ChatService] Created new session: {request.SessionId} for visitor: {request.VisitorId}");
         }
 
-        // Save user message
-        var userMessage = new ChatMessage
+        // Save user message - but skip if duplicate (already saved)
+        if (!isDuplicate)
         {
-            SessionId = request.SessionId,
-            Timestamp = DateTime.UtcNow,
-            Role = "user",
-            Content = request.Message
-        };
-        await _chatRepository.SaveMessageAsync(userMessage);
+            var userMessage = new ChatMessage
+            {
+                SessionId = request.SessionId,
+                Timestamp = DateTime.UtcNow,
+                Role = "user",
+                Content = request.Message
+            };
+            await _chatRepository.SaveMessageAsync(userMessage);
+            Console.WriteLine($"[ChatService-{requestId}] Saved user message");
+        }
+        else
+        {
+            Console.WriteLine($"[ChatService-{requestId}] Skipping user message save - duplicate detected (already saved)");
+        }
 
         // Get conversation history for context
         var conversationHistory = await _chatRepository.GetMessagesAsync(request.SessionId);
