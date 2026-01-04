@@ -155,18 +155,18 @@ public class VisitorService : IVisitorService
             var freeLimit = config?.FreeMessageLimit ?? 5;
             
             // If user has purchased credits, deduct from those first
+            // NOTE: MessageCount is NOT incremented when using purchased credits
+            // MessageCount only tracks free messages used (for calculating free messages remaining)
             if (visitor.CreditBalance > 0)
             {
                 var oldBalance = visitor.CreditBalance;
-                var oldMessageCount = visitor.MessageCount;
                 visitor.CreditBalance--;
-                visitor.MessageCount++;
                 visitor.LastActive = DateTime.UtcNow;
                 
                 // Save atomically
                 await _visitorRepository.UpdateVisitorAsync(visitor);
                 
-                Console.WriteLine($"[DeductCredit-{deductionId}] AFTER - VisitorId={visitorId}, CreditBalance: {oldBalance} -> {visitor.CreditBalance}, MessageCount: {oldMessageCount} -> {visitor.MessageCount}");
+                Console.WriteLine($"[DeductCredit-{deductionId}] AFTER - VisitorId={visitorId}, CreditBalance: {oldBalance} -> {visitor.CreditBalance}, MessageCount: {visitor.MessageCount} (unchanged - using purchased credits)");
                 Console.WriteLine($"[DeductCredit-{deductionId}] Releasing semaphore lock");
                 return true;
             }
