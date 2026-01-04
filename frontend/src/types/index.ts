@@ -76,5 +76,16 @@ export interface PaymentHistory {
   status: string
   paymentDate: string
   customerEmail?: string
+  customerName?: string
+  customerPhone?: string
+  billingAddressLine1?: string
+  billingAddressLine2?: string
+  billingCity?: string
+  billingState?: string
+  billingPostalCode?: string
+  billingCountry?: string
+  paymentMethodType?: string
+  paymentMethodBrand?: string
+  paymentMethodLast4?: string
 }
 

@@ -1022,23 +1022,62 @@ export default function AdminDashboard() {
                     <thead>
                       <tr style={{ background: '#f8f9fa' }}>
                         <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>Date</th>
+                        <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>Customer</th>
                         <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>Plan</th>
                         <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>Amount</th>
                         <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>Credits</th>
+                        <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>Payment Method</th>
+                        <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>Billing Address</th>
                         <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>Status</th>
-                        <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>Email</th>
                         <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>Session ID</th>
                       </tr>
                     </thead>
                     <tbody>
                       {paymentHistory.map((payment) => (
                         <tr key={payment.paymentId} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                          <td style={{ padding: '0.75rem' }}>{new Date(payment.paymentDate).toLocaleString()}</td>
+                          <td style={{ padding: '0.75rem', fontSize: '0.875rem' }}>{new Date(payment.paymentDate).toLocaleString()}</td>
+                          <td style={{ padding: '0.75rem', fontSize: '0.875rem' }}>
+                            <div style={{ fontWeight: 500 }}>{payment.customerName || 'N/A'}</div>
+                            <div style={{ color: '#666', fontSize: '0.8125rem' }}>{payment.customerEmail || 'N/A'}</div>
+                            {payment.customerPhone && (
+                              <div style={{ color: '#666', fontSize: '0.8125rem' }}>{payment.customerPhone}</div>
+                            )}
+                          </td>
                           <td style={{ padding: '0.75rem' }}>{payment.planName}</td>
                           <td style={{ padding: '0.75rem' }}>
                             {new Intl.NumberFormat('en-US', { style: 'currency', currency: payment.currency.toUpperCase() }).format(payment.amount)}
                           </td>
                           <td style={{ padding: '0.75rem' }}>{payment.credits}</td>
+                          <td style={{ padding: '0.75rem', fontSize: '0.875rem' }}>
+                            {payment.paymentMethodBrand && payment.paymentMethodLast4 ? (
+                              <div>
+                                <div style={{ textTransform: 'capitalize', fontWeight: 500 }}>
+                                  {payment.paymentMethodBrand} •••• {payment.paymentMethodLast4}
+                                </div>
+                                {payment.paymentMethodType && (
+                                  <div style={{ color: '#666', fontSize: '0.75rem', textTransform: 'capitalize' }}>
+                                    {payment.paymentMethodType}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span style={{ color: '#999' }}>N/A</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '0.75rem', fontSize: '0.875rem', color: '#666' }}>
+                            {payment.billingAddressLine1 ? (
+                              <div>
+                                <div>{payment.billingAddressLine1}</div>
+                                {payment.billingAddressLine2 && <div>{payment.billingAddressLine2}</div>}
+                                <div>
+                                  {payment.billingCity}{payment.billingCity && payment.billingState ? ', ' : ''}{payment.billingState} {payment.billingPostalCode}
+                                </div>
+                                {payment.billingCountry && <div style={{ fontSize: '0.75rem', color: '#999' }}>{payment.billingCountry.toUpperCase()}</div>}
+                              </div>
+                            ) : (
+                              <span style={{ color: '#999' }}>N/A</span>
+                            )}
+                          </td>
                           <td style={{ padding: '0.75rem' }}>
                             <span style={{ 
                               padding: '0.25rem 0.5rem', 
@@ -1049,9 +1088,6 @@ export default function AdminDashboard() {
                             }}>
                               {payment.status}
                             </span>
-                          </td>
-                          <td style={{ padding: '0.75rem', fontSize: '0.875rem', color: '#666' }}>
-                            {payment.customerEmail || 'N/A'}
                           </td>
                           <td style={{ padding: '0.75rem', fontSize: '0.75rem', color: '#666', fontFamily: 'monospace' }}>
                             {payment.stripeSessionId.substring(0, 20)}...

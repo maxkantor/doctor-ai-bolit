@@ -354,6 +354,51 @@ public class StripeService : IStripeService
                     var amount = session.AmountTotal.HasValue ? (decimal)session.AmountTotal.Value / 100 : 0m; // Convert from cents
                     var currency = session.Currency ?? "usd";
                     var customerEmail = session.CustomerEmail ?? session.CustomerDetails?.Email;
+                    var customerName = session.CustomerDetails?.Name;
+                    var customerPhone = session.CustomerDetails?.Phone;
+                    
+                    // Extract billing address
+                    var billingAddress = session.CustomerDetails?.Address;
+                    var billingAddressLine1 = billingAddress?.Line1;
+                    var billingAddressLine2 = billingAddress?.Line2;
+                    var billingCity = billingAddress?.City;
+                    var billingState = billingAddress?.State;
+                    var billingPostalCode = billingAddress?.PostalCode;
+                    var billingCountry = billingAddress?.Country;
+                    
+                    // Extract payment method details
+                    string? paymentMethodType = null;
+                    string? paymentMethodBrand = null;
+                    string? paymentMethodLast4 = null;
+                    
+                    // Try to get payment method from session
+                    if (!string.IsNullOrEmpty(session.PaymentIntentId))
+                    {
+                        try
+                        {
+                            var paymentIntentService = new PaymentIntentService();
+                            var paymentIntent = await paymentIntentService.GetAsync(session.PaymentIntentId);
+                            
+                            if (paymentIntent?.PaymentMethodId != null)
+                            {
+                                var paymentMethodService = new PaymentMethodService();
+                                var paymentMethod = await paymentMethodService.GetAsync(paymentIntent.PaymentMethodId);
+                                
+                                paymentMethodType = paymentMethod?.Type;
+                                
+                                if (paymentMethod?.Card != null)
+                                {
+                                    paymentMethodBrand = paymentMethod.Card.Brand;
+                                    paymentMethodLast4 = paymentMethod.Card.Last4;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[StripeService] Could not retrieve payment method details: {ex.Message}");
+                        }
+                    }
+                    
                     var planId = session.Metadata.GetValueOrDefault("planId", "");
                     var planName = "Credit Pack";
                     var credits = 0;
@@ -410,6 +455,17 @@ public class StripeService : IStripeService
                             Status = "completed",
                             PaymentDate = DateTime.UtcNow,
                             CustomerEmail = customerEmail,
+                            CustomerName = customerName,
+                            CustomerPhone = customerPhone,
+                            BillingAddressLine1 = billingAddressLine1,
+                            BillingAddressLine2 = billingAddressLine2,
+                            BillingCity = billingCity,
+                            BillingState = billingState,
+                            BillingPostalCode = billingPostalCode,
+                            BillingCountry = billingCountry,
+                            PaymentMethodType = paymentMethodType,
+                            PaymentMethodBrand = paymentMethodBrand,
+                            PaymentMethodLast4 = paymentMethodLast4,
                             Metadata = session.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, string>()
                         };
                         
@@ -573,6 +629,49 @@ public class StripeService : IStripeService
                                     
                                     var amount = fullSession.AmountTotal.HasValue ? (decimal)fullSession.AmountTotal.Value / 100 : 0m;
                                     var customerEmail = fullSession.CustomerEmail ?? fullSession.CustomerDetails?.Email;
+                                    var customerName = fullSession.CustomerDetails?.Name;
+                                    var customerPhone = fullSession.CustomerDetails?.Phone;
+                                    
+                                    // Extract billing address
+                                    var billingAddress = fullSession.CustomerDetails?.Address;
+                                    var billingAddressLine1 = billingAddress?.Line1;
+                                    var billingAddressLine2 = billingAddress?.Line2;
+                                    var billingCity = billingAddress?.City;
+                                    var billingState = billingAddress?.State;
+                                    var billingPostalCode = billingAddress?.PostalCode;
+                                    var billingCountry = billingAddress?.Country;
+                                    
+                                    // Extract payment method details
+                                    string? paymentMethodType = null;
+                                    string? paymentMethodBrand = null;
+                                    string? paymentMethodLast4 = null;
+                                    
+                                    if (!string.IsNullOrEmpty(fullSession.PaymentIntentId))
+                                    {
+                                        try
+                                        {
+                                            var pmtIntentService = new PaymentIntentService();
+                                            var pmtIntent = await pmtIntentService.GetAsync(fullSession.PaymentIntentId);
+                                            
+                                            if (pmtIntent?.PaymentMethodId != null)
+                                            {
+                                                var pmtMethodService = new PaymentMethodService();
+                                                var pmtMethod = await pmtMethodService.GetAsync(pmtIntent.PaymentMethodId);
+                                                
+                                                paymentMethodType = pmtMethod?.Type;
+                                                
+                                                if (pmtMethod?.Card != null)
+                                                {
+                                                    paymentMethodBrand = pmtMethod.Card.Brand;
+                                                    paymentMethodLast4 = pmtMethod.Card.Last4;
+                                                }
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine($"[StripeService] Could not retrieve payment method details: {ex.Message}");
+                                        }
+                                    }
                                     
                                     // Add credits
                                     var oldBalance = visitor.CreditBalance;
@@ -595,6 +694,17 @@ public class StripeService : IStripeService
                                         Status = "completed",
                                         PaymentDate = DateTime.UtcNow,
                                         CustomerEmail = customerEmail,
+                                        CustomerName = customerName,
+                                        CustomerPhone = customerPhone,
+                                        BillingAddressLine1 = billingAddressLine1,
+                                        BillingAddressLine2 = billingAddressLine2,
+                                        BillingCity = billingCity,
+                                        BillingState = billingState,
+                                        BillingPostalCode = billingPostalCode,
+                                        BillingCountry = billingCountry,
+                                        PaymentMethodType = paymentMethodType,
+                                        PaymentMethodBrand = paymentMethodBrand,
+                                        PaymentMethodLast4 = paymentMethodLast4,
                                         Metadata = fullSession.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, string>()
                                     };
                                     
