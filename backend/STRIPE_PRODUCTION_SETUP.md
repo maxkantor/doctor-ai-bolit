@@ -1,12 +1,54 @@
-# Stripe Production Mode Setup
+# Production Setup Guide: Amplify Domain & Stripe Production
 
-## Issue: Still Seeing Test Mode After Switching Webhooks
+This guide covers setting up a custom domain in AWS Amplify and switching Stripe to production mode.
+
+## Part 1: Setting Up Amplify Custom Domain
+
+### 1. Add Domain in AWS Amplify Console
+
+1. Go to **AWS Amplify Console**
+2. Select your app (`doctor-ai-bolit` or similar)
+3. Click **Domain management** in the left sidebar
+4. Click **Add domain**
+5. Enter your domain name (e.g., `doctoraibolit.com`)
+6. Click **Configure domain**
+
+### 2. Configure Domain Settings
+
+1. **Subdomain**: Choose your main subdomain (usually `www` or leave blank for root)
+2. **Branch**: Select your main branch (usually `main`)
+3. Click **Save**
+
+### 3. DNS Configuration
+
+Amplify will provide DNS records to add to your domain registrar:
+
+1. **CNAME Record**: Add the CNAME record provided by Amplify
+2. **Wait for propagation**: DNS changes can take 24-48 hours, but usually work within a few hours
+3. **SSL Certificate**: Amplify automatically provisions an SSL certificate via AWS Certificate Manager
+
+### 4. Verify Domain
+
+1. Check domain status in Amplify Console
+2. Status should show "Available" when DNS is properly configured
+3. Test by visiting your custom domain
+
+### 5. Update Frontend URLs (if needed)
+
+If you have hardcoded URLs in your frontend, update them:
+- Update `index.html` meta tags with new domain
+- Update any API URLs if they reference the domain
+- Update CORS settings in API Gateway if needed
+
+## Part 2: Stripe Production Mode Setup
+
+### Issue: Still Seeing Test Mode After Switching Webhooks
 
 If you changed your Stripe webhook to production but still see test mode, you need to update **both** the API key and webhook secret in AWS Secrets Manager.
 
-## Steps to Switch to Production
+### Steps to Switch to Production
 
-### 1. Get Your Production Keys from Stripe
+#### 1. Get Your Production Keys from Stripe
 
 **In Stripe Dashboard:**
 1. Make sure you're in **Production mode** (toggle in top right)
@@ -17,11 +59,42 @@ If you changed your Stripe webhook to production but still see test mode, you ne
    - Click "Reveal" next to "Signing secret"
    - Copy the **Signing secret** (starts with `whsec_...`)
 
-### 2. Update AWS Secrets Manager
+#### 2. Create Production Products and Prices in Stripe
+
+**Important:** You need to create new products and prices in **Production mode**:
+
+1. Switch Stripe Dashboard to **Production mode**
+2. Go to **Products** → **Add product**
+3. Create products matching your pricing plans (e.g., "20 Messages", "50 Messages")
+4. For each product, add a price:
+   - **Recurring**: One time
+   - **Price**: Set your price (e.g., $1.99)
+   - **Currency**: USD
+5. Copy the **Price ID** for each product (starts with `price_...`)
+
+#### 3. Update Pricing Plans in Admin Dashboard
+
+1. Go to your Admin Dashboard → **Pricing** tab
+2. For each plan, update the **Stripe Price ID** with the production Price IDs from step 2
+3. Save each plan
+
+#### 4. Create Production Webhook in Stripe
+
+1. In Stripe Dashboard (Production mode), go to **Developers → Webhooks**
+2. Click **Add endpoint**
+3. **Endpoint URL**: `https://your-api-domain.com/api/stripe/webhook`
+   - Replace `your-api-domain.com` with your actual API Gateway domain
+4. **Events to send**: Select:
+   - `checkout.session.completed`
+   - `charge.succeeded` (optional, as fallback)
+5. Click **Add endpoint**
+6. Click **Reveal** next to "Signing secret" and copy it
+
+#### 5. Update AWS Secrets Manager
 
 **Option A: Using AWS Console**
 1. Go to **AWS Secrets Manager**
-2. Find the secret named: `anxietychatai`
+2. Find the secret named: `doctoraibolit`
 3. Click **Edit**
 4. Update these two keys:
    ```json
@@ -30,12 +103,17 @@ If you changed your Stripe webhook to production but still see test mode, you ne
      "STRIPE_WEBHOOK_SECRET": "whsec_YOUR_PRODUCTION_WEBHOOK_SECRET"
    }
    ```
-5. Save changes
+5. **Important:** Keep all other existing keys (ADMIN_SECRET, OPENAI_API_KEY, etc.)
+6. Save changes
 
 **Option B: Using AWS CLI**
 ```bash
+# First, get your existing secret to preserve other keys
+aws secretsmanager get-secret-value --secret-id doctoraibolit
+
+# Then update with production Stripe keys (replace with your actual values)
 aws secretsmanager update-secret \
-  --secret-id anxietychatai \
+  --secret-id doctoraibolit \
   --secret-string '{
     "ADMIN_SECRET": "your-existing-admin-key",
     "OPENAI_API_KEY": "your-existing-openai-key",
