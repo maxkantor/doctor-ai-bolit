@@ -133,8 +133,8 @@ export default function ChatEmbed({ systemPrompt }: ChatEmbedProps) {
       <div className="chat-embed-input-container">
         <div className="chat-embed-disclaimer">
           <small>
-            This service provides emotional support only and is not medical or crisis care.
-            If you are in immediate danger, contact local emergency services.
+            This service provides informational health guidance only and is not a substitute for professional medical care.
+            If you are experiencing a medical emergency, contact emergency services immediately.
           </small>
         </div>
         <div className="chat-embed-input-wrapper">
