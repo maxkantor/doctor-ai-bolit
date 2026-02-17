@@ -7,6 +7,7 @@ import Disclaimer from './pages/Disclaimer'
 import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
 import YouTubePage from './pages/YouTubePage'
+import Platform from './pages/Platform'
 import Layout from './components/Layout'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/privacy" element={<Layout><PrivacyPolicy /></Layout>} />
         <Route path="/disclaimer" element={<Layout><Disclaimer /></Layout>} />
         <Route path="/youtube" element={<Layout><YouTubePage /></Layout>} />
+        <Route path="/platform" element={<Layout><Platform /></Layout>} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/users" element={<AdminDashboard />} />

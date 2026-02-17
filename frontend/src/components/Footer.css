@@ -56,6 +56,14 @@
   background-color: rgba(59, 130, 246, 0.1);
 }
 
+.footer-link-btn.footer-link {
+  display: inline-block;
+}
+
+.footer-link-btn.footer-link:visited {
+  color: #f1f5f9;
+}
+
 .footer-copyright {
   text-align: center;
   font-size: 0.8125rem;

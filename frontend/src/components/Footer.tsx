@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import ContactModal from './ContactModal'
 import PrivacyModal from './PrivacyModal'
 import DisclaimerModal from './DisclaimerModal'
@@ -28,6 +29,9 @@ export default function Footer() {
             <button onClick={() => setShowDisclaimer(true)} className="footer-link-btn">
               Disclaimer
             </button>
+            <Link to="/platform" className="footer-link-btn footer-link">
+              Platform
+            </Link>
           </div>
           <div className="footer-copyright">
             <p className="footer-safety">If this is a medical emergency, contact emergency services immediately.</p>
