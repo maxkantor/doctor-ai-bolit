@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { scrollToTop } from '../utils/scrollToTop'
 import { getOrCreateVisitorId } from '../utils/visitorId'
 import { chatService } from '../services/chatService'
 import { pricingService } from '../services/pricingService'
@@ -157,7 +158,7 @@ export default function ChatEmbed({ systemPrompt }: ChatEmbedProps) {
         </div>
         {remainingMessages === 0 && (
           <button
-            onClick={() => navigate('/chat')}
+            onClick={() => { scrollToTop(); navigate('/chat') }}
             className="chat-embed-full-chat-btn"
           >
             Continue in Full Chat →

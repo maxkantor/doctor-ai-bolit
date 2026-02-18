@@ -26,3 +26,10 @@
   height: auto;
   min-height: 100vh;
 }
+
+/* Chat page: lock layout to viewport so footer is always at bottom, no page scroll */
+.layout:has(.chat-page) {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}

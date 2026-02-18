@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { scrollToTop } from '../utils/scrollToTop'
 import { motion, useInView } from 'framer-motion'
 import { pricingService } from '../services/pricingService'
 import { stripeService } from '../services/stripeService'
@@ -158,7 +159,7 @@ export default function LandingPage() {
             variants={fadeInUp}
             style={{ marginBottom: '0.5rem' }}
           >
-            <Link to="/chat" className="cta-button" aria-label="Start chatting with AI health guidance">
+            <Link to="/chat" className="cta-button" aria-label="Start chatting with AI health guidance" onClick={scrollToTop}>
               <span className="cta-button-icon" aria-hidden="true">💬</span>
               <span>Start Chatting</span>
             </Link>
@@ -338,7 +339,7 @@ export default function LandingPage() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        <Link to="/chat" className="sticky-cta-button" aria-label="Start chatting with AI health guidance">
+        <Link to="/chat" className="sticky-cta-button" aria-label="Start chatting with AI health guidance" onClick={scrollToTop}>
           Start Chatting
         </Link>
       </motion.div>

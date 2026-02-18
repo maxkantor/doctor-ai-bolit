@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { scrollToTop } from '../utils/scrollToTop'
 import './YouTubePage.css'
 
 export default function YouTubePage() {
@@ -23,7 +24,7 @@ export default function YouTubePage() {
         <div className="cta-section">
           <h2>Try DoctorAibolit Free</h2>
           <p>Get instant AI health guidance and wellness information. No signup required.</p>
-          <Link to="/chat" className="cta-button">
+          <Link to="/chat" className="cta-button" onClick={scrollToTop}>
             Start Chatting Now
           </Link>
         </div>

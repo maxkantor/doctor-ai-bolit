@@ -1,6 +1,6 @@
 .chat-page {
-  height: 100vh;
-  max-height: 100vh;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;

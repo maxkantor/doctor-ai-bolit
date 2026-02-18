@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { scrollToTop } from '../utils/scrollToTop'
 import { getOrCreateVisitorId } from '../utils/visitorId'
 import { chatService } from '../services/chatService'
 import { pricingService } from '../services/pricingService'
@@ -51,6 +52,10 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isSendingRef = useRef(false) // Use ref to track if request is in flight (prevents race conditions)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    scrollToTop()
+  }, [])
 
   useEffect(() => {
     const loadData = async () => {
