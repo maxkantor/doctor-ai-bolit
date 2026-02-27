@@ -18,7 +18,7 @@ export default function ChatPage() {
   const [visitorId] = useState(() => {
     const id = getOrCreateVisitorId()
     console.log('🆔 Visitor ID loaded:', id)
-    console.log('💾 Stored in localStorage:', localStorage.getItem('anxietychatai_visitor_id'))
+    console.log('💾 Stored in localStorage:', localStorage.getItem('doctoraibolit_visitor_id'))
     return id
   })
   const [sessionId, setSessionId] = useState(() => {

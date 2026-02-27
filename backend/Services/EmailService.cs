@@ -366,10 +366,10 @@ View in Admin Dashboard:
         try
         {
             var fromEmail = await GetFromEmailAsync();
-            var subject = "Your AnxietyChatAI Verification Code";
+            var subject = "Your DoctorAIBolit Verification Code";
             var body = $@"Hello,
 
-You requested to restore your credits on AnxietyChatAI.
+You requested to restore your credits on DoctorAIBolit.
 
 Your verification code is: {code}
 
@@ -378,7 +378,7 @@ This code will expire in 15 minutes.
 If you didn't request this code, please ignore this email.
 
 Best regards,
-AnxietyChatAI Team";
+DoctorAIBolit Team";
 
             var request = new SendEmailRequest
             {
