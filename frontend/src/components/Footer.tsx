@@ -34,8 +34,8 @@ export default function Footer() {
             </Link>
           </div>
           <div className="footer-copyright">
-            <p className="footer-safety">If this is a medical emergency, contact emergency services immediately.</p>
-            <p>&copy; {new Date().getFullYear()} DoctorAIBolit. Not a medical service.</p>
+            <p className="footer-safety">In an emergency, contact local emergency services.</p>
+            <p>&copy; {new Date().getFullYear()} DoctorAIBolit. General educational guidance only.</p>
           </div>
         </div>
       </footer>

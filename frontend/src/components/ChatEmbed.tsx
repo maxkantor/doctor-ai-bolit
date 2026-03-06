@@ -82,16 +82,48 @@ export default function ChatEmbed({ systemPrompt }: ChatEmbedProps) {
       }
 
       setMessages((prev) => [...prev, assistantMessage])
-      
-      // Always refresh remaining messages after sending to ensure accurate count
-      const updatedRemaining = await chatService.getRemainingMessages(visitorId)
-      setRemainingMessages(updatedRemaining)
-      
-      if (updatedRemaining === 0) {
-        setTimeout(() => setShowPaywallModal(true), 500)
-      }
+
+      const res = await chatService.getRemainingMessages(visitorId)
+      const remaining = typeof res === 'object' && res && 'remainingMessages' in res ? res.remainingMessages : res
+      setRemainingMessages(remaining ?? 0)
+      if (remaining === 0) setTimeout(() => setShowPaywallModal(true), 500)
     } catch (error) {
       console.error('Failed to send message:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const suggestedPrompts = [
+    'How can I improve my sleep naturally?',
+    'What helps with stress at night?',
+    'How do I reduce alcohol consumption?',
+    'What can I do for a mild headache?',
+    'What helps when I\'m getting a cold?',
+    'How do I stay hydrated properly?',
+  ]
+
+  const showEmptyState = messages.length === 0
+
+  const handleSuggestedPrompt = async (prompt: string) => {
+    if (!prompt.trim() || isLoading || remainingMessages <= 0) return
+    const userMsg: ChatMessage = { sessionId, timestamp: new Date().toISOString(), role: 'user', content: prompt }
+    setMessages((prev) => [...prev, userMsg])
+    setInputMessage('')
+    setIsLoading(true)
+    try {
+      const response = await chatService.sendMessage({ visitorId, sessionId, message: prompt, systemPrompt })
+      if (response.requiresPayment || response.remainingMessages <= 0) {
+        setShowPaywallModal(true)
+        return
+      }
+      setMessages((prev) => [...prev, { sessionId, timestamp: new Date().toISOString(), role: 'assistant', content: response.message }])
+      const updated = await chatService.getRemainingMessages(visitorId)
+      setRemainingMessages(typeof updated === 'object' && 'remainingMessages' in updated ? updated.remainingMessages : updated)
+      if ((typeof updated === 'object' && updated.remainingMessages === 0) || updated === 0) setTimeout(() => setShowPaywallModal(true), 500)
+    } catch {
+      const updated = await chatService.getRemainingMessages(visitorId)
+      setRemainingMessages(typeof updated === 'object' && 'remainingMessages' in updated ? updated.remainingMessages : updated)
     } finally {
       setIsLoading(false)
     }
@@ -100,16 +132,30 @@ export default function ChatEmbed({ systemPrompt }: ChatEmbedProps) {
   return (
     <div className="chat-embed">
       <div className="chat-embed-header">
-        <h3>Start chatting for free. No signup. No pressure.</h3>
+        <h3>Practical health guidance — free to start, no signup.</h3>
         <div className="chat-embed-credits">
-          {remainingMessages} free {remainingMessages === 1 ? 'message' : 'messages'} remaining
+          {remainingMessages} free {remainingMessages === 1 ? 'message' : 'messages'} left
         </div>
       </div>
 
       <div className="chat-embed-messages">
-        {messages.length === 0 && (
+        {showEmptyState && (
           <div className="chat-embed-empty">
-            <p>How are you feeling right now? I'm here to listen and support you.</p>
+            <p className="chat-embed-empty-headline">What can we help with?</p>
+            <p className="chat-embed-empty-sub">Choose a topic or type your question below.</p>
+            <div className="chat-embed-suggested">
+              {suggestedPrompts.map((p, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className="chat-embed-suggested-btn"
+                  onClick={() => handleSuggestedPrompt(p)}
+                  disabled={isLoading || remainingMessages === 0}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {messages.map((message, index) => (
@@ -132,30 +178,33 @@ export default function ChatEmbed({ systemPrompt }: ChatEmbedProps) {
       </div>
 
       <div className="chat-embed-input-container">
-        <div className="chat-embed-disclaimer">
-          <small>
-            This service provides informational health guidance only and is not a substitute for professional medical care.
-            If you are experiencing a medical emergency, contact emergency services immediately.
-          </small>
-        </div>
         <div className="chat-embed-input-wrapper">
-          <input
-            type="text"
+          <textarea
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            placeholder={remainingMessages === 0 ? "You've reached your free limit. Continue to keep chatting..." : "Type your message..."}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                if (inputMessage.trim() && !isLoading && remainingMessages > 0) handleSendMessage()
+              }
+            }}
+            placeholder={remainingMessages === 0 ? "You've reached your free limit. Upgrade to continue." : "Ask a health or wellness question…"}
             className="chat-embed-input"
             disabled={isLoading || remainingMessages === 0}
+            rows={1}
+            aria-label="Message"
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputMessage.trim() || isLoading || remainingMessages === 0}
             className="chat-embed-send-btn"
+            aria-label="Send"
           >
             Send
           </button>
         </div>
+        <p className="chat-embed-trust">Educational guidance for non-emergency questions.</p>
+        <p className="chat-embed-disclaimer-light">If symptoms are severe or worsening, seek medical care.</p>
         {remainingMessages === 0 && (
           <button
             onClick={() => { scrollToTop(); navigate('/chat') }}

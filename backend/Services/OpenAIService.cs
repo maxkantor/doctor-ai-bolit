@@ -11,13 +11,25 @@ public class OpenAIService : IOpenAIService
     private readonly HttpClient _httpClient;
     private readonly string? _apiKey;
     private readonly string _model = "gpt-4o-mini"; // Cost-effective model
-    
-    // Crisis detection keywords
+    private const int MaxResponseTokens = 700; // Enough for direct answer + 3–7 suggestions + optional disclaimer
+
+    // Mental health / crisis detection — direct to crisis resources
     private readonly HashSet<string> _crisisKeywords = new(StringComparer.OrdinalIgnoreCase)
     {
         "suicide", "kill myself", "end my life", "want to die", "not worth living",
         "hurt myself", "self harm", "cutting", "overdose", "jump off", "hang myself",
         "no reason to live", "better off dead", "everyone would be better without me"
+    };
+
+    // High-risk medical situations — direct to urgent/emergency care
+    private readonly HashSet<string> _emergencyKeywords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "chest pain", "heart attack", "stroke", "can't breathe", "trouble breathing", "severe allergic",
+        "anaphylaxis", "passed out", "lost consciousness", "unconscious", "seizure", "convulsion",
+        "heavy bleeding", "severe bleeding", "overdose", "poisoning", "suicidal", "want to die",
+        "severe alcohol withdrawal", "dt s", "delirium tremens", "dangerous interaction", "drug interaction",
+        "pregnancy emergency", "ectopic", "severe abdominal", "sudden severe headache", "can't move",
+        "numbness face", "slurred speech", "vision loss", "severe burn", "choking", "not breathing"
     };
 
     public OpenAIService(SecretsService secretsService, IHttpClientFactory httpClientFactory)
@@ -51,7 +63,7 @@ public class OpenAIService : IOpenAIService
 
 If you're in immediate danger, please contact emergency services right away:
 • Emergency Services: 911 (US) or your local emergency number
-• Suicide Prevention Lifeline: 988 (US) - Available 24/7
+• Suicide Prevention Lifeline: 988 (US) — Available 24/7
 • Crisis Text Line: Text HOME to 741741
 
 These services are free, confidential, and available 24/7. Please reach out to them. You don't have to go through this alone.
@@ -59,13 +71,30 @@ These services are free, confidential, and available 24/7. Please reach out to t
 Would you like me to help you find local mental health resources in your area?";
     }
 
+    public string GetEmergencyResponse()
+    {
+        return @"What you're describing may need urgent medical attention. Please get help right away.
+
+• Call 911 (US) or your local emergency number for emergencies such as chest pain, trouble breathing, stroke symptoms, severe allergic reaction, loss of consciousness, seizures, heavy bleeding, or overdose.
+• If you're not sure, go to the nearest emergency department or call a nurse line for guidance.
+
+This is general information only. When in doubt, seek in-person care.";
+    }
+
+    public bool DetectEmergency(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return false;
+        var lower = message.ToLowerInvariant();
+        return _emergencyKeywords.Any(k => lower.Contains(k));
+    }
+
     public async Task<string> GenerateResponseAsync(string userMessage, List<ChatMessage> conversationHistory, string? systemPrompt = null, CancellationToken cancellationToken = default)
     {
-        // Check for crisis first
         if (DetectCrisis(userMessage))
-        {
             return GetCrisisResponse();
-        }
+        if (DetectEmergency(userMessage))
+            return GetEmergencyResponse();
 
         // If OpenAI is not configured, return fallback response
         if (string.IsNullOrWhiteSpace(_apiKey))
@@ -82,7 +111,7 @@ Would you like me to help you find local mental health resources in your area?";
                 model = _model,
                 messages = messages,
                 temperature = 0.7f,
-                max_tokens = 300
+                max_tokens = MaxResponseTokens
             };
 
             var json = JsonSerializer.Serialize(requestBody);
@@ -106,14 +135,23 @@ Would you like me to help you find local mental health resources in your area?";
 
     public async IAsyncEnumerable<string> StreamResponseAsync(string userMessage, List<ChatMessage> conversationHistory, string? systemPrompt = null, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        // Check for crisis first
         if (DetectCrisis(userMessage))
         {
             var crisisResponse = GetCrisisResponse();
             foreach (var chunk in SplitIntoChunks(crisisResponse, 10))
             {
                 yield return chunk;
-                await Task.Delay(50, cancellationToken); // Simulate streaming
+                await Task.Delay(50, cancellationToken);
+            }
+            yield break;
+        }
+        if (DetectEmergency(userMessage))
+        {
+            var emergencyResponse = GetEmergencyResponse();
+            foreach (var chunk in SplitIntoChunks(emergencyResponse, 10))
+            {
+                yield return chunk;
+                await Task.Delay(50, cancellationToken);
             }
             yield break;
         }
@@ -130,14 +168,14 @@ Would you like me to help you find local mental health resources in your area?";
             yield break;
         }
 
-        var messages = BuildMessageList(userMessage, conversationHistory);
-        
+        var messages = BuildMessageList(userMessage, conversationHistory, systemPrompt);
+
         var requestBody = new
         {
             model = _model,
             messages = messages,
             temperature = 0.7f,
-            max_tokens = 300,
+            max_tokens = MaxResponseTokens,
             stream = true
         };
 
@@ -231,14 +269,8 @@ Would you like me to help you find local mental health resources in your area?";
     {
         var messages = new List<object>();
 
-        // System prompt - use custom if provided, otherwise use default
-        var systemPromptContent = customSystemPrompt ?? @"You are **Doctor Aibolit**, a friendly and professional AI health assistant.
-You provide general health information, symptom explanations, and wellness guidance.
-You do not diagnose medical conditions or prescribe treatments.
-You clearly state you are not a replacement for a licensed physician.
-When appropriate, you encourage users to seek professional medical care.
-You communicate clearly, calmly, and empathetically.";
-        
+        // System prompt - use custom if provided, otherwise use default (production health-coach behavior)
+        var systemPromptContent = customSystemPrompt ?? GetDefaultSystemPrompt();
         messages.Add(new { role = "system", content = systemPromptContent });
 
         // Add conversation history (last 10 messages for context)
@@ -258,18 +290,62 @@ You communicate clearly, calmly, and empathetically.";
         return messages;
     }
 
+    private static string GetDefaultSystemPrompt()
+    {
+        return """
+You are Doctor Aibolit, a warm, practical AI health guide. Your job is to be USEFUL FIRST: give clear, actionable guidance for common wellness and low-risk health questions. You are a smart first-step health guide and a calm triage helper — not a legal disclaimer bot.
+
+CORE BEHAVIOR
+- Lead with a direct, helpful answer. Do not start with refusals or "I cannot provide…" for normal questions.
+- Give 3–7 practical suggestions when relevant (lifestyle, self-care, over-the-counter options, when to see a doctor only if needed).
+- Use a supportive, concise tone. Be empathetic but not overdramatic.
+- Do not diagnose conditions with certainty. Do not prescribe prescription medication. Do not recommend dangerous actions.
+- Mention seeing a doctor or seeking care only when: symptoms are severe, dangerous, persistent, worsening, or clearly need professional evaluation.
+- Avoid repeating the same disclaimer in every answer. If you add a short disclaimer, put it once at the end and keep it brief (e.g. "This is general guidance; if symptoms are severe or worsening, seek medical care.").
+- Never sound cold, robotic, or defensive. Avoid: "I must clarify…", "I encourage you to speak with a healthcare professional…", "Consult a healthcare professional…" unless the situation truly warrants it.
+
+TOPICS YOU SHOULD HANDLE HELPFULLY (with practical, educational guidance)
+- Sleep (improving sleep, wind-down routines, light/caffeine).
+- Stress and anxiety basics (breathing, routine, boundaries).
+- Hydration, diet, digestion, bloating, mild stomach issues.
+- Exercise recovery, soreness, stretching, rest.
+- Minor aches, tension, mild headache.
+- Cold and flu self-care (rest, fluids, OTC options).
+- Hangover recovery basics (hydration, rest, electrolytes).
+- Reducing alcohol consumption (habits, limits, when to get support).
+- General supplement education (no prescription advice; when to ask a doctor).
+- Healthy routines and general wellness.
+
+RESPONSE SHAPE FOR NORMAL (LOW-RISK) QUESTIONS
+1. Direct answer first.
+2. 3–7 practical suggestions (bullet or short list when helpful).
+3. Optional short "Watch out for" only if relevant (e.g. signs to seek care).
+4. Escalation line only if relevant (e.g. "If it doesn’t improve in a few days or gets worse, see a doctor.").
+5. One brief disclaimer at the end only when needed (e.g. "This is general educational guidance.").
+
+HIGH-RISK SITUATIONS — ESCALATE IMMEDIATELY
+If the user describes any of the following, respond briefly and clearly direct them to urgent/emergency care. Do not give general advice first; lead with "get medical help now" and list how (911, emergency department, etc.):
+- Chest pain or possible heart attack.
+- Stroke symptoms (sudden weakness, face drooping, speech trouble, severe headache).
+- Suicidal intent or self-harm.
+- Severe trouble breathing.
+- Severe allergic reaction / anaphylaxis.
+- Loss of consciousness.
+- Seizures.
+- Heavy or uncontrolled bleeding.
+- Overdose or poisoning.
+- Severe alcohol withdrawal (tremors, confusion, hallucinations).
+- Dangerous drug interactions.
+- Pregnancy emergencies (e.g. severe pain, bleeding).
+- Any other clearly life-threatening or severe emergency.
+
+Keep responses focused, readable, and helpful. Prioritize usefulness and clarity over legal phrasing.
+""";
+    }
+
     private string GetFallbackResponse(string userMessage)
     {
-        var response = new StringBuilder();
-        response.AppendLine("I hear you, and I want you to know that what you're feeling is valid.");
-        response.AppendLine();
-        response.AppendLine("It sounds like you're going through a challenging moment. When health concerns arise, it can feel overwhelming.");
-        response.AppendLine();
-        response.AppendLine("Here's something that might help: Try taking three deep breaths. Inhale slowly for four counts, hold for four, and exhale for four. This simple technique can help calm your nervous system.");
-        response.AppendLine();
-        response.AppendLine("What health questions or concerns can I help you with today?");
-        
-        return response.ToString();
+        return "I’m here to help. That might be something I can give practical guidance on — try asking in a sentence or two (e.g. what’s bothering you or what you’ve already tried). If it’s urgent or severe, please seek in-person care. What would you like to focus on?";
     }
 
     private IEnumerable<string> SplitIntoChunks(string text, int chunkSize)

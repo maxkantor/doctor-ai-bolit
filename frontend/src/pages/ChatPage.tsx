@@ -203,7 +203,7 @@ export default function ChatPage() {
           sessionId,
           timestamp: new Date().toISOString(),
           role: 'assistant',
-          content: "Hi — I'm here with you.\n\nYou don't have to know what to say.\n\nWhat's been on your mind lately?",
+          content: "Hi — I'm Doctor Aibolit. I give practical, educational guidance for everyday health and wellness. Ask me anything below or type your own question.",
         }
         setMessages([greetingMessage])
       } else {
@@ -216,11 +216,26 @@ export default function ChatPage() {
         sessionId,
         timestamp: new Date().toISOString(),
         role: 'assistant',
-        content: "Hi — I'm here with you.\n\nYou don't have to know what to say.\n\nWhat's been on your mind lately?",
+        content: "Hi — I'm Doctor Aibolit. I give practical, educational guidance for everyday health and wellness. Ask me anything below or type your own question.",
       }
       setMessages([greetingMessage])
     }
   }
+
+  const suggestedPrompts = [
+    'How can I improve my sleep naturally?',
+    'What helps with stress at night?',
+    'How do I reduce alcohol consumption?',
+    'What can I do for a mild headache?',
+    'How can I recover faster after a workout?',
+    'What are common causes of bloating?',
+    'How do I stay hydrated properly?',
+    'What helps when I\'m getting a cold?',
+    'What helps with digestion?',
+    'How can I build a healthier daily routine?',
+  ]
+
+  const showEmptyState = messages.length === 1 && messages[0]?.role === 'assistant'
 
   const handleNewSession = async () => {
     const newSessionId = generateSessionId()
@@ -234,9 +249,44 @@ export default function ChatPage() {
       sessionId: newSessionId,
       timestamp: new Date().toISOString(),
       role: 'assistant',
-      content: "Hi — I'm here with you.\n\nYou don't have to know what to say.\n\nWhat's been on your mind lately?",
+      content: "Hi — I'm Doctor Aibolit. I give practical, educational guidance for everyday health and wellness. Ask me anything below or type your own question.",
     }
     setMessages([greetingMessage])
+  }
+
+  const handleSuggestedPrompt = async (prompt: string) => {
+    if (!prompt.trim() || isLoading || isSendingRef.current || remainingMessages <= 0) return
+    isSendingRef.current = true
+    setIsLoading(true)
+    const userMessage: ChatMessage = {
+      sessionId,
+      timestamp: new Date().toISOString(),
+      role: 'user',
+      content: prompt,
+    }
+    setMessages((prev) => [...prev, userMessage])
+    try {
+      const response = await chatService.sendMessage({ visitorId, sessionId, message: prompt })
+      if (response.requiresPayment || response.remainingMessages <= 0) {
+        setShowPaywallModal(true)
+        return
+      }
+      const assistantMessage: ChatMessage = {
+        sessionId,
+        timestamp: new Date().toISOString(),
+        role: 'assistant',
+        content: response.message,
+      }
+      setMessages((prev) => [...prev, assistantMessage])
+      await loadRemainingMessages()
+      await loadSessions()
+      if (response.remainingMessages === 0) setTimeout(() => setShowPaywallModal(true), 500)
+    } catch {
+      await loadRemainingMessages()
+    } finally {
+      isSendingRef.current = false
+      setIsLoading(false)
+    }
   }
 
   const handleSendMessage = async () => {
@@ -433,6 +483,25 @@ export default function ChatPage() {
                 <div className="message-content">{message.content}</div>
               </div>
             ))}
+            {showEmptyState && (
+              <div className="empty-state">
+                <h3 className="empty-state-headline">What can we help with?</h3>
+                <p className="empty-state-subline">Practical, private guidance for everyday health and wellness. Choose a topic or type your own question.</p>
+                <div className="suggested-prompts">
+                  {suggestedPrompts.map((prompt, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className="suggested-prompt-btn"
+                      onClick={() => handleSuggestedPrompt(prompt)}
+                      disabled={isLoading || remainingMessages === 0}
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {isLoading && (
               <div className="message assistant-message">
                 <div className="typing-indicator">
@@ -446,33 +515,33 @@ export default function ChatPage() {
           </div>
 
           <div className="chat-input-container">
-            <input
-              type="text"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && !isLoading && !isSendingRef.current && inputMessage.trim()) {
-                  e.preventDefault()
-                  handleSendMessage()
-                }
-              }}
-              className="chat-input"
-              disabled={isLoading || remainingMessages === 0}
-              placeholder={remainingMessages === 0 ? "You've reached your free limit. Continue to keep chatting..." : "Type your message..."}
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={!inputMessage.trim() || isLoading || remainingMessages === 0}
-              className="send-btn"
-            >
-              Send
-            </button>
-            <div className="chat-disclaimer">
-              <small>
-                This service provides informational health guidance only and is not a substitute for professional medical care.
-                If you are experiencing a medical emergency, contact emergency services immediately.
-              </small>
+            <div className="chat-input-wrapper">
+              <textarea
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    if (!isLoading && !isSendingRef.current && inputMessage.trim()) handleSendMessage()
+                  }
+                }}
+                className="chat-input"
+                disabled={isLoading || remainingMessages === 0}
+                placeholder={remainingMessages === 0 ? "You've reached your free limit. Upgrade to continue." : "Ask a health or wellness question…"}
+                rows={1}
+                aria-label="Message"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!inputMessage.trim() || isLoading || remainingMessages === 0}
+                className="send-btn"
+                aria-label="Send"
+              >
+                Send
+              </button>
             </div>
+            <p className="chat-trust-line">Educational guidance for non-emergency questions. Private and practical.</p>
+            <p className="chat-disclaimer-light">If symptoms are severe or worsening, seek medical care.</p>
           </div>
         </div>
       </div>

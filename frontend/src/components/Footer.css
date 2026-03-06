@@ -1,10 +1,10 @@
 .footer {
-  background-color: #1e293b;
-  color: #f1f5f9;
-  padding: clamp(1rem, 2.5vh, 1.5rem);
+  background: #0f172a;
+  color: #cbd5e1;
+  padding: clamp(1.25rem, 3vh, 1.75rem);
   margin-top: 0;
   flex-shrink: 0;
-  border-top: 1px solid rgba(59, 130, 246, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -77,8 +77,8 @@
 }
 
 .footer-safety {
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: #f87171;
-  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.8125rem;
 }
