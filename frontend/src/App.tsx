@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import ScrollToTop from './components/ScrollToTop'
+import GoogleAnalytics from './components/GoogleAnalytics'
 import ChatPage from './pages/ChatPage'
 import ContactPage from './pages/ContactPage'
 import PrivacyPolicy from './pages/PrivacyPolicy'
@@ -15,6 +16,7 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      <GoogleAnalytics />
       <Routes>
         <Route path="/" element={<Layout><LandingPage /></Layout>} />
         <Route path="/chat" element={<Layout><ChatPage /></Layout>} />
