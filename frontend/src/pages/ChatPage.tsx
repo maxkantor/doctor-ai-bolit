@@ -52,9 +52,19 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isSendingRef = useRef(false) // Use ref to track if request is in flight (prevents race conditions)
   const navigate = useNavigate()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const closeSidebar = () => setSidebarOpen(false)
 
   useEffect(() => {
     scrollToTop()
+  }, [])
+
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth > 1024) setSidebarOpen(false)
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   useEffect(() => {
@@ -252,6 +262,7 @@ export default function ChatPage() {
       content: "Hi — I'm Doctor Aibolit. I give practical, educational guidance for everyday health and wellness. Ask me anything below or type your own question.",
     }
     setMessages([greetingMessage])
+    closeSidebar()
   }
 
   const handleSuggestedPrompt = async (prompt: string) => {
@@ -397,8 +408,29 @@ export default function ChatPage() {
 
   return (
     <div className="chat-page">
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="chat-sidebar-backdrop"
+          aria-label="Close sessions panel"
+          onClick={closeSidebar}
+        />
+      )}
       <div className="chat-container">
-        <div className="chat-sidebar">
+        <aside className={`chat-sidebar ${sidebarOpen ? 'chat-sidebar--open' : ''}`}>
+          <div className="chat-sidebar-top">
+            <span className="chat-premium-badge" title="Premium experience">
+              $10M premium
+            </span>
+            <button
+              type="button"
+              className="chat-sidebar-close"
+              aria-label="Close sessions"
+              onClick={closeSidebar}
+            >
+              ×
+            </button>
+          </div>
           <button onClick={handleNewSession} className="new-session-btn">
             + New Session
           </button>
@@ -411,6 +443,7 @@ export default function ChatPage() {
                 onClick={() => {
                   setSessionId(session.sessionId)
                   navigate(`/chat?session=${session.sessionId}`, { replace: true })
+                  closeSidebar()
                 }}
               >
                 <div className="session-title">{session.title || 'Untitled Session'}</div>
@@ -426,7 +459,7 @@ export default function ChatPage() {
               </div>
             ))}
           </div>
-        </div>
+        </aside>
 
         <div className="chat-main">
           {paymentSuccessMessage?.visible && (
@@ -448,7 +481,18 @@ export default function ChatPage() {
           )}
           <div className="chat-header">
             <div className="chat-header-left">
+              <button
+                type="button"
+                className="chat-sidebar-toggle"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open sessions"
+              >
+                ☰
+              </button>
               <Link to="/" className="back-button">← Back</Link>
+              <span className="chat-premium-badge chat-premium-badge--header" title="Premium experience">
+                $10M premium
+              </span>
               <h2>Chat</h2>
             </div>
             <div className="chat-actions">

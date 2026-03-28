@@ -27,9 +27,19 @@
   min-height: 100vh;
 }
 
-/* Chat page: lock layout to viewport so footer is always at bottom, no page scroll */
+/* Chat page: lock to dynamic viewport (iOS Safari / notches) */
 .layout:has(.chat-page) {
-  height: 100vh;
-  max-height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
+  max-height: 100dvh;
+  max-height: 100vh; /* fallback */
   overflow: hidden;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+.layout:has(.chat-page) .footer {
+  padding-bottom: max(clamp(1.25rem, 3vh, 1.75rem), env(safe-area-inset-bottom, 0px));
 }
