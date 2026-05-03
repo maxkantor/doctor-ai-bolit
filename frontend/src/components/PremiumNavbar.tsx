@@ -37,7 +37,7 @@ export default function PremiumNavbar() {
 
         <nav className="premium-navbar-links" aria-label="Primary">
           <a href="/#how-it-works-title">{t('landing.howItWorks')}</a>
-          <a href="/#pricing-title">Pricing</a>
+          <a href="/#pricing-title">{t('landing.pricingNav')}</a>
           <Link to="/contact">{t('footer.contact')}</Link>
           <Link to="/platform">{t('footer.platform')}</Link>
         </nav>
@@ -64,7 +64,7 @@ export default function PremiumNavbar() {
         <div className="premium-mobile-menu-inner">
           <LanguageSwitcher />
           <a href="/#how-it-works-title" onClick={() => setMobileMenuOpen(false)}>{t('landing.howItWorks')}</a>
-          <a href="/#pricing-title" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+          <a href="/#pricing-title" onClick={() => setMobileMenuOpen(false)}>{t('landing.pricingNav')}</a>
           <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>{t('footer.contact')}</Link>
           <Link to="/platform" onClick={() => setMobileMenuOpen(false)}>{t('footer.platform')}</Link>
           <Link to="/chat" className="premium-navbar-cta premium-navbar-cta-mobile" onClick={() => setMobileMenuOpen(false)}>

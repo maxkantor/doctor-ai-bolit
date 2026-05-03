@@ -55,7 +55,21 @@
     "step2Text": "Receive empathetic, AI-powered health guidance and wellness advice tailored to your situation.",
     "step3Title": "Understand next steps and when to seek professional care",
     "step3Text": "Get guidance on next steps and learn when to seek professional medical care. Use coping strategies and feel more calm and in control.",
-    "capabilitiesTitle": "What Doctor AI Bolit Can & Can't Do"
+    "capabilitiesTitle": "What Doctor AI Bolit Can & Can't Do",
+    "pricingNav": "Pricing",
+    "heroKicker": "AI health guidance that feels premium, private, and instant",
+    "previewTitle": "DoctorAibolit Live Assistant",
+    "previewUserMessage": "I have a mild headache and poor sleep. What should I do first?",
+    "previewAssistantMessage": "Start with hydration, light food, and sleep routine checks. I can help you assess warning signs in 60 seconds.",
+    "previewHighlight": "Private • No signup • Actionable next steps",
+    "previewAvailable": "Available",
+    "previewResponse": "Response",
+    "previewFreeMessages": "Free messages",
+    "capability1": "Explain symptoms and health concepts",
+    "capability2": "Provide general wellness guidance",
+    "capability3": "Does NOT diagnose conditions",
+    "capability4": "Does NOT prescribe medication",
+    "capability5": "Does NOT replace a licensed doctor"
   },
   "chat": {
     "title": "Chat",

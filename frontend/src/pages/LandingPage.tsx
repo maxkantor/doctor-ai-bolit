@@ -138,7 +138,7 @@ export default function LandingPage() {
               animate={heroInView ? 'visible' : 'hidden'}
               variants={fadeInUp}
             >
-              AI health guidance that feels premium, private, and instant
+              {t('landing.heroKicker')}
             </motion.p>
             <motion.h1
               className="hero-title"
@@ -201,25 +201,25 @@ export default function LandingPage() {
               <span className="preview-dot"></span>
               <span className="preview-dot"></span>
               <span className="preview-dot"></span>
-              <span className="preview-title">DoctorAibolit Live Assistant</span>
+              <span className="preview-title">{t('landing.previewTitle')}</span>
             </div>
             <div className="preview-messages">
-              <div className="preview-message user">I have a mild headache and poor sleep. What should I do first?</div>
-              <div className="preview-message ai">Start with hydration, light food, and sleep routine checks. I can help you assess warning signs in 60 seconds.</div>
-              <div className="preview-message ai highlight">Private • No signup • Actionable next steps</div>
+              <div className="preview-message user">{t('landing.previewUserMessage')}</div>
+              <div className="preview-message ai">{t('landing.previewAssistantMessage')}</div>
+              <div className="preview-message ai highlight">{t('landing.previewHighlight')}</div>
             </div>
             <div className="preview-metrics">
               <div>
                 <strong>24/7</strong>
-                <span>Available</span>
+                <span>{t('landing.previewAvailable')}</span>
               </div>
               <div>
                 <strong>~10s</strong>
-                <span>Response</span>
+                <span>{t('landing.previewResponse')}</span>
               </div>
               <div>
                 <strong>5</strong>
-                <span>Free messages</span>
+                <span>{t('landing.previewFreeMessages')}</span>
               </div>
             </div>
           </motion.aside>
@@ -364,11 +364,11 @@ export default function LandingPage() {
           animate={infoInView ? "visible" : "hidden"}
           variants={staggerContainer}
         >
-          <motion.li variants={fadeInUp}>✓ Explain symptoms and health concepts</motion.li>
-          <motion.li variants={fadeInUp}>✓ Provide general wellness guidance</motion.li>
-          <motion.li variants={fadeInUp}>✗ Does NOT diagnose conditions</motion.li>
-          <motion.li variants={fadeInUp}>✗ Does NOT prescribe medication</motion.li>
-          <motion.li variants={fadeInUp}>✗ Does NOT replace a licensed doctor</motion.li>
+          <motion.li variants={fadeInUp}>✓ {t('landing.capability1')}</motion.li>
+          <motion.li variants={fadeInUp}>✓ {t('landing.capability2')}</motion.li>
+          <motion.li variants={fadeInUp}>✗ {t('landing.capability3')}</motion.li>
+          <motion.li variants={fadeInUp}>✗ {t('landing.capability4')}</motion.li>
+          <motion.li variants={fadeInUp}>✗ {t('landing.capability5')}</motion.li>
         </motion.ul>
       </section>
 
