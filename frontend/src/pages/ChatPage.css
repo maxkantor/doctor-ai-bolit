@@ -255,6 +255,11 @@
   flex: 1 1 auto;
 }
 
+.chat-language-slot {
+  display: inline-flex;
+  align-items: center;
+}
+
 .credits-info {
   display: flex;
   align-items: center;

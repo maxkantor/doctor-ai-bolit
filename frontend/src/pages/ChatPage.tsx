@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { scrollToTop } from '../utils/scrollToTop'
 import { getOrCreateVisitorId } from '../utils/visitorId'
 import { chatService } from '../services/chatService'
@@ -8,6 +9,7 @@ import { ChatMessage, ChatSession } from '../types'
 import ShareModal from '../components/ShareModal'
 import PaywallModal from '../components/PaywallModal'
 import EmailRestoreModal from '../components/EmailRestoreModal'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import './ChatPage.css'
 
 function generateSessionId(): string {
@@ -15,6 +17,7 @@ function generateSessionId(): string {
 }
 
 export default function ChatPage() {
+  const { t, i18n } = useTranslation()
   const [visitorId] = useState(() => {
     const id = getOrCreateVisitorId()
     console.log('🆔 Visitor ID loaded:', id)
@@ -54,6 +57,7 @@ export default function ChatPage() {
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const closeSidebar = () => setSidebarOpen(false)
+  const greetingText = t('chat.greeting')
 
   useEffect(() => {
     scrollToTop()
@@ -213,7 +217,7 @@ export default function ChatPage() {
           sessionId,
           timestamp: new Date().toISOString(),
           role: 'assistant',
-          content: "Hi — I'm Doctor Aibolit. I give practical, educational guidance for everyday health and wellness. Ask me anything below or type your own question.",
+          content: greetingText,
         }
         setMessages([greetingMessage])
       } else {
@@ -226,23 +230,23 @@ export default function ChatPage() {
         sessionId,
         timestamp: new Date().toISOString(),
         role: 'assistant',
-        content: "Hi — I'm Doctor Aibolit. I give practical, educational guidance for everyday health and wellness. Ask me anything below or type your own question.",
+        content: greetingText,
       }
       setMessages([greetingMessage])
     }
   }
 
   const suggestedPrompts = [
-    'How can I improve my sleep naturally?',
-    'What helps with stress at night?',
-    'How do I reduce alcohol consumption?',
-    'What can I do for a mild headache?',
-    'How can I recover faster after a workout?',
-    'What are common causes of bloating?',
-    'How do I stay hydrated properly?',
-    'What helps when I\'m getting a cold?',
-    'What helps with digestion?',
-    'How can I build a healthier daily routine?',
+    t('prompts.sleep'),
+    t('prompts.stress'),
+    t('prompts.alcohol'),
+    t('prompts.headache'),
+    t('prompts.recovery'),
+    t('prompts.bloating'),
+    t('prompts.hydration'),
+    t('prompts.cold'),
+    t('prompts.digestion'),
+    t('prompts.routine'),
   ]
 
   const showEmptyState = messages.length === 1 && messages[0]?.role === 'assistant'
@@ -259,7 +263,7 @@ export default function ChatPage() {
       sessionId: newSessionId,
       timestamp: new Date().toISOString(),
       role: 'assistant',
-      content: "Hi — I'm Doctor Aibolit. I give practical, educational guidance for everyday health and wellness. Ask me anything below or type your own question.",
+      content: greetingText,
     }
     setMessages([greetingMessage])
     closeSidebar()
@@ -412,7 +416,7 @@ export default function ChatPage() {
         <button
           type="button"
           className="chat-sidebar-backdrop"
-          aria-label="Close sessions panel"
+          aria-label={t('chat.closeSessionsPanel')}
           onClick={closeSidebar}
         />
       )}
@@ -425,17 +429,17 @@ export default function ChatPage() {
             <button
               type="button"
               className="chat-sidebar-close"
-              aria-label="Close sessions"
+              aria-label={t('chat.closeSessions')}
               onClick={closeSidebar}
             >
               ×
             </button>
           </div>
           <button onClick={handleNewSession} className="new-session-btn">
-            + New Session
+            {t('chat.newSession')}
           </button>
           <div className="sessions-list">
-            <h3>Previous Sessions</h3>
+            <h3>{t('chat.previousSessions')}</h3>
             {sessions.map((session) => (
               <div
                 key={session.sessionId}
@@ -446,9 +450,9 @@ export default function ChatPage() {
                   closeSidebar()
                 }}
               >
-                <div className="session-title">{session.title || 'Untitled Session'}</div>
+                <div className="session-title">{session.title || t('chat.untitledSession')}</div>
                 <div className="session-date">
-                  {new Date(session.createdAt).toLocaleDateString('en-US', { 
+                  {new Date(session.createdAt).toLocaleDateString(i18n.language, { 
                     month: 'short', 
                     day: 'numeric',
                     year: 'numeric',
@@ -467,13 +471,13 @@ export default function ChatPage() {
               <div className="payment-success-content">
                 <span className="payment-success-icon">✅</span>
                 <span className="payment-success-text">
-                  Successfully added {paymentSuccessMessage.credits} {paymentSuccessMessage.credits === 1 ? 'credit' : 'credits'} to your account!
+                  {t('chat.paymentSuccess', { count: paymentSuccessMessage.credits })}
                 </span>
               </div>
               <button 
                 className="payment-success-close"
                 onClick={() => setPaymentSuccessMessage(prev => prev ? { ...prev, visible: false } : null)}
-                aria-label="Close"
+                aria-label={t('common.close')}
               >
                 ×
               </button>
@@ -485,35 +489,38 @@ export default function ChatPage() {
                 type="button"
                 className="chat-sidebar-toggle"
                 onClick={() => setSidebarOpen(true)}
-                aria-label="Open sessions"
+                aria-label={t('chat.openSessions')}
               >
                 ☰
               </button>
-              <Link to="/" className="back-button">← Back</Link>
+              <Link to="/" className="back-button">← {t('common.back')}</Link>
               <span className="chat-premium-badge chat-premium-badge--header" title="Premium experience">
                 $10M premium
               </span>
-              <h2>Chat</h2>
+              <h2>{t('chat.title')}</h2>
             </div>
             <div className="chat-actions">
+              <div className="chat-language-slot">
+                <LanguageSwitcher compact />
+              </div>
               <div className="credits-info">
                 <span className="credits-icon">💬</span>
                 <span className="remaining-messages">
                   {creditBalance > 0 
-                    ? `${remainingMessages} ${remainingMessages === 1 ? 'message' : 'messages'} remaining`
-                    : `${remainingMessages} free ${remainingMessages === 1 ? 'message' : 'messages'} remaining`
+                    ? t('chat.messagesRemaining', { count: remainingMessages })
+                    : t('chat.freeMessagesRemaining', { count: remainingMessages })
                   }
                 </span>
               </div>
               <button 
                 onClick={() => setShowEmailRestoreModal(true)} 
                 className="restore-credits-btn"
-                title="Restore credits from another device"
+                title={t('chat.restoreCreditsTitle')}
               >
-                Restore Credits
+                {t('chat.restoreCredits')}
               </button>
               <button onClick={() => setShowShareModal(true)} className="share-btn">
-                Share
+                {t('chat.share')}
               </button>
             </div>
           </div>
@@ -529,8 +536,8 @@ export default function ChatPage() {
             ))}
             {showEmptyState && (
               <div className="empty-state">
-                <h3 className="empty-state-headline">What can we help with?</h3>
-                <p className="empty-state-subline">Practical, private guidance for everyday health and wellness. Choose a topic or type your own question.</p>
+                <h3 className="empty-state-headline">{t('chat.emptyTitle')}</h3>
+                <p className="empty-state-subline">{t('chat.emptySubtitle')}</p>
                 <div className="suggested-prompts">
                   {suggestedPrompts.map((prompt, i) => (
                     <button
@@ -571,21 +578,21 @@ export default function ChatPage() {
                 }}
                 className="chat-input"
                 disabled={isLoading || remainingMessages === 0}
-                placeholder={remainingMessages === 0 ? "You've reached your free limit. Upgrade to continue." : "Ask a health or wellness question…"}
+                placeholder={remainingMessages === 0 ? t('chat.placeholderLimit') : t('chat.placeholder')}
                 rows={1}
-                aria-label="Message"
+                aria-label={t('contact.message')}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || isLoading || remainingMessages === 0}
                 className="send-btn"
-                aria-label="Send"
+                aria-label={t('common.send')}
               >
-                Send
+                {t('common.send')}
               </button>
             </div>
-            <p className="chat-trust-line">Educational guidance for non-emergency questions. Private and practical.</p>
-            <p className="chat-disclaimer-light">If symptoms are severe or worsening, seek medical care.</p>
+            <p className="chat-trust-line">{t('chat.trust')}</p>
+            <p className="chat-disclaimer-light">{t('chat.disclaimer')}</p>
           </div>
         </div>
       </div>

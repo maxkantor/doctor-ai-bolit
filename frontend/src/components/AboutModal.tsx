@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import './ModalOverlay.css'
 import './AboutModal.css'
 
@@ -6,72 +7,54 @@ interface AboutModalProps {
 }
 
 export default function AboutModal({ onClose }: AboutModalProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="about-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>About DoctorAibolit</h2>
+          <h2>{t('modal.about.title')}</h2>
           <button onClick={onClose} className="close-btn">×</button>
         </div>
         <div className="modal-content">
           <section>
-            <h3>Our Mission</h3>
-            <p>
-              DoctorAibolit provides instant, accessible health guidance through AI-powered conversations. 
-              We believe everyone deserves a safe space to express their feelings and find calm, especially 
-              when you need health information and wellness guidance.
-            </p>
+            <h3>{t('modal.about.missionTitle')}</h3>
+            <p>{t('modal.about.missionBody')}</p>
           </section>
 
           <section>
-            <h3>How It Works</h3>
-            <p>
-              Our AI assistant is designed to listen, understand, and provide empathetic support. 
-              Simply start a conversation about what's on your mind. No signup required, no judgment, 
-              just a compassionate ear available 24/7.
-            </p>
+            <h3>{t('modal.about.howTitle')}</h3>
+            <p>{t('modal.about.howBody')}</p>
           </section>
 
           <section>
-            <h3>What We Offer</h3>
+            <h3>{t('modal.about.offerTitle')}</h3>
             <ul>
-              <li><strong>Free Support:</strong> Start with 5 free messages to experience our service</li>
-              <li><strong>Privacy First:</strong> Your conversations are private and secure</li>
-              <li><strong>No Login Required:</strong> Start chatting immediately without creating an account</li>
-              <li><strong>24/7 Availability:</strong> Support whenever you need it, day or night</li>
-              <li><strong>AI-Powered:</strong> Advanced AI technology trained to provide empathetic, helpful responses</li>
+              <li>{t('modal.about.offer1')}</li>
+              <li>{t('modal.about.offer2')}</li>
+              <li>{t('modal.about.offer3')}</li>
+              <li>{t('modal.about.offer4')}</li>
+              <li>{t('modal.about.offer5')}</li>
             </ul>
           </section>
 
           <section>
-            <h3>Important Notice</h3>
-            <p>
-              <strong>DoctorAibolit is not a medical service.</strong> We provide general health information and 
-              wellness guidance, but we cannot diagnose, treat, or provide medical advice. If you are 
-              experiencing a mental health crisis or are in immediate danger, please contact your local 
-              emergency services or a mental health professional.
-            </p>
+            <h3>{t('modal.about.noticeTitle')}</h3>
+            <p>{t('modal.about.noticeBody')}</p>
           </section>
 
           <section>
-            <h3>Our Commitment</h3>
-            <p>
-              We are committed to providing a safe, supportive environment for everyone. We continuously 
-              work to improve our AI's understanding and responses to better serve those who need 
-              emotional support.
-            </p>
+            <h3>{t('modal.about.commitmentTitle')}</h3>
+            <p>{t('modal.about.commitmentBody')}</p>
           </section>
 
           <section>
-            <h3>Contact Us</h3>
-            <p>
-              Have questions or feedback? We'd love to hear from you. Use our contact form to reach out, 
-              and we'll get back to you as soon as possible.
-            </p>
+            <h3>{t('modal.about.contactTitle')}</h3>
+            <p>{t('modal.about.contactBody')}</p>
           </section>
         </div>
         <div className="modal-footer">
-          <button onClick={onClose} className="modal-close-button">Close</button>
+          <button onClick={onClose} className="modal-close-button">{t('common.close')}</button>
         </div>
       </div>
     </div>

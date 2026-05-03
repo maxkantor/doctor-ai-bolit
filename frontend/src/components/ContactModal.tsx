@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { contactService } from '../services/contactService'
 import './ModalOverlay.css'
 import './ContactModal.css'
@@ -8,6 +9,7 @@ interface ContactModalProps {
 }
 
 export default function ContactModal({ onClose }: ContactModalProps) {
+  const { t } = useTranslation()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
@@ -30,7 +32,7 @@ export default function ContactModal({ onClose }: ContactModalProps) {
       }, 2000)
     } catch (error) {
       console.error('Failed to submit contact form:', error)
-      alert('Failed to submit. Please try again.')
+      alert(t('contact.submitError'))
     } finally {
       setIsSubmitting(false)
     }
@@ -40,24 +42,24 @@ export default function ContactModal({ onClose }: ContactModalProps) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="contact-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Contact Us</h2>
+          <h2>{t('contact.title')}</h2>
           <button onClick={onClose} className="close-btn">×</button>
         </div>
         <div className="modal-content">
           {submitted ? (
             <div className="success-message">
               <div className="success-icon">✓</div>
-              <h3>Thank you!</h3>
-              <p>We've received your message and will get back to you soon.</p>
+              <h3>{t('contact.thankYou')}</h3>
+              <p>{t('contact.success')}</p>
             </div>
           ) : (
             <>
               <p className="contact-intro">
-                Have a question or feedback? We'd love to hear from you.
+                {t('contact.intro')}
               </p>
               <form onSubmit={handleSubmit} className="contact-form">
                 <div className="form-group">
-                  <label htmlFor="contact-name">Name</label>
+                  <label htmlFor="contact-name">{t('contact.name')}</label>
                   <input
                     type="text"
                     id="contact-name"
@@ -67,7 +69,7 @@ export default function ContactModal({ onClose }: ContactModalProps) {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="contact-email">Email</label>
+                  <label htmlFor="contact-email">{t('contact.email')}</label>
                   <input
                     type="email"
                     id="contact-email"
@@ -77,7 +79,7 @@ export default function ContactModal({ onClose }: ContactModalProps) {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="contact-message">Message</label>
+                  <label htmlFor="contact-message">{t('contact.message')}</label>
                   <textarea
                     id="contact-message"
                     value={message}
@@ -88,10 +90,10 @@ export default function ContactModal({ onClose }: ContactModalProps) {
                 </div>
                 <div className="form-actions">
                   <button type="button" onClick={onClose} className="cancel-btn">
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button type="submit" disabled={isSubmitting} className="submit-btn">
-                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                    {isSubmitting ? t('common.sending') : t('contact.send')}
                   </button>
                 </div>
               </form>

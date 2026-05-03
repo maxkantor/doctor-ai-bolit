@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import './Platform.css'
 
 const PLATFORM_URL = 'https://mk-ai-global-page.s3.us-east-1.amazonaws.com/platform/index.html'
 const LOAD_TIMEOUT_MS = 8000
 
 export default function Platform() {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(true)
   const [loadFailed, setLoadFailed] = useState(false)
 
@@ -31,28 +33,28 @@ export default function Platform() {
   return (
     <div className="platform-page">
       <header className="platform-header">
-        <h1 className="platform-title">Platform</h1>
-        <p className="platform-subtitle">MK AI & Performance Systems</p>
+        <h1 className="platform-title">{t('platform.title')}</h1>
+        <p className="platform-subtitle">{t('platform.subtitle')}</p>
       </header>
 
       <div className="platform-iframe-container">
         {isLoading && !loadFailed && (
           <div className="platform-loading" role="status" aria-live="polite">
             <div className="platform-spinner" aria-hidden="true" />
-            <p>Loading platform...</p>
+            <p>{t('platform.loading')}</p>
           </div>
         )}
 
         {loadFailed ? (
           <div className="platform-fallback" role="alert">
-            <p>Unable to load platform page. Open in a new tab.</p>
+            <p>{t('platform.failed')}</p>
             <a
               href={PLATFORM_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="platform-fallback-link"
             >
-              Open Platform in New Tab
+              {t('platform.openNewTab')}
             </a>
           </div>
         ) : (

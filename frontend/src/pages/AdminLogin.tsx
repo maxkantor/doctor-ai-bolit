@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { adminService } from '../services/adminService'
 import './AdminLogin.css'
 
 export default function AdminLogin() {
+  const { t } = useTranslation()
   const [adminKey, setAdminKey] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -19,10 +21,10 @@ export default function AdminLogin() {
       if (result.success) {
         navigate('/admin/dashboard')
       } else {
-        setError(result.error || 'Invalid admin key')
+        setError(result.error || t('adminLogin.invalidKey'))
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to login. Please try again.')
+      setError(err.message || t('adminLogin.error'))
     } finally {
       setIsLoading(false)
     }
@@ -31,11 +33,11 @@ export default function AdminLogin() {
   return (
     <div className="admin-login">
       <div className="login-container">
-        <Link to="/" className="back-btn">← Back to Home</Link>
-        <h1>Admin Login</h1>
+        <Link to="/" className="back-btn">← {t('common.backHome')}</Link>
+        <h1>{t('adminLogin.title')}</h1>
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="adminKey">Admin Key</label>
+            <label htmlFor="adminKey">{t('adminLogin.adminKey')}</label>
             <input
               type="password"
               id="adminKey"
@@ -47,7 +49,7 @@ export default function AdminLogin() {
           </div>
           {error && <div className="error-message">{error}</div>}
           <button type="submit" disabled={isLoading} className="login-btn">
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? t('adminLogin.loggingIn') : t('adminLogin.login')}
           </button>
         </form>
       </div>

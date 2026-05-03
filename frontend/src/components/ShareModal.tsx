@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import './ShareModal.css'
 
 interface ShareModalProps {
@@ -7,8 +8,9 @@ interface ShareModalProps {
 }
 
 export default function ShareModal({ sessionId, onClose }: ShareModalProps) {
+  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
-  const shareText = "Need health guidance? I tried DoctorAibolit — instant AI health information and wellness guidance. No signup needed."
+  const shareText = t('modal.share.shareText')
   const shareUrl = `${window.location.origin}/chat?session=${sessionId}`
 
   const handleCopy = () => {
@@ -34,24 +36,24 @@ export default function ShareModal({ sessionId, onClose }: ShareModalProps) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="share-modal" onClick={(e) => e.stopPropagation()}>
         <div className="share-modal-header">
-          <button onClick={onClose} className="back-btn">← Back</button>
-          <h2>Share Your Session</h2>
+          <button onClick={onClose} className="back-btn">← {t('common.back')}</button>
+          <h2>{t('chat.share')}</h2>
           <button onClick={onClose} className="close-btn">×</button>
         </div>
         <div className="share-modal-content">
           <p className="share-text">{shareText}</p>
           <div className="share-buttons">
             <button onClick={() => handleShare('twitter')} className="share-btn twitter">
-              Share on X
+              {t('modal.share.x')}
             </button>
             <button onClick={() => handleShare('facebook')} className="share-btn facebook">
-              Share on Facebook
+              {t('modal.share.facebook')}
             </button>
             <button onClick={() => handleShare('reddit')} className="share-btn reddit">
-              Share on Reddit
+              {t('modal.share.reddit')}
             </button>
             <button onClick={handleCopy} className="share-btn copy">
-              {copied ? 'Copied!' : 'Copy Link'}
+              {copied ? t('modal.share.copied') : t('modal.share.copyLink')}
             </button>
           </div>
         </div>

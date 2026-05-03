@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { stripeService } from '../services/stripeService'
 import './BuyCreditsModal.css'
 
@@ -50,6 +51,7 @@ const CREDIT_PACKS: CreditPack[] = [
 ]
 
 export default function BuyCreditsModal({ visitorId, onClose }: BuyCreditsModalProps) {
+  const { t } = useTranslation()
   const [isProcessing, setIsProcessing] = useState(false)
 
   const handlePurchase = async (pack: CreditPack) => {
@@ -63,7 +65,7 @@ export default function BuyCreditsModal({ visitorId, onClose }: BuyCreditsModalP
       window.location.href = checkoutUrl
     } catch (error) {
       console.error('Failed to create checkout:', error)
-      alert('Failed to start checkout. Please try again.')
+      alert(t('errors.checkoutFailed'))
       setIsProcessing(false)
     }
   }
@@ -72,8 +74,8 @@ export default function BuyCreditsModal({ visitorId, onClose }: BuyCreditsModalP
     <div className="modal-overlay" onClick={onClose}>
       <div className="buy-credits-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <button onClick={onClose} className="back-btn">← Back</button>
-          <h2>Buy Credits</h2>
+          <button onClick={onClose} className="back-btn">← {t('common.back')}</button>
+          <h2>{t('modal.buyCredits.title')}</h2>
           <button onClick={onClose} className="close-btn">×</button>
         </div>
 
@@ -81,26 +83,26 @@ export default function BuyCreditsModal({ visitorId, onClose }: BuyCreditsModalP
           <div className="credits-intro">
             <div className="intro-icon">🪙</div>
             <p className="intro-text">
-              Purchase credits to continue chatting after your free credits are used up!
+              {t('modal.buyCredits.intro')}
             </p>
           </div>
 
           <div className="features">
             <div className="feature">
               <span className="feature-icon">🎁</span>
-              <span>5 Free Credits</span>
+              <span>{t('modal.buyCredits.feature1')}</span>
             </div>
             <div className="feature">
               <span className="feature-icon">🪙</span>
-              <span>Credits Never Expire</span>
+              <span>{t('modal.buyCredits.feature2')}</span>
             </div>
             <div className="feature">
               <span className="feature-icon">👑</span>
-              <span>Same Quality Analysis</span>
+              <span>{t('modal.buyCredits.feature3')}</span>
             </div>
           </div>
 
-          <h3 className="packs-title">Choose Your Credit Pack</h3>
+          <h3 className="packs-title">{t('modal.buyCredits.choosePack')}</h3>
 
           <div className="credit-packs">
             {CREDIT_PACKS.map((pack) => (
@@ -111,23 +113,23 @@ export default function BuyCreditsModal({ visitorId, onClose }: BuyCreditsModalP
                 {pack.popular && (
                   <div className="popular-badge">
                     <span className="badge-icon">👑</span>
-                    Most Popular
+                    {t('landing.mostPopular')}
                   </div>
                 )}
                 <h4>{pack.name}</h4>
                 <div className="pack-price">{pack.price}</div>
                 <div className="pack-credits">
                   <span className="credits-icon">🪙</span>
-                  {pack.credits} Credits
+                  {t('modal.buyCredits.creditsLabel', { count: pack.credits })}
                 </div>
                 <p className="pack-description">{pack.description}</p>
-                <div className="pack-cost-per-credit">{pack.costPerCredit} per credit</div>
+                <div className="pack-cost-per-credit">{t('modal.buyCredits.perCredit', { value: pack.costPerCredit })}</div>
                 <button
                   onClick={() => handlePurchase(pack)}
                   disabled={isProcessing}
                   className={`pack-button ${pack.popular ? 'popular-button' : ''}`}
                 >
-                  {isProcessing ? 'Processing...' : `Get ${pack.name}`}
+                  {isProcessing ? t('common.processing') : t('modal.buyCredits.getPack', { name: pack.name })}
                 </button>
               </div>
             ))}
@@ -135,7 +137,7 @@ export default function BuyCreditsModal({ visitorId, onClose }: BuyCreditsModalP
 
           <div className="payment-security">
             <span className="security-icon">🔒</span>
-            <span>Secure payment powered by Stripe</span>
+            <span>{t('paywall.security')}</span>
           </div>
         </div>
       </div>

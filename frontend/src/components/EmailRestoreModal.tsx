@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { emailRestoreService } from '../services/emailRestoreService'
 import './EmailRestoreModal.css'
 import './ModalOverlay.css'
@@ -11,6 +12,7 @@ interface EmailRestoreModalProps {
 }
 
 export default function EmailRestoreModal({ isOpen, onClose, visitorId, onCreditsRestored }: EmailRestoreModalProps) {
+  const { t } = useTranslation()
   const [step, setStep] = useState<'email' | 'verify'>('email')
   const [email, setEmail] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
@@ -22,7 +24,7 @@ export default function EmailRestoreModal({ isOpen, onClose, visitorId, onCredit
 
   const handleSendCode = async () => {
     if (!email.trim()) {
-      setError('Please enter your email address')
+      setError(t('modal.restore.enterEmail'))
       return
     }
 
@@ -33,13 +35,13 @@ export default function EmailRestoreModal({ isOpen, onClose, visitorId, onCredit
     try {
       const result = await emailRestoreService.sendVerificationCode(email.trim())
       if (result.success) {
-        setSuccess('Verification code sent! Check your email.')
+        setSuccess(t('modal.restore.codeSent'))
         setStep('verify')
       } else {
-        setError(result.message || 'Failed to send verification code')
+        setError(result.message || t('modal.restore.sendFailed'))
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to send verification code')
+      setError(err.response?.data?.message || err.message || t('modal.restore.sendFailed'))
     } finally {
       setIsLoading(false)
     }
@@ -47,7 +49,7 @@ export default function EmailRestoreModal({ isOpen, onClose, visitorId, onCredit
 
   const handleVerifyAndRestore = async () => {
     if (!verificationCode.trim()) {
-      setError('Please enter the verification code')
+      setError(t('modal.restore.enterCode'))
       return
     }
 
@@ -58,16 +60,16 @@ export default function EmailRestoreModal({ isOpen, onClose, visitorId, onCredit
     try {
       const result = await emailRestoreService.verifyAndRestore(email.trim(), verificationCode.trim(), visitorId)
       if (result.success) {
-        setSuccess(`Success! Restored ${result.totalCreditsRestored || 0} credits.`)
+        setSuccess(t('modal.restore.success', { count: result.totalCreditsRestored || 0 }))
         setTimeout(() => {
           onCreditsRestored()
           handleClose()
         }, 2000)
       } else {
-        setError(result.message || 'Verification failed')
+        setError(result.message || t('modal.restore.verifyFailed'))
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Verification failed')
+      setError(err.response?.data?.message || err.message || t('modal.restore.verifyFailed'))
     } finally {
       setIsLoading(false)
     }
@@ -86,20 +88,20 @@ export default function EmailRestoreModal({ isOpen, onClose, visitorId, onCredit
     <div className="modal-overlay" onClick={handleClose}>
       <div className="email-restore-modal" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={handleClose}>×</button>
-        <h2>Restore Credits from Another Device</h2>
+        <h2>{t('chat.restoreCreditsTitle')}</h2>
         <p className="modal-description">
-          Enter the email address you used when making a purchase to restore your credits on this device.
+          {t('modal.restore.description')}
         </p>
 
         {step === 'email' && (
           <div className="email-restore-form">
             <label>
-              Email Address
+              {t('contact.email')}
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
+                placeholder={t('modal.restore.emailPlaceholder')}
                 disabled={isLoading}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendCode()}
               />
@@ -107,9 +109,9 @@ export default function EmailRestoreModal({ isOpen, onClose, visitorId, onCredit
             {error && <div className="error-message">{error}</div>}
             {success && <div className="success-message">{success}</div>}
             <div className="modal-actions">
-              <button onClick={handleClose} className="cancel-btn">Cancel</button>
+              <button onClick={handleClose} className="cancel-btn">{t('common.cancel')}</button>
               <button onClick={handleSendCode} disabled={isLoading || !email.trim()} className="primary-btn">
-                {isLoading ? 'Sending...' : 'Send Verification Code'}
+                {isLoading ? t('common.sending') : t('modal.restore.sendCode')}
               </button>
             </div>
           </div>
@@ -117,9 +119,9 @@ export default function EmailRestoreModal({ isOpen, onClose, visitorId, onCredit
 
         {step === 'verify' && (
           <div className="email-restore-form">
-            <p className="info-text">We sent a 6-digit code to <strong>{email}</strong></p>
+            <p className="info-text">{t('modal.restore.sentTo', { email })}</p>
             <label>
-              Verification Code
+              {t('modal.restore.verificationCode')}
               <input
                 type="text"
                 value={verificationCode}
@@ -133,13 +135,13 @@ export default function EmailRestoreModal({ isOpen, onClose, visitorId, onCredit
             {error && <div className="error-message">{error}</div>}
             {success && <div className="success-message">{success}</div>}
             <div className="modal-actions">
-              <button onClick={() => setStep('email')} className="cancel-btn">Back</button>
+              <button onClick={() => setStep('email')} className="cancel-btn">{t('common.back')}</button>
               <button onClick={handleVerifyAndRestore} disabled={isLoading || verificationCode.length !== 6} className="primary-btn">
-                {isLoading ? 'Verifying...' : 'Verify & Restore Credits'}
+                {isLoading ? t('modal.restore.verifying') : t('modal.restore.verifyAndRestore')}
               </button>
             </div>
             <button onClick={handleSendCode} className="resend-link" disabled={isLoading}>
-              Resend code
+              {t('modal.restore.resendCode')}
             </button>
           </div>
         )}

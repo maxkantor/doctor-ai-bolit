@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { PricingPlan } from '../types'
 import { pricingService } from '../services/pricingService'
 import { stripeService } from '../services/stripeService'
@@ -19,6 +20,7 @@ export default function PaywallModal({
   onPurchaseComplete,
   selectedPlanId: propSelectedPlanId,
 }: PaywallModalProps) {
+  const { t, i18n } = useTranslation()
   const [allPlans, setAllPlans] = useState<PricingPlan[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -202,6 +204,7 @@ export default function PaywallModal({
       
       // Extract error message from API response
       let errorMessage = 'Failed to start checkout. Please try again.'
+      errorMessage = t('errors.checkoutFailed')
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message
       } else if (error?.message) {
@@ -243,7 +246,7 @@ export default function PaywallModal({
   }
 
   const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(i18n.language, {
       style: 'currency',
       currency: 'USD',
     }).format(price)
@@ -253,15 +256,15 @@ export default function PaywallModal({
     <div className="modal-overlay" onClick={onClose}>
       <div className="paywall-modal" onClick={(e) => e.stopPropagation()}>
         <div className="paywall-header">
-          <h2>You're not alone — want to keep going?</h2>
+          <h2>{t('paywall.title')}</h2>
           <button onClick={onClose} className="close-btn">×</button>
         </div>
 
         <div className="paywall-content">
           {isLoading ? (
-            <div className="loading-plans">Loading plans...</div>
+            <div className="loading-plans">{t('paywall.loading')}</div>
           ) : !selectedPlan ? (
-            <div className="loading-plans">No plans available. Please try again later.</div>
+            <div className="loading-plans">{t('paywall.noPlans')}</div>
           ) : (
             <>
               <div className="pricing-plans pricing-plans-single">
@@ -270,31 +273,31 @@ export default function PaywallModal({
                   className={`pricing-plan ${selectedPlan.isMostPopular ? 'most-popular' : ''}`}
                   >
                   {selectedPlan.isMostPopular && (
-                      <div className="popular-badge">Most Popular</div>
+                      <div className="popular-badge">{t('landing.mostPopular')}</div>
                     )}
                   <h3>{selectedPlan.name}</h3>
                   <div className="plan-price">{formatPrice(selectedPlan.price)}</div>
-                  <div className="plan-credits">{selectedPlan.credits} messages</div>
+                  <div className="plan-credits">{t('landing.messagesLabel', { count: selectedPlan.credits })}</div>
                   <p className="plan-description">{selectedPlan.description}</p>
                     <button
                     onClick={() => handlePurchase(selectedPlan)}
                       disabled={isProcessing}
                     className={`plan-button ${selectedPlan.isMostPopular ? 'popular-button' : ''}`}
                     >
-                      {isProcessing ? 'Processing...' : 'Purchase'}
+                      {isProcessing ? t('common.processing') : t('paywall.purchase')}
                     </button>
                   </div>
               </div>
 
               <button onClick={onClose} className="end-session-btn">
-                End session
+                {t('paywall.endSession')}
               </button>
             </>
           )}
 
           <div className="payment-security">
             <span className="security-icon">🔒</span>
-            <span>Secure payment powered by Stripe</span>
+            <span>{t('paywall.security')}</span>
           </div>
         </div>
       </div>

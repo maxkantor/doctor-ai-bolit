@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { scrollToTop } from '../utils/scrollToTop'
 import { motion, useInView } from 'framer-motion'
 import { pricingService } from '../services/pricingService'
@@ -9,6 +10,7 @@ import { PricingPlan, PricingConfig } from '../types'
 import './LandingPage.css'
 
 export default function LandingPage() {
+  const { t } = useTranslation()
   // Show default pricing immediately for fast loading
   const [pricingConfig, setPricingConfig] = useState<PricingConfig>({ freeMessageLimit: 5 })
   const [processingPlanId, setProcessingPlanId] = useState<string | null>(null)
@@ -86,7 +88,7 @@ export default function LandingPage() {
       console.error('Failed to create checkout:', error)
       
       // Extract error message from API response
-      let errorMessage = 'Failed to start checkout. Please try again.'
+      let errorMessage = t('errors.checkoutFailed')
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message
       } else if (error?.message) {
@@ -135,7 +137,7 @@ export default function LandingPage() {
             animate={heroInView ? "visible" : "hidden"}
             variants={fadeInUp}
           >
-            AI Health Guidance & Private Symptom Support
+            {t('landing.title')}
           </motion.h1>
           <motion.p 
             className="hero-subtitle"
@@ -143,7 +145,7 @@ export default function LandingPage() {
             animate={heroInView ? "visible" : "hidden"}
             variants={fadeInUp}
           >
-            Get instant, private answers about symptoms, wellness, and next steps with our AI health information chatbot — no signup required.
+            {t('landing.subtitle')}
           </motion.p>
           <motion.p 
             className="hero-free-text"
@@ -151,7 +153,7 @@ export default function LandingPage() {
             animate={heroInView ? "visible" : "hidden"}
             variants={fadeInUp}
           >
-            Start chatting for free. No signup. No pressure.
+            {t('landing.freeText')}
           </motion.p>
           <motion.div
             initial="hidden"
@@ -161,7 +163,7 @@ export default function LandingPage() {
           >
             <Link to="/chat" className="cta-button" aria-label="Start chatting with AI health guidance" onClick={scrollToTop}>
               <span className="cta-button-icon" aria-hidden="true">💬</span>
-              <span>Start Chatting</span>
+              <span>{t('landing.startChat')}</span>
             </Link>
           </motion.div>
           <motion.div 
@@ -172,15 +174,15 @@ export default function LandingPage() {
           >
             <motion.div className="badge" variants={fadeInUp} aria-label="Private and secure">
               <span className="badge-icon" aria-hidden="true">🔒</span>
-              <span>Private</span>
+              <span>{t('landing.private')}</span>
             </motion.div>
             <motion.div className="badge" variants={fadeInUp} aria-label="No login required">
               <span className="badge-icon" aria-hidden="true">👤</span>
-              <span>No login</span>
+              <span>{t('landing.noLogin')}</span>
             </motion.div>
             <motion.div className="badge" variants={fadeInUp} aria-label="Informational guidance only, not medical diagnosis">
               <span className="badge-icon" aria-hidden="true">💬</span>
-              <span>Informational guidance only<br />Not a diagnosis or treatment</span>
+              <span>{t('landing.infoOnly')}<br />{t('landing.notDiagnosis')}</span>
             </motion.div>
           </motion.div>
         </div>
@@ -194,7 +196,7 @@ export default function LandingPage() {
           animate={pricingInView ? "visible" : "hidden"}
           variants={fadeInUp}
         >
-          Free Health Guidance — Pay Only If You Want More Messages
+          {t('landing.pricingTitle')}
         </motion.h2>
         <motion.div 
           className="pricing-cards"
@@ -208,13 +210,13 @@ export default function LandingPage() {
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <h3>Free</h3>
+            <h3>{t('landing.free')}</h3>
             <p className="price">$0.00</p>
             <ul>
-              <li>{pricingConfig?.freeMessageLimit || 5} free messages</li>
-              <li>No login required</li>
-              <li>Full AI quality</li>
-              <li>Purchase more when needed</li>
+              <li>{t('landing.freeMessages', { count: pricingConfig?.freeMessageLimit || 5 })}</li>
+              <li>{t('landing.noLogin')}</li>
+              <li>{t('landing.fullAiQuality')}</li>
+              <li>{t('landing.purchaseMore')}</li>
             </ul>
           </motion.div>
           {pricingPlans.map((plan, index) => {
@@ -223,13 +225,13 @@ export default function LandingPage() {
             let displayDescription = ""
             
             if (plan.credits === 20 || plan.price === 1.99) {
-              displayName = "20 Messages"
+              displayName = t('landing.messagesLabel', { count: 20 })
               displayDescription = "Ask follow-up health questions and get more detailed guidance whenever you need it."
             } else if (plan.credits === 50 || plan.price === 3.99) {
-              displayName = "50 Messages"
+              displayName = t('landing.messagesLabel', { count: 50 })
               displayDescription = "Ongoing health discussions, symptom clarification, and wellness insights."
             } else {
-              displayName = `${plan.credits || 0} Messages`
+              displayName = t('landing.messagesLabel', { count: plan.credits || 0 })
               displayDescription = `Continue your conversation with ${plan.credits || 0} additional messages.`
             }
             
@@ -242,7 +244,7 @@ export default function LandingPage() {
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 {plan.isMostPopular && (
-                  <div className="featured-badge">Most Popular</div>
+                  <div className="featured-badge">{t('landing.mostPopular')}</div>
                 )}
                 <h3>{displayName}</h3>
                 <p className="price">{formatPrice(plan.price)}</p>
@@ -253,7 +255,7 @@ export default function LandingPage() {
                   className="plan-button" 
                   aria-label={`Unlock ${plan.credits} messages for ${formatPrice(plan.price)}`}
                 >
-                  {processingPlanId === plan.planId ? 'Processing...' : `Unlock ${plan.credits} Messages`}
+                  {processingPlanId === plan.planId ? t('common.processing') : t('landing.unlockMessages', { count: plan.credits })}
                 </button>
               </motion.div>
             )
@@ -265,7 +267,7 @@ export default function LandingPage() {
               animate={pricingInView ? "visible" : "hidden"}
               variants={fadeInUp}
             >
-              Pricing plans are being configured. Free tier is always available.
+              {t('landing.plansConfiguring')}
             </motion.p>
           )}
         </motion.div>
@@ -279,7 +281,7 @@ export default function LandingPage() {
           animate={howItWorksInView ? "visible" : "hidden"}
           variants={fadeInUp}
         >
-          How It Works
+          {t('landing.howItWorks')}
         </motion.h2>
         <motion.div 
           className="steps"
@@ -290,20 +292,20 @@ export default function LandingPage() {
           <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
             <div className="step-icon">💬</div>
             <div className="step-number">1</div>
-            <h3>Describe your symptoms or health question</h3>
-            <p>No signup needed. Our AI symptom checker helps you understand your health questions privately and anonymously.</p>
+            <h3>{t('landing.step1Title')}</h3>
+            <p>{t('landing.step1Text')}</p>
           </motion.div>
           <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
             <div className="step-icon">🧠</div>
             <div className="step-number">2</div>
-            <h3>Get clear, AI-powered health information and guidance</h3>
-            <p>Receive empathetic, AI-powered health guidance and wellness advice tailored to your situation.</p>
+            <h3>{t('landing.step2Title')}</h3>
+            <p>{t('landing.step2Text')}</p>
           </motion.div>
           <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
             <div className="step-icon">🩺</div>
             <div className="step-number">3</div>
-            <h3>Understand next steps and when to seek professional care</h3>
-            <p>Get guidance on next steps and learn when to seek professional medical care. Use coping strategies and feel more calm and in control.</p>
+            <h3>{t('landing.step3Title')}</h3>
+            <p>{t('landing.step3Text')}</p>
           </motion.div>
         </motion.div>
       </section>
@@ -316,7 +318,7 @@ export default function LandingPage() {
           animate={infoInView ? "visible" : "hidden"}
           variants={fadeInUp}
         >
-          What Doctor AI Bolit Can & Can't Do
+          {t('landing.capabilitiesTitle')}
         </motion.h2>
         <motion.ul 
           className="informational-list"
@@ -340,7 +342,7 @@ export default function LandingPage() {
         transition={{ delay: 0.5 }}
       >
         <Link to="/chat" className="sticky-cta-button" aria-label="Start chatting with AI health guidance" onClick={scrollToTop}>
-          Start Chatting
+          {t('landing.startChat')}
         </Link>
       </motion.div>
     </main>

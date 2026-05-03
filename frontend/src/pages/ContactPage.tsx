@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { contactService } from '../services/contactService'
 import './ContactPage.css'
 
 export default function ContactPage() {
+  const { t } = useTranslation()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
@@ -22,7 +24,7 @@ export default function ContactPage() {
       setMessage('')
     } catch (error) {
       console.error('Failed to submit contact form:', error)
-      alert('Failed to submit. Please try again.')
+      alert(t('contact.submitError'))
     } finally {
       setIsSubmitting(false)
     }
@@ -33,8 +35,8 @@ export default function ContactPage() {
       <div className="contact-page">
         <div className="contact-container">
           <div className="success-message">
-            <h2>Thank you!</h2>
-            <p>We've received your message and will get back to you soon.</p>
+            <h2>{t('contact.thankYou')}</h2>
+            <p>{t('contact.success')}</p>
           </div>
         </div>
       </div>
@@ -44,14 +46,14 @@ export default function ContactPage() {
   return (
     <div className="contact-page">
       <div className="contact-container">
-        <Link to="/" className="back-btn">← Back to Home</Link>
-        <h1>Contact Us</h1>
+        <Link to="/" className="back-btn">← {t('common.backHome')}</Link>
+        <h1>{t('contact.title')}</h1>
         <p className="contact-intro">
-          Have a question or feedback? We'd love to hear from you.
+          {t('contact.intro')}
         </p>
         <form onSubmit={handleSubmit} className="contact-form">
           <div className="form-group">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">{t('contact.name')}</label>
             <input
               type="text"
               id="name"
@@ -61,7 +63,7 @@ export default function ContactPage() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t('contact.email')}</label>
             <input
               type="email"
               id="email"
@@ -71,7 +73,7 @@ export default function ContactPage() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="message">Message</label>
+            <label htmlFor="message">{t('contact.message')}</label>
             <textarea
               id="message"
               value={message}
@@ -81,7 +83,7 @@ export default function ContactPage() {
             />
           </div>
           <button type="submit" disabled={isSubmitting} className="submit-btn">
-            {isSubmitting ? 'Sending...' : 'Send Message'}
+            {isSubmitting ? t('common.sending') : t('contact.send')}
           </button>
         </form>
       </div>
