@@ -73,7 +73,8 @@ export default function LanguageSwitcher({ compact = false }: LanguageSwitcherPr
               onClick={() => handleChange(lang.code)}
             >
               <span className="language-option-flag" aria-hidden="true">{lang.flag}</span>
-              <span>{t(lang.nameKey)}</span>
+              <span className="language-option-label">{t(lang.nameKey)}</span>
+              {lang.code === normalizedLang && <span className="language-option-check" aria-hidden="true">✓</span>}
             </button>
           ))}
         </div>

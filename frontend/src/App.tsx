@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import ScrollToTop from './components/ScrollToTop'
 import GoogleAnalytics from './components/GoogleAnalytics'
@@ -11,19 +11,10 @@ import AdminDashboard from './pages/AdminDashboard'
 import YouTubePage from './pages/YouTubePage'
 import Platform from './pages/Platform'
 import Layout from './components/Layout'
-import LanguageSwitcher from './components/LanguageSwitcher'
 
 function AppRoutes() {
-  const location = useLocation()
-  const isChatPage = location.pathname.startsWith('/chat')
-
   return (
     <>
-      {!isChatPage && (
-        <div className="app-top-right-language">
-          <LanguageSwitcher compact />
-        </div>
-      )}
       <ScrollToTop />
       <GoogleAnalytics />
       <Routes>

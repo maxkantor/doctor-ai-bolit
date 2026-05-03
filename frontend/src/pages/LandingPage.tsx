@@ -130,61 +130,99 @@ export default function LandingPage() {
   return (
     <main className="landing-page" role="main">
       <header className="hero" ref={heroRef}>
-        <div className="hero-content">
-          <motion.h1 
-            className="hero-title"
-            initial="hidden"
-            animate={heroInView ? "visible" : "hidden"}
-            variants={fadeInUp}
-          >
-            {t('landing.title')}
-          </motion.h1>
-          <motion.p 
-            className="hero-subtitle"
-            initial="hidden"
-            animate={heroInView ? "visible" : "hidden"}
-            variants={fadeInUp}
-          >
-            {t('landing.subtitle')}
-          </motion.p>
-          <motion.p 
-            className="hero-free-text"
-            initial="hidden"
-            animate={heroInView ? "visible" : "hidden"}
-            variants={fadeInUp}
-          >
-            {t('landing.freeText')}
-          </motion.p>
-          <motion.div
-            initial="hidden"
-            animate={heroInView ? "visible" : "hidden"}
-            variants={fadeInUp}
-            style={{ marginBottom: '0.5rem' }}
-          >
-            <Link to="/chat" className="cta-button" aria-label="Start chatting with AI health guidance" onClick={scrollToTop}>
-              <span className="cta-button-icon" aria-hidden="true">💬</span>
-              <span>{t('landing.startChat')}</span>
-            </Link>
-          </motion.div>
-          <motion.div 
-            className="trust-badges"
-            initial="hidden"
-            animate={heroInView ? "visible" : "hidden"}
-            variants={staggerContainer}
-          >
-            <motion.div className="badge" variants={fadeInUp} aria-label="Private and secure">
-              <span className="badge-icon" aria-hidden="true">🔒</span>
-              <span>{t('landing.private')}</span>
+        <div className="hero-grid">
+          <div className="hero-content">
+            <motion.p
+              className="hero-kicker"
+              initial="hidden"
+              animate={heroInView ? 'visible' : 'hidden'}
+              variants={fadeInUp}
+            >
+              AI health guidance that feels premium, private, and instant
+            </motion.p>
+            <motion.h1
+              className="hero-title"
+              initial="hidden"
+              animate={heroInView ? 'visible' : 'hidden'}
+              variants={fadeInUp}
+            >
+              {t('landing.title')}
+            </motion.h1>
+            <motion.p
+              className="hero-subtitle"
+              initial="hidden"
+              animate={heroInView ? 'visible' : 'hidden'}
+              variants={fadeInUp}
+            >
+              {t('landing.subtitle')}
+            </motion.p>
+            <motion.div
+              className="hero-cta-row"
+              initial="hidden"
+              animate={heroInView ? 'visible' : 'hidden'}
+              variants={fadeInUp}
+            >
+              <Link to="/chat" className="cta-button" aria-label="Start chatting with AI health guidance" onClick={scrollToTop}>
+                <span className="cta-button-icon" aria-hidden="true">✨</span>
+                <span>{t('landing.startChat')}</span>
+              </Link>
+              <span className="hero-free-text">{t('landing.freeText')}</span>
             </motion.div>
-            <motion.div className="badge" variants={fadeInUp} aria-label="No login required">
-              <span className="badge-icon" aria-hidden="true">👤</span>
-              <span>{t('landing.noLogin')}</span>
+
+            <motion.div
+              className="trust-badges"
+              initial="hidden"
+              animate={heroInView ? 'visible' : 'hidden'}
+              variants={staggerContainer}
+            >
+              <motion.div className="badge" variants={fadeInUp}>
+                <span className="badge-icon" aria-hidden="true">🔒</span>
+                <span>{t('landing.private')}</span>
+              </motion.div>
+              <motion.div className="badge" variants={fadeInUp}>
+                <span className="badge-icon" aria-hidden="true">⚡</span>
+                <span>{t('landing.noLogin')}</span>
+              </motion.div>
+              <motion.div className="badge" variants={fadeInUp}>
+                <span className="badge-icon" aria-hidden="true">🧠</span>
+                <span>{t('landing.fullAiQuality')}</span>
+              </motion.div>
             </motion.div>
-            <motion.div className="badge" variants={fadeInUp} aria-label="Informational guidance only, not medical diagnosis">
-              <span className="badge-icon" aria-hidden="true">💬</span>
-              <span>{t('landing.infoOnly')}<br />{t('landing.notDiagnosis')}</span>
-            </motion.div>
-          </motion.div>
+          </div>
+
+          <motion.aside
+            className="hero-preview"
+            initial={{ opacity: 0, y: 28 }}
+            animate={heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
+            transition={{ duration: 0.65 }}
+            aria-label="Chat preview"
+          >
+            <div className="preview-topbar">
+              <span className="preview-dot"></span>
+              <span className="preview-dot"></span>
+              <span className="preview-dot"></span>
+              <span className="preview-title">DoctorAibolit Live Assistant</span>
+            </div>
+            <div className="preview-messages">
+              <div className="preview-message user">I have a mild headache and poor sleep. What should I do first?</div>
+              <div className="preview-message ai">Start with hydration, light food, and sleep routine checks. I can help you assess warning signs in 60 seconds.</div>
+              <div className="preview-message ai highlight">Private • No signup • Actionable next steps</div>
+            </div>
+            <div className="preview-metrics">
+              <div>
+                <strong>24/7</strong>
+                <span>Available</span>
+              </div>
+              <div>
+                <strong>~10s</strong>
+                <span>Response</span>
+              </div>
+              <div>
+                <strong>5</strong>
+                <span>Free messages</span>
+              </div>
+            </div>
+          </motion.aside>
         </div>
       </header>
 
@@ -207,7 +245,7 @@ export default function LandingPage() {
           <motion.div 
             className="pricing-card free-card"
             variants={fadeInUp}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ y: -4 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
             <h3>{t('landing.free')}</h3>
@@ -240,7 +278,7 @@ export default function LandingPage() {
                 key={plan.planId}
                 className={`pricing-card ${plan.isMostPopular ? 'featured' : ''}`}
                 variants={fadeInUp}
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ y: -6 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 {plan.isMostPopular && (
@@ -289,19 +327,19 @@ export default function LandingPage() {
           animate={howItWorksInView ? "visible" : "hidden"}
           variants={staggerContainer}
         >
-          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+          <motion.div className="step" variants={fadeInUp} whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
             <div className="step-icon">💬</div>
             <div className="step-number">1</div>
             <h3>{t('landing.step1Title')}</h3>
             <p>{t('landing.step1Text')}</p>
           </motion.div>
-          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+          <motion.div className="step" variants={fadeInUp} whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
             <div className="step-icon">🧠</div>
             <div className="step-number">2</div>
             <h3>{t('landing.step2Title')}</h3>
             <p>{t('landing.step2Text')}</p>
           </motion.div>
-          <motion.div className="step" variants={fadeInUp} whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+          <motion.div className="step" variants={fadeInUp} whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
             <div className="step-icon">🩺</div>
             <div className="step-number">3</div>
             <h3>{t('landing.step3Title')}</h3>
