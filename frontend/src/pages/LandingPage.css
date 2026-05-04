@@ -1021,15 +1021,15 @@
   text-align: left;
   padding: clamp(2rem, 5vw, 3.4rem) clamp(1rem, 3vw, 1.5rem) clamp(1.2rem, 2vw, 2rem);
   isolation: isolate;
+  background:
+    linear-gradient(to right, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.88) 55%, rgba(255,255,255,0.72) 100%),
+    url('/images/medical-bg.png') no-repeat right center;
+  background-size: cover;
+  background-attachment: local;
 }
 
 .hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.10) 0%, rgba(15, 23, 42, 0) 70%);
-  pointer-events: none;
-  z-index: 0;
+  content: none;
 }
 
 .hero-grid {
@@ -1359,6 +1359,11 @@
 @media (max-width: 900px) {
   .hero {
     padding-top: 1.45rem;
+    background-position: center center;
+    background:
+      linear-gradient(rgba(255,255,255,0.94), rgba(255,255,255,0.94)),
+      url('/images/medical-bg.png') no-repeat center center;
+    background-size: cover;
   }
 
   .hero-kicker {
