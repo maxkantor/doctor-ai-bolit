@@ -1017,18 +1017,24 @@
   background: transparent;
 }
 
+.landing-page::before {
+  content: none;
+}
+
 .hero {
   text-align: left;
   padding: 120px 24px 80px;
-  min-height: calc(100vh - 120px);
+  min-height: 720px;
   isolation: isolate;
   background-image:
-    linear-gradient(90deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.80) 45%, rgba(255,255,255,0.55) 100%),
-    url('/images/medical-bg.png');
+    linear-gradient(90deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.58) 45%, rgba(255,255,255,0.28) 100%),
+    url("/images/medical-bg.png");
   background-size: cover;
-  background-position: center right;
+  background-position: center center;
   background-repeat: no-repeat;
+  background-color: transparent;
   border-radius: 0;
+  overflow: hidden;
 }
 
 .hero::before {
@@ -1371,10 +1377,10 @@
     padding: 96px 16px 56px;
     min-height: auto;
     background-image:
-      linear-gradient(90deg, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.86) 55%, rgba(255,255,255,0.62) 100%),
-      url('/images/medical-bg.png');
+      linear-gradient(90deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.58) 45%, rgba(255,255,255,0.28) 100%),
+      url("/images/medical-bg.png");
     background-size: cover;
-    background-position: center right;
+    background-position: center center;
     background-repeat: no-repeat;
   }
 
