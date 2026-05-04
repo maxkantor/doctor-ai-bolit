@@ -503,6 +503,7 @@ public class StripeService : IStripeService
                         // Add credits to user's balance
                         var oldBalance = visitor.CreditBalance;
                         visitor.CreditBalance += credits;
+                        visitor.TotalCreditsAdded += credits;
                         await _visitorRepository.UpdateVisitorAsync(visitor);
                         Console.WriteLine($"[StripeService] ✅ Added {credits} credits to visitor {visitorId}. Old balance: {oldBalance}, New balance: {visitor.CreditBalance}");
                         
@@ -708,6 +709,7 @@ public class StripeService : IStripeService
                                     // Add credits
                                     var oldBalance = visitor.CreditBalance;
                                     visitor.CreditBalance += credits;
+                                    visitor.TotalCreditsAdded += credits;
                                     await _visitorRepository.UpdateVisitorAsync(visitor);
                                     Console.WriteLine($"[StripeService] ✅ Added {credits} credits to visitor {visitorId}. Old balance: {oldBalance}, New balance: {visitor.CreditBalance}");
                                     

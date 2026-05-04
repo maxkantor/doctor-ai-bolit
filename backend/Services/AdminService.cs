@@ -253,6 +253,7 @@ public class AdminService : IAdminService
         if (visitor != null)
         {
             visitor.CreditBalance += credits;
+            visitor.TotalCreditsAdded += credits;
             await _visitorRepository.UpdateVisitorAsync(visitor);
         }
     }

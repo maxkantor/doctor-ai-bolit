@@ -162,7 +162,8 @@ public class ChatController : ControllerBase
                 creditBalance = creditBalance,
                 freeMessagesRemaining = freeMessagesRemaining,
                 messageCount = visitor.MessageCount,
-                purchasedCreditsTotal = purchasedCreditsTotal
+                purchasedCreditsTotal = purchasedCreditsTotal,
+                totalCreditsAdded = visitor.TotalCreditsAdded
             });
         }
         
@@ -173,7 +174,8 @@ public class ChatController : ControllerBase
             creditBalance = 0,
             freeMessagesRemaining = defaultFreeLimit,
             messageCount = 0,
-            purchasedCreditsTotal = purchasedCreditsTotal
+            purchasedCreditsTotal = purchasedCreditsTotal,
+            totalCreditsAdded = 0
         });
     }
 }

@@ -11,6 +11,7 @@ public class Visitor
     public DateTime CreatedAt { get; set; }
     public int MessageCount { get; set; }
     public int CreditBalance { get; set; }
+    public int TotalCreditsAdded { get; set; }
     public bool IsPremium { get; set; }
     public DateTime LastActive { get; set; }
     public string? ReferralSource { get; set; }
