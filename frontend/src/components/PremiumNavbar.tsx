@@ -48,12 +48,18 @@ export default function PremiumNavbar() {
         const freeLimit = config?.freeMessageLimit ?? 5
         if (typeof remaining === 'object' && 'creditBalance' in remaining) {
           const purchasedTotal = remaining.purchasedCreditsTotal || 0
+          const creditBalance = remaining.creditBalance || 0
 
-          // If user has any historical purchase, show remainingMessages against original purchased total.
           if (purchasedTotal > 0) {
+            // Paid via Stripe — show remaining against historical total purchased
             const numerator = remaining.remainingMessages || 0
             setUsageText(`${numerator}/${purchasedTotal}`)
             setUsageTooltip(`${numerator} out of ${purchasedTotal} purchased`)
+          } else if (creditBalance > 0) {
+            // Credits added manually (no Stripe record) — just show count
+            const numerator = remaining.remainingMessages || 0
+            setUsageText(`${numerator}`)
+            setUsageTooltip(`${numerator} messages remaining`)
           } else {
             const freeRemaining = remaining.freeMessagesRemaining || 0
             setUsageText(`${freeRemaining}/${freeLimit}`)
