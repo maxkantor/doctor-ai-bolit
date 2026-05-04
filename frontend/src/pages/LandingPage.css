@@ -1021,11 +1021,15 @@
   text-align: left;
   padding: clamp(2rem, 5vw, 3.4rem) clamp(1rem, 3vw, 1.5rem) clamp(1.2rem, 2vw, 2rem);
   isolation: isolate;
-  background:
-    linear-gradient(to right, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.88) 55%, rgba(255,255,255,0.72) 100%),
-    url('/images/medical-bg.png') no-repeat right center;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  background-image:
+    linear-gradient(90deg, rgba(255,255,255,0.90) 0%, rgba(255,255,255,0.76) 45%, rgba(255,255,255,0.45) 100%),
+    url('/images/medical-bg.png');
   background-size: cover;
-  background-attachment: local;
+  background-position: center right;
+  background-repeat: no-repeat;
 }
 
 .hero::before {
@@ -1042,6 +1046,9 @@
   grid-template-columns: 1.05fr 0.95fr;
   gap: clamp(1.25rem, 3vw, 2.4rem);
   align-items: center;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
 }
 
 .hero-content {
@@ -1359,11 +1366,12 @@
 @media (max-width: 900px) {
   .hero {
     padding-top: 1.45rem;
-    background-position: center center;
-    background:
-      linear-gradient(rgba(255,255,255,0.94), rgba(255,255,255,0.94)),
-      url('/images/medical-bg.png') no-repeat center center;
+    background-image:
+      linear-gradient(90deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.84) 55%, rgba(255,255,255,0.56) 100%),
+      url('/images/medical-bg.png');
     background-size: cover;
+    background-position: center right;
+    background-repeat: no-repeat;
   }
 
   .hero-kicker {
