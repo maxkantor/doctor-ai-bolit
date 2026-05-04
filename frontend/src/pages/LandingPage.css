@@ -1044,7 +1044,7 @@ main,
   box-sizing: border-box;
   background:
     linear-gradient(90deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.48) 48%, rgba(255,255,255,0.24) 100%),
-    url('/images/medical-bg.png') center right / cover no-repeat !important;
+    url('/images/medical-bg.png') right 42% / cover no-repeat !important;
   background-color: transparent !important;
   border-radius: 0;
   overflow: hidden;
@@ -1096,7 +1096,7 @@ main,
 }
 
 .hero-title {
-  font-size: clamp(44px, 4.6vw, 72px);
+  font-size: clamp(40px, 4.2vw, 64px);
   line-height: 0.98;
   letter-spacing: -0.03em;
   margin-bottom: 0.8rem;
@@ -1104,7 +1104,7 @@ main,
 }
 
 .hero h1 {
-  font-size: clamp(44px, 4.6vw, 72px);
+  font-size: clamp(40px, 4.2vw, 64px);
   line-height: 0.98;
   letter-spacing: -0.055em;
   max-width: 680px;
@@ -1130,6 +1130,8 @@ main,
   width: 100%;
   display: flex;
   justify-content: flex-end;
+  padding-right: 16px;
+  box-sizing: border-box;
   overflow: visible;
 }
 
@@ -1226,6 +1228,7 @@ main,
   min-width: 0;
   justify-self: end;
   align-self: center;
+  margin-top: -24px;
   transform: none;
   flex-shrink: 1;
   box-sizing: border-box;
@@ -1452,6 +1455,7 @@ main,
   .hero-visual,
   .hero-right {
     justify-content: center;
+    padding-right: 0;
   }
 
   .assistant-card,
@@ -1459,6 +1463,7 @@ main,
   .demo-card,
   .hero-preview {
     max-width: 100%;
+    margin-top: 0;
   }
 
   .hero-title {
