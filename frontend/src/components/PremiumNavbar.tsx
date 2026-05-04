@@ -49,14 +49,10 @@ export default function PremiumNavbar() {
         if (typeof remaining === 'object' && 'creditBalance' in remaining) {
           if ((remaining.creditBalance || 0) > 0) {
             const purchasedTotal = remaining.purchasedCreditsTotal || 0
-            // Show purchased balance against total purchased when available.
-            if (purchasedTotal > 0) {
-              setUsageText(`${remaining.creditBalance}/${purchasedTotal}`)
-              setUsageTooltip(`${remaining.creditBalance} out of ${purchasedTotal} purchased`)
-            } else {
-              setUsageText(`${remaining.remainingMessages}/?`)
-              setUsageTooltip(`${remaining.remainingMessages} messages remaining`)
-            }
+            // Never show '?': fallback denominator is current purchased balance.
+            const denominator = purchasedTotal > 0 ? purchasedTotal : (remaining.creditBalance || 0)
+            setUsageText(`${remaining.creditBalance}/${denominator}`)
+            setUsageTooltip(`${remaining.creditBalance} out of ${denominator} purchased`)
           } else {
             setUsageText(`${remaining.freeMessagesRemaining || 0}/${freeLimit}`)
             setUsageTooltip(`${remaining.freeMessagesRemaining || 0} out of ${freeLimit} free messages remaining`)
@@ -97,7 +93,12 @@ export default function PremiumNavbar() {
         </nav>
 
         <div className="premium-navbar-actions">
-          <span className="premium-navbar-usage" aria-label={usageTooltip} title={usageTooltip}>
+          <span
+            className="premium-navbar-usage"
+            aria-label={usageTooltip}
+            data-tooltip={usageTooltip}
+            tabIndex={0}
+          >
             {usageText}
           </span>
           <LanguageSwitcher compact />

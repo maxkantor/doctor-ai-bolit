@@ -145,7 +145,7 @@ public class ChatController : ControllerBase
         var remaining = await _visitorService.GetRemainingCreditsAsync(visitorId);
         var payments = await _paymentHistoryRepository.GetPaymentsByVisitorIdAsync(visitorId);
         var purchasedCreditsTotal = payments
-            .Where(p => p.Credits > 0 && (string.IsNullOrWhiteSpace(p.Status) || p.Status.Equals("completed", StringComparison.OrdinalIgnoreCase)))
+            .Where(p => p.Credits > 0)
             .Sum(p => p.Credits);
         
         // Also return breakdown for better UI display
