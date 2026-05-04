@@ -17,7 +17,6 @@
   max-width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
-  padding-top: 96px;
 }
 
 /* Landing page should scroll naturally */
@@ -39,10 +38,6 @@
   width: 100%;
   max-width: 100vw;
   box-sizing: border-box;
-}
-
-.layout:has(.chat-page) .main-content {
-  padding-top: 0;
 }
 
 .layout:has(.chat-page) .footer {

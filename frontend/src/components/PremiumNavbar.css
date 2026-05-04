@@ -1,24 +1,23 @@
 .premium-navbar {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(100% - 32px, 1320px);
-  z-index: 9999;
+  position: sticky;
+  top: 12px;
+  width: min(100% - 32px, 1280px);
+  margin: 16px auto 0;
+  z-index: 1000;
   height: 64px;
   transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, backdrop-filter 180ms ease;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(148, 163, 184, 0.24);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.10);
 }
 
 .premium-navbar.is-scrolled {
   background: rgba(255, 255, 255, 0.9);
   border-color: rgba(148, 163, 184, 0.28);
-  box-shadow: 0 20px 44px rgba(15, 23, 42, 0.16);
-  backdrop-filter: blur(20px);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(16px);
 }
 
 .premium-navbar-inner {
@@ -157,8 +156,9 @@
 
 @media (max-width: 900px) {
   .premium-navbar {
-    width: min(100% - 20px, 1320px);
-    top: 10px;
+    width: min(100% - 20px, 1280px);
+    top: 8px;
+    margin-top: 8px;
     height: 60px;
   }
 
