@@ -146,7 +146,7 @@ export default function LandingPage() {
               animate={heroInView ? 'visible' : 'hidden'}
               variants={fadeInUp}
             >
-              {t('landing.title')}
+              {t('landing.newTitle')}
             </motion.h1>
             <motion.p
               className="hero-subtitle"
@@ -154,7 +154,7 @@ export default function LandingPage() {
               animate={heroInView ? 'visible' : 'hidden'}
               variants={fadeInUp}
             >
-              {t('landing.subtitle')}
+              {t('landing.newSubtitle')}
             </motion.p>
             <motion.div
               className="hero-cta-row"
@@ -162,11 +162,10 @@ export default function LandingPage() {
               animate={heroInView ? 'visible' : 'hidden'}
               variants={fadeInUp}
             >
-              <Link to="/chat" className="cta-button" aria-label="Start chatting with AI health guidance" onClick={scrollToTop}>
+              <Link to="/chat" className="cta-button" aria-label="Check your symptoms with AI health guidance" onClick={scrollToTop}>
                 <span className="cta-button-icon" aria-hidden="true">✨</span>
-                <span>{t('landing.startChat')}</span>
+                <span>{t('landing.checkSymptoms')}</span>
               </Link>
-              <span className="hero-free-text">{t('landing.freeText')}</span>
             </motion.div>
 
             <motion.div
@@ -176,18 +175,27 @@ export default function LandingPage() {
               variants={staggerContainer}
             >
               <motion.div className="badge" variants={fadeInUp}>
-                <span className="badge-icon" aria-hidden="true">🔒</span>
-                <span>{t('landing.private')}</span>
+                <span className="badge-icon" aria-hidden="true">✔</span>
+                <span>{t('landing.trustPoint1')}</span>
               </motion.div>
               <motion.div className="badge" variants={fadeInUp}>
-                <span className="badge-icon" aria-hidden="true">⚡</span>
-                <span>{t('landing.noLogin')}</span>
+                <span className="badge-icon" aria-hidden="true">✔</span>
+                <span>{t('landing.trustPoint2')}</span>
               </motion.div>
               <motion.div className="badge" variants={fadeInUp}>
-                <span className="badge-icon" aria-hidden="true">🧠</span>
-                <span>{t('landing.fullAiQuality')}</span>
+                <span className="badge-icon" aria-hidden="true">✔</span>
+                <span>{t('landing.trustPoint3')}</span>
               </motion.div>
             </motion.div>
+
+            <motion.p
+              className="trust-disclaimer"
+              initial="hidden"
+              animate={heroInView ? 'visible' : 'hidden'}
+              variants={fadeInUp}
+            >
+              {t('landing.trustDisclaimer')}
+            </motion.p>
           </div>
 
           <motion.aside
@@ -204,8 +212,8 @@ export default function LandingPage() {
               <span className="preview-title">{t('landing.previewTitle')}</span>
             </div>
             <div className="preview-messages">
-              <div className="preview-message user">{t('landing.previewUserMessage')}</div>
-              <div className="preview-message ai">{t('landing.previewAssistantMessage')}</div>
+              <div className="preview-message user">{t('landing.chestPainUser')}</div>
+              <div className="preview-message ai">{t('landing.chestPainAi')}</div>
               <div className="preview-message ai highlight">{t('landing.previewHighlight')}</div>
             </div>
             <div className="preview-metrics">
@@ -284,8 +292,14 @@ export default function LandingPage() {
                 {plan.isMostPopular && (
                   <div className="featured-badge">{t('landing.mostPopular')}</div>
                 )}
+                {plan.price === 1.99 && (
+                  <div className="pricing-badge-tag">{t('landing.pricingBadge')}</div>
+                )}
                 <h3>{displayName}</h3>
                 <p className="price">{formatPrice(plan.price)}</p>
+                {plan.price === 1.99 && (
+                  <p className="pay-once">{t('landing.payOnce')}</p>
+                )}
                 <p className="plan-description">{displayDescription}</p>
                 <button 
                   onClick={() => handleUnlock(plan)}
@@ -379,8 +393,8 @@ export default function LandingPage() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        <Link to="/chat" className="sticky-cta-button" aria-label="Start chatting with AI health guidance" onClick={scrollToTop}>
-          {t('landing.startChat')}
+        <Link to="/chat" className="sticky-cta-button" aria-label="Check your symptoms with AI health guidance" onClick={scrollToTop}>
+          {t('landing.checkSymptoms')}
         </Link>
       </motion.div>
     </main>
