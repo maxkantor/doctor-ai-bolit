@@ -1,5 +1,5 @@
 import api from './api'
-import { Visitor, ContactMessage, PricingConfig, PricingPlan, PaymentHistory } from '../types'
+import { Visitor, ContactMessage, PricingConfig, PricingPlan, PaymentHistory, AdminUserSummary, AdminUsageTimelineEntry, AdminDashboardSummary } from '../types'
 
 const getAdminHeaders = () => {
   const adminKey = sessionStorage.getItem('doctoraibolit_admin_key')
@@ -56,6 +56,22 @@ export const adminService = {
     return response.data || []
   },
 
+  async getEnrichedUsers(): Promise<AdminUserSummary[]> {
+    const response = await api.get<AdminUserSummary[]>('/admin/users/enriched', {
+      headers: getAdminHeaders(),
+      timeout: 20000,
+    })
+    return response.data || []
+  },
+
+  async getDashboardSummary(): Promise<AdminDashboardSummary> {
+    const response = await api.get<AdminDashboardSummary>('/admin/dashboard/summary', {
+      headers: getAdminHeaders(),
+      timeout: 20000,
+    })
+    return response.data
+  },
+
   async getUser(visitorId: string): Promise<Visitor> {
     const response = await api.get<Visitor>(`/admin/user/${visitorId}`, { headers: getAdminHeaders() })
     return response.data
@@ -63,6 +79,14 @@ export const adminService = {
 
   async addCredits(visitorId: string, credits: number): Promise<void> {
     await api.post('/admin/credits', { visitorId, credits }, { headers: getAdminHeaders() })
+  },
+
+  async resetCredits(visitorId: string): Promise<void> {
+    await api.post('/admin/reset-credits', { visitorId }, { headers: getAdminHeaders() })
+  },
+
+  async markPremium(visitorId: string, isPremium = true): Promise<void> {
+    await api.post('/admin/mark-premium', { visitorId, isPremium }, { headers: getAdminHeaders() })
   },
 
   async resetVisitor(visitorId: string): Promise<void> {
@@ -81,8 +105,12 @@ export const adminService = {
     return response.data || []
   },
 
-  async replyToEmail(to: string, subject: string, body: string): Promise<void> {
-    await api.post('/admin/email/reply', { to, subject, body }, { headers: getAdminHeaders() })
+  async updateEmailStatus(messageId: string, status: string): Promise<void> {
+    await api.post('/admin/email/status', { messageId, status }, { headers: getAdminHeaders() })
+  },
+
+  async replyToEmail(to: string, subject: string, body: string, messageId?: string): Promise<void> {
+    await api.post('/admin/email/reply', { to, subject, body, messageId }, { headers: getAdminHeaders() })
   },
 
   async getPricingConfig(): Promise<PricingConfig> {
@@ -128,6 +156,14 @@ export const adminService = {
   async getPaymentHistory(visitorId?: string): Promise<PaymentHistory[]> {
     const url = visitorId ? `/admin/payments?visitorId=${visitorId}` : '/admin/payments'
     const response = await api.get<PaymentHistory[]>(url, { headers: getAdminHeaders() })
+    return response.data || []
+  },
+
+  async getUsageTimeline(visitorId: string): Promise<AdminUsageTimelineEntry[]> {
+    const response = await api.get<AdminUsageTimelineEntry[]>(`/admin/user/${visitorId}/usage-timeline`, {
+      headers: getAdminHeaders(),
+      timeout: 20000,
+    })
     return response.data || []
   },
 }

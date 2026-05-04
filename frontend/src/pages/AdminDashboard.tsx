@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { adminService } from '../services/adminService'
-import { Visitor, ContactMessage, PricingConfig, PricingPlan, PaymentHistory } from '../types'
+import { Visitor, ContactMessage, PricingConfig, PricingPlan, PaymentHistory, AdminUserSummary, AdminUsageTimelineEntry, AdminDashboardSummary } from '../types'
 import './AdminDashboard.css'
 
 export default function AdminDashboard() {
@@ -9,6 +9,7 @@ export default function AdminDashboard() {
   const location = useLocation()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [visitors, setVisitors] = useState<Visitor[]>([])
+  const [enrichedUsers, setEnrichedUsers] = useState<AdminUserSummary[]>([])
   const [emails, setEmails] = useState<ContactMessage[]>([])
   const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null)
   const [isLoadingData, setIsLoadingData] = useState(false)
@@ -25,6 +26,46 @@ export default function AdminDashboard() {
   const [isSendingReply, setIsSendingReply] = useState(false)
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistory[]>([])
   const [isLoadingPayments, setIsLoadingPayments] = useState(false)
+  const [dashboardPayments, setDashboardPayments] = useState<PaymentHistory[]>([])
+  const [dashboardSummary, setDashboardSummary] = useState<AdminDashboardSummary | null>(null)
+  const [usageTimeline, setUsageTimeline] = useState<AdminUsageTimelineEntry[]>([])
+
+  const freeLimit = pricingConfig?.freeMessageLimit ?? 5
+  const selectedUserSummary = selectedVisitor
+    ? enrichedUsers.find((u) => u.visitorId === selectedVisitor.visitorId)
+    : undefined
+
+  const activeLast24h = dashboardSummary?.activeLast24Hours ?? enrichedUsers.filter((u) => {
+    const lastActiveMs = new Date(u.lastActive).getTime()
+    return Number.isFinite(lastActiveMs) && Date.now() - lastActiveMs <= 24 * 60 * 60 * 1000
+  }).length
+  const payingUsers = dashboardSummary?.payingUsers ?? enrichedUsers.filter((u) => u.totalSpent > 0 || u.isPremium).length
+  const totalRevenue = dashboardSummary?.totalRevenue ?? dashboardPayments.reduce((acc, p) => acc + (p.amount || 0), 0)
+  const conversionRate = dashboardSummary?.conversionRatePercent ?? (enrichedUsers.length > 0 ? (payingUsers / enrichedUsers.length) * 100 : 0)
+  const avgMessagesBeforePayment = dashboardSummary?.averageMessagesBeforePayment ?? (
+    payingUsers > 0
+      ? enrichedUsers
+          .filter((u) => u.totalSpent > 0 || u.isPremium)
+          .reduce((acc, u) => acc + (u.messageCount || 0), 0) / payingUsers
+      : 0
+  )
+  const usersUsedAllFree = dashboardSummary?.usersUsedAllFreeCredits ?? enrichedUsers.filter((u) => u.messageCount >= freeLimit).length
+  const funnelVisited = dashboardSummary?.funnelVisited ?? enrichedUsers.length
+  const funnelStarted = dashboardSummary?.funnelStartedChat ?? enrichedUsers.filter((u) => u.messageCount > 0).length
+  const funnelUsedFree = dashboardSummary?.funnelUsedFreeCredits ?? usersUsedAllFree
+  const funnelPaid = dashboardSummary?.funnelPaid ?? payingUsers
+  const contactMessagesCount = dashboardSummary?.contactMessagesCount ?? emails.length
+  const sortedTransactions = (dashboardSummary?.recentTransactions?.length ? dashboardSummary.recentTransactions : dashboardPayments)
+    .slice()
+    .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())
+    .slice(0, 10)
+
+  const normalizeEmailStatus = (status?: string) => {
+    const normalized = (status || '').toLowerCase().trim()
+    if (normalized === 'resolved') return 'Resolved'
+    if (normalized === 'replied') return 'Replied'
+    return 'New'
+  }
 
   // Auto-correct editing plan values when it changes
   useEffect(() => {
@@ -130,16 +171,25 @@ export default function AdminDashboard() {
       console.log('📡 API Base URL:', import.meta.env.VITE_API_URL || `https://${apiDomain}/api`)
       console.log('🔑 Admin Key:', sessionStorage.getItem('doctoraibolit_admin_key') ? 'Present' : 'Missing')
       
-      const [visitorsData, emailsData] = await Promise.all([
+      const [visitorsData, enrichedUsersData, emailsData, paymentsData, summaryData] = await Promise.all([
         adminService.getUsers(),
+        adminService.getEnrichedUsers(),
         adminService.getEmails(),
+        adminService.getPaymentHistory(),
+        adminService.getDashboardSummary(),
       ])
       
       console.log('✅ Loaded visitors:', visitorsData?.length || 0, visitorsData)
+      console.log('✅ Loaded enriched users:', enrichedUsersData?.length || 0)
       console.log('✅ Loaded emails:', emailsData?.length || 0, emailsData)
+      console.log('✅ Loaded payments:', paymentsData?.length || 0)
+      console.log('✅ Loaded dashboard summary')
       
       setVisitors(visitorsData || [])
+      setEnrichedUsers(enrichedUsersData || [])
       setEmails(emailsData || [])
+      setDashboardPayments(paymentsData || [])
+      setDashboardSummary(summaryData || null)
       
       // If we have a selected visitor, update it from the fresh data to prevent stale data
       if (selectedVisitor) {
@@ -183,9 +233,22 @@ export default function AdminDashboard() {
       const visitor = await adminService.getUser(visitorId)
       setSelectedVisitor(visitor)
       // Load payment history for this visitor
-      await loadPaymentHistory(visitorId)
+      await Promise.all([
+        loadPaymentHistory(visitorId),
+        loadUsageTimeline(visitorId),
+      ])
     } catch (error) {
       console.error('Failed to load visitor:', error)
+    }
+  }
+
+  const loadUsageTimeline = async (visitorId: string) => {
+    try {
+      const timeline = await adminService.getUsageTimeline(visitorId)
+      setUsageTimeline(timeline)
+    } catch (error) {
+      console.error('Failed to load usage timeline:', error)
+      setUsageTimeline([])
     }
   }
 
@@ -212,6 +275,45 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Failed to add credits:', error)
       alert('Failed to add credits. Please try again.')
+    }
+  }
+
+  const handleQuickCredits = async (credits: number) => {
+    if (!selectedVisitor) return
+    try {
+      await adminService.addCredits(selectedVisitor.visitorId, credits)
+      await loadVisitorDetail(selectedVisitor.visitorId)
+      await loadData()
+      alert(`Added ${credits} credits successfully!`)
+    } catch (error) {
+      console.error('Failed to add quick credits:', error)
+      alert('Failed to add credits. Please try again.')
+    }
+  }
+
+  const handleResetCredits = async () => {
+    if (!selectedVisitor) return
+    try {
+      await adminService.resetCredits(selectedVisitor.visitorId)
+      await loadVisitorDetail(selectedVisitor.visitorId)
+      await loadData()
+      alert('Credits reset to 0 successfully!')
+    } catch (error) {
+      console.error('Failed to reset credits:', error)
+      alert('Failed to reset credits. Please try again.')
+    }
+  }
+
+  const handleMarkPremium = async () => {
+    if (!selectedVisitor) return
+    try {
+      await adminService.markPremium(selectedVisitor.visitorId, true)
+      await loadVisitorDetail(selectedVisitor.visitorId)
+      await loadData()
+      alert('User marked as premium successfully!')
+    } catch (error) {
+      console.error('Failed to mark premium:', error)
+      alert('Failed to mark premium. Please try again.')
     }
   }
 
@@ -365,28 +467,92 @@ export default function AdminDashboard() {
             <div className="metrics-grid">
               <div className="metric-card">
                 <h3>Total Users</h3>
-                <p className="metric-value">{visitors.length}</p>
+                <p className="metric-value">{dashboardSummary?.totalUsers ?? enrichedUsers.length}</p>
               </div>
               <div className="metric-card">
-                <h3>Active Today</h3>
-                <p className="metric-value">
-                  {visitors.filter(v => {
-                    const lastActive = new Date(v.lastActive)
-                    const today = new Date()
-                    return lastActive.toDateString() === today.toDateString()
-                  }).length}
-                </p>
+                <h3>Active (24h)</h3>
+                <p className="metric-value">{activeLast24h}</p>
               </div>
               <div className="metric-card">
-                <h3>Premium Users</h3>
-                <p className="metric-value">
-                  {visitors.filter(v => v.isPremium).length}
-                </p>
+                <h3>Paying Users</h3>
+                <p className="metric-value">{payingUsers}</p>
+              </div>
+              <div className="metric-card">
+                <h3>Total Revenue</h3>
+                <p className="metric-value">${totalRevenue.toFixed(2)}</p>
+              </div>
+              <div className="metric-card">
+                <h3>Conversion Rate</h3>
+                <p className="metric-value">{conversionRate.toFixed(1)}%</p>
+              </div>
+              <div className="metric-card">
+                <h3>Avg Messages Before Payment</h3>
+                <p className="metric-value">{avgMessagesBeforePayment.toFixed(1)}</p>
+              </div>
+              <div className="metric-card">
+                <h3>Used All Free Credits</h3>
+                <p className="metric-value">{usersUsedAllFree}</p>
               </div>
               <div className="metric-card">
                 <h3>Contact Messages</h3>
-                <p className="metric-value">{emails.length}</p>
+                <p className="metric-value">{contactMessagesCount}</p>
               </div>
+            </div>
+
+            <div className="user-detail-card" style={{ marginTop: '1.5rem' }}>
+              <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>Conversion Funnel</h2>
+              <div className="metrics-grid" style={{ gap: '1rem' }}>
+                <div className="metric-card">
+                  <h3>Visited</h3>
+                  <p className="metric-value">{funnelVisited}</p>
+                </div>
+                <div className="metric-card">
+                  <h3>Started Chat</h3>
+                  <p className="metric-value">{funnelStarted}</p>
+                </div>
+                <div className="metric-card">
+                  <h3>Used Free Credits</h3>
+                  <p className="metric-value">{funnelUsedFree}</p>
+                </div>
+                <div className="metric-card">
+                  <h3>Paid</h3>
+                  <p className="metric-value">{funnelPaid}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="payment-history-section" style={{ background: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', marginTop: '1.5rem' }}>
+              <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>Latest Transactions</h2>
+              {sortedTransactions.length === 0 ? (
+                <p style={{ color: '#666' }}>No transactions yet.</p>
+              ) : (
+                <div className="payment-history-table" style={{ overflowX: 'auto', width: '100%' }}>
+                  <table style={{ width: '100%', minWidth: '860px', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Product</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedTransactions.map((payment) => (
+                        <tr key={payment.paymentId}>
+                          <td>{new Date(payment.paymentDate).toLocaleString()}</td>
+                          <td>{payment.visitorId.substring(0, 8)}...</td>
+                          <td>{payment.customerEmail || 'N/A'}</td>
+                          <td>{payment.planName}</td>
+                          <td>${payment.amount.toFixed(2)}</td>
+                          <td>{payment.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -403,7 +569,7 @@ export default function AdminDashboard() {
                 </button>
               </div>
             )}
-            {!isLoadingData && visitors.length === 0 && !dataError ? (
+            {!isLoadingData && enrichedUsers.length === 0 && !dataError ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: '#666', background: '#f9fafb', borderRadius: '8px', marginTop: '1rem' }}>
                 <p style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>No users found</p>
                 <p style={{ fontSize: '0.875rem' }}>
@@ -416,50 +582,57 @@ export default function AdminDashboard() {
                   <thead>
                     <tr>
                       <th>Visitor ID</th>
+                      <th>Email</th>
                       <th>Created</th>
-                      <th>Messages</th>
-                      <th>Credits</th>
-                      <th>Premium</th>
+                      <th>Total Spent</th>
+                      <th>Credits Purchased</th>
+                      <th>Conversion Status</th>
+                      <th>Last Session Messages</th>
                       <th>Last Active</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {visitors.map((visitor) => {
-                      // Calculate total remaining messages (purchased credits + free messages remaining)
-                      const freeLimit = pricingConfig?.freeMessageLimit ?? 5
-                      const freeMessagesUsed = Math.min(visitor.messageCount, freeLimit)
-                      const freeMessagesRemaining = Math.max(0, freeLimit - freeMessagesUsed)
-                      const totalRemaining = visitor.creditBalance + freeMessagesRemaining
-                      
-                      return (
-                      <tr key={visitor.visitorId}>
-                        <td>{visitor.visitorId.substring(0, 8)}...</td>
-                        <td>{new Date(visitor.createdAt).toLocaleDateString()}</td>
-                        <td>{visitor.messageCount}</td>
-                        <td>
-                          <span className={`credits-badge ${totalRemaining > 0 ? 'has-credits' : 'no-credits'}`}>
-                            🪙 {totalRemaining}
-                          </span>
-                        </td>
-                        <td>{visitor.isPremium ? 'Yes' : 'No'}</td>
-                        <td>{new Date(visitor.lastActive).toLocaleString()}</td>
-                        <td>
-                          <button
-                            onClick={() => {
-                              setSelectedVisitor(visitor)
-                              navigate(`/admin/user/${visitor.visitorId}`)
-                            }}
-                            className="view-btn"
-                          >
+                    {enrichedUsers.map((user) => {
+                        const conversionClass = user.conversionStatus.toLowerCase().includes('converted')
+                          ? 'status-converted'
+                          : user.conversionStatus.toLowerCase().includes('free')
+                            ? 'status-free-only'
+                            : user.conversionStatus.toLowerCase().includes('engaged')
+                              ? 'status-engaged'
+                              : 'status-new'
+
+                        return (
+                        <tr key={user.visitorId}>
+                          <td>{user.visitorId.substring(0, 8)}...</td>
+                          <td>{user.email || 'N/A'}</td>
+                          <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                          <td>${user.totalSpent.toFixed(2)}</td>
+                          <td>{user.creditsPurchased}</td>
+                          <td>
+                            <span className={`status-chip ${conversionClass}`}>{user.conversionStatus}</span>
+                          </td>
+                          <td>{user.lastSessionMessages}</td>
+                          <td>{new Date(user.lastActive).toLocaleString()}</td>
+                          <td>
+                            <button
+                              onClick={() => {
+                                const visitor = visitors.find((v) => v.visitorId === user.visitorId)
+                                if (visitor) {
+                                  setSelectedVisitor(visitor)
+                                }
+                                navigate(`/admin/user/${user.visitorId}`)
+                              }}
+                              className="view-btn"
+                            >
                             View
-                          </button>
-                        </td>
-                      </tr>
-                      )
+                            </button>
+                          </td>
+                        </tr>
+                        )
                     })}
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -473,15 +646,19 @@ export default function AdminDashboard() {
                 <div key={email.messageId} className="email-item">
                   <div className="email-header">
                     <strong>{email.name}</strong>
-                    <span className="email-date">
-                      {new Date(email.createdAt).toLocaleString()}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span className={`status-chip email-status-chip status-${normalizeEmailStatus(email.status).toLowerCase()}`}>
+                        {normalizeEmailStatus(email.status)}
+                      </span>
+                      <span className="email-date">
+                        {new Date(email.createdAt).toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                   <div className="email-address">
                     <a href={`mailto:${email.email}`}>{email.email}</a>
                   </div>
                   <div className="email-message">{email.message}</div>
-                  <div className="email-status">Status: {email.status}</div>
                   <div className="email-actions" style={{ marginTop: '12px' }}>
                     <button
                       onClick={() => {
@@ -502,6 +679,31 @@ export default function AdminDashboard() {
                       }}
                     >
                       Reply
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await adminService.updateEmailStatus(email.messageId, 'resolved')
+                          await loadData()
+                        } catch (error) {
+                          console.error('Failed to mark email as resolved:', error)
+                          alert('Failed to update email status. Please try again.')
+                        }
+                      }}
+                      className="reply-btn"
+                      style={{
+                        marginLeft: '8px',
+                        padding: '8px 16px',
+                        background: '#16a34a',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: '500',
+                        fontSize: '14px'
+                      }}
+                    >
+                      Mark Resolved
                     </button>
                   </div>
                 </div>
@@ -625,7 +827,8 @@ export default function AdminDashboard() {
                       await adminService.replyToEmail(
                         replyingToEmail.email,
                         replySubject,
-                        replyBody
+                        replyBody,
+                        replyingToEmail.messageId
                       )
                       alert('Reply sent successfully!')
                       setReplyingToEmail(null)
@@ -935,6 +1138,10 @@ export default function AdminDashboard() {
                 <span>{selectedVisitor.visitorId}</span>
               </div>
               <div className="detail-row">
+                <strong>Email:</strong>
+                <span>{selectedUserSummary?.email || 'N/A'}</span>
+              </div>
+              <div className="detail-row">
                 <strong>Created:</strong>
                 <span>{new Date(selectedVisitor.createdAt).toLocaleString()}</span>
               </div>
@@ -943,11 +1150,28 @@ export default function AdminDashboard() {
                 <span>{selectedVisitor.messageCount}</span>
               </div>
               <div className="detail-row">
+                <strong>Total Spent:</strong>
+                <span>${(selectedUserSummary?.totalSpent || 0).toFixed(2)}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Credits Purchased (Lifetime):</strong>
+                <span>{selectedUserSummary?.creditsPurchased || 0}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Last Session Messages:</strong>
+                <span>{selectedUserSummary?.lastSessionMessages || 0}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Conversion Status:</strong>
+                <span className={`status-chip ${selectedUserSummary?.conversionStatus === 'Converted' ? 'status-converted' : selectedUserSummary?.conversionStatus === 'Used Free Only' ? 'status-free-only' : selectedUserSummary?.conversionStatus === 'Engaged' ? 'status-engaged' : 'status-new'}`}>
+                  {selectedUserSummary?.conversionStatus || 'New'}
+                </span>
+              </div>
+              <div className="detail-row">
                 <strong>Credits:</strong>
                 <span className={`credits-badge ${selectedVisitor.creditBalance > 0 ? 'has-credits' : 'no-credits'}`}>
                   🪙 {(() => {
                     // Calculate total remaining messages (purchased credits + free messages remaining)
-                    const freeLimit = pricingConfig?.freeMessageLimit ?? 5
                     const freeMessagesUsed = Math.min(selectedVisitor.messageCount, freeLimit)
                     const freeMessagesRemaining = Math.max(0, freeLimit - freeMessagesUsed)
                     const totalRemaining = selectedVisitor.creditBalance + freeMessagesRemaining
@@ -1007,6 +1231,66 @@ export default function AdminDashboard() {
                   Reset Message Count
                 </button>
               </div>
+            </div>
+
+            <div className="credits-management" style={{ marginTop: '2rem' }}>
+              <h2>Quick Actions</h2>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button onClick={() => handleQuickCredits(5)} className="add-credits-btn">+5 Credits</button>
+                <button onClick={() => handleQuickCredits(20)} className="add-credits-btn">+20 Credits</button>
+                <button onClick={handleResetCredits} className="add-credits-btn" style={{ background: '#ef4444' }}>Reset Credits</button>
+                <button onClick={handleMarkPremium} className="add-credits-btn" style={{ background: '#0f766e' }}>Mark Premium</button>
+              </div>
+            </div>
+
+            <div className="user-detail-card" style={{ marginTop: '2rem' }}>
+              <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>Conversion Signal</h2>
+              <div className="detail-row">
+                <strong>High Intent (&gt;= 3 messages):</strong>
+                <span>{selectedVisitor.messageCount >= 3 ? 'Yes' : 'No'}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Used All Free Credits:</strong>
+                <span>{selectedVisitor.messageCount >= freeLimit ? 'Yes' : 'No'}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Returned After First Visit:</strong>
+                <span>{selectedUserSummary && selectedUserSummary.lastSessionMessages > 0 && selectedVisitor.messageCount > selectedUserSummary.lastSessionMessages ? 'Yes' : 'No'}</span>
+              </div>
+            </div>
+
+            <div className="user-detail-card" style={{ marginTop: '2rem' }}>
+              <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>Usage Timeline</h2>
+              {usageTimeline.length === 0 ? (
+                <p style={{ color: '#666', margin: 0 }}>No timeline events available yet.</p>
+              ) : (
+                <div className="payment-history-table" style={{ overflowX: 'auto' }}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Timestamp</th>
+                        <th>Event</th>
+                        <th>Messages Used (Cumulative)</th>
+                        <th>Remaining Credits</th>
+                        <th>Delta</th>
+                        <th>Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usageTimeline.map((entry, idx) => (
+                        <tr key={`${entry.timestamp}-${entry.eventType}-${idx}`}>
+                          <td>{new Date(entry.timestamp).toLocaleString()}</td>
+                          <td>{entry.eventType}</td>
+                          <td>{entry.messagesUsedCumulative}</td>
+                          <td>{entry.remainingCredits}</td>
+                          <td>{entry.deltaCredits > 0 ? `+${entry.deltaCredits}` : entry.deltaCredits}</td>
+                          <td>{entry.details}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
             <div className="payment-history-section" style={{ background: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', marginTop: '2rem' }}>

@@ -47,15 +47,17 @@ export default function PremiumNavbar() {
 
         const freeLimit = config?.freeMessageLimit ?? 5
         if (typeof remaining === 'object' && 'creditBalance' in remaining) {
-          if ((remaining.creditBalance || 0) > 0) {
-            const purchasedTotal = remaining.purchasedCreditsTotal || 0
-            // Never show '?': fallback denominator is current purchased balance.
-            const denominator = purchasedTotal > 0 ? purchasedTotal : (remaining.creditBalance || 0)
-            setUsageText(`${remaining.creditBalance}/${denominator}`)
-            setUsageTooltip(`${remaining.creditBalance} out of ${denominator} purchased`)
+          const purchasedTotal = remaining.purchasedCreditsTotal || 0
+
+          // If user has any historical purchase, show remainingMessages against original purchased total.
+          if (purchasedTotal > 0) {
+            const numerator = remaining.remainingMessages || 0
+            setUsageText(`${numerator}/${purchasedTotal}`)
+            setUsageTooltip(`${numerator} out of ${purchasedTotal} purchased`)
           } else {
-            setUsageText(`${remaining.freeMessagesRemaining || 0}/${freeLimit}`)
-            setUsageTooltip(`${remaining.freeMessagesRemaining || 0} out of ${freeLimit} free messages remaining`)
+            const freeRemaining = remaining.freeMessagesRemaining || 0
+            setUsageText(`${freeRemaining}/${freeLimit}`)
+            setUsageTooltip(`${freeRemaining} out of ${freeLimit} free messages remaining`)
           }
         } else {
           setUsageText(`${remaining}/${freeLimit}`)

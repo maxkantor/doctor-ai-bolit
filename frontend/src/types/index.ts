@@ -89,3 +89,42 @@ export interface PaymentHistory {
   paymentMethodLast4?: string
 }
 
+export interface AdminUserSummary {
+  visitorId: string
+  createdAt: string
+  lastActive: string
+  messageCount: number
+  creditBalance: number
+  isPremium: boolean
+  email?: string
+  totalSpent: number
+  creditsPurchased: number
+  conversionStatus: string
+  lastSessionMessages: number
+}
+
+export interface AdminUsageTimelineEntry {
+  timestamp: string
+  eventType: string
+  messagesUsedCumulative: number
+  remainingCredits: number
+  deltaCredits: number
+  details: string
+}
+
+export interface AdminDashboardSummary {
+  totalUsers: number
+  activeLast24Hours: number
+  payingUsers: number
+  totalRevenue: number
+  conversionRatePercent: number
+  averageMessagesBeforePayment: number
+  usersUsedAllFreeCredits: number
+  funnelVisited: number
+  funnelStartedChat: number
+  funnelUsedFreeCredits: number
+  funnelPaid: number
+  contactMessagesCount: number
+  recentTransactions: PaymentHistory[]
+}
+

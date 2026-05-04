@@ -27,5 +27,22 @@ public class ContactRepository : IContactRepository
         var scan = _context.ScanAsync<ContactMessage>(new List<ScanCondition>());
         return await scan.GetRemainingAsync();
     }
+
+    public async Task<ContactMessage?> GetContactMessageByIdAsync(string messageId)
+    {
+        return await _context.LoadAsync<ContactMessage>(messageId);
+    }
+
+    public async Task UpdateContactMessageStatusAsync(string messageId, string status)
+    {
+        var message = await GetContactMessageByIdAsync(messageId);
+        if (message == null)
+        {
+            throw new InvalidOperationException($"Contact message with id '{messageId}' not found");
+        }
+
+        message.Status = status;
+        await _context.SaveAsync(message);
+    }
 }
 

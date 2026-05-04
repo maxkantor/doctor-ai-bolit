@@ -342,6 +342,50 @@
   border-bottom: none;
 }
 
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-converted {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-free-only {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-engaged {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-new {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.email-status-chip.status-replied {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.email-status-chip.status-resolved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.email-status-chip.status-new {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
 /* Ensure admin dashboard can scroll even with global overflow rules */
 body:has(.admin-dashboard) {
   overflow: hidden !important;

@@ -10,19 +10,25 @@ public class AdminService : IAdminService
     private readonly IVisitorSessionRepository _visitorSessionRepository;
     private readonly IPricingConfigRepository _pricingConfigRepository;
     private readonly IPaymentHistoryRepository _paymentHistoryRepository;
+    private readonly IChatRepository _chatRepository;
+    private readonly IEmailVisitorMappingRepository _emailVisitorMappingRepository;
 
     public AdminService(
         SecretsService secretsService,
         IVisitorRepository visitorRepository,
         IVisitorSessionRepository visitorSessionRepository,
         IPricingConfigRepository pricingConfigRepository,
-        IPaymentHistoryRepository paymentHistoryRepository)
+        IPaymentHistoryRepository paymentHistoryRepository,
+        IChatRepository chatRepository,
+        IEmailVisitorMappingRepository emailVisitorMappingRepository)
     {
         _secretsService = secretsService;
         _visitorRepository = visitorRepository;
         _visitorSessionRepository = visitorSessionRepository;
         _pricingConfigRepository = pricingConfigRepository;
         _paymentHistoryRepository = paymentHistoryRepository;
+        _chatRepository = chatRepository;
+        _emailVisitorMappingRepository = emailVisitorMappingRepository;
     }
 
     public async Task<bool> ValidateAdminKeyAsync(string adminKey)
@@ -47,9 +53,198 @@ public class AdminService : IAdminService
         return await _visitorRepository.GetAllVisitorsAsync();
     }
 
+    public async Task<List<AdminUserSummary>> GetEnrichedUsersAsync()
+    {
+        var visitors = await _visitorRepository.GetAllVisitorsAsync();
+        var payments = await _paymentHistoryRepository.GetAllPaymentsAsync();
+        var config = await _pricingConfigRepository.GetConfigAsync();
+        var freeLimit = config?.FreeMessageLimit ?? 5;
+
+        var summaries = new List<AdminUserSummary>(visitors.Count);
+
+        foreach (var visitor in visitors)
+        {
+            var userPayments = payments
+                .Where(p => p.VisitorId == visitor.VisitorId && string.Equals(p.Status, "completed", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(p => p.PaymentDate)
+                .ToList();
+
+            var totalSpent = userPayments.Sum(p => p.Amount);
+            var creditsPurchased = userPayments.Sum(p => p.Credits);
+            var paymentEmail = userPayments
+                .Select(p => p.CustomerEmail)
+                .FirstOrDefault(e => !string.IsNullOrWhiteSpace(e));
+
+            string? mappedEmail = paymentEmail;
+            if (string.IsNullOrWhiteSpace(mappedEmail))
+            {
+                var mappings = await _emailVisitorMappingRepository.GetEmailsByVisitorIdAsync(visitor.VisitorId);
+                mappedEmail = mappings
+                    .OrderByDescending(m => m.LastLinkedAt)
+                    .Select(m => m.Email)
+                    .FirstOrDefault(e => !string.IsNullOrWhiteSpace(e));
+            }
+
+            var sessions = await _chatRepository.GetSessionsAsync(visitor.VisitorId);
+            var latestSession = sessions.FirstOrDefault();
+            var lastSessionMessages = 0;
+            if (latestSession != null)
+            {
+                var lastMessages = await _chatRepository.GetMessagesAsync(latestSession.SessionId);
+                lastSessionMessages = lastMessages.Count(m => string.Equals(m.Role, "user", StringComparison.OrdinalIgnoreCase));
+            }
+
+            summaries.Add(new AdminUserSummary
+            {
+                VisitorId = visitor.VisitorId,
+                CreatedAt = visitor.CreatedAt,
+                LastActive = visitor.LastActive,
+                MessageCount = visitor.MessageCount,
+                CreditBalance = visitor.CreditBalance,
+                IsPremium = visitor.IsPremium,
+                Email = mappedEmail,
+                TotalSpent = totalSpent,
+                CreditsPurchased = creditsPurchased,
+                ConversionStatus = GetConversionStatus(totalSpent, visitor.MessageCount, freeLimit, visitor.IsPremium),
+                LastSessionMessages = lastSessionMessages
+            });
+        }
+
+        return summaries.OrderByDescending(s => s.LastActive).ToList();
+    }
+
+    public async Task<AdminDashboardSummary> GetDashboardSummaryAsync()
+    {
+        var users = await GetEnrichedUsersAsync();
+        var payments = (await _paymentHistoryRepository.GetAllPaymentsAsync())
+            .Where(p => string.Equals(p.Status, "completed", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(p => p.PaymentDate)
+            .ToList();
+        var config = await _pricingConfigRepository.GetConfigAsync();
+        var freeLimit = config?.FreeMessageLimit ?? 5;
+
+        var totalUsers = users.Count;
+        var activeLast24Hours = users.Count(u => DateTime.UtcNow - u.LastActive <= TimeSpan.FromHours(24));
+        var payingUsers = users.Count(u => u.TotalSpent > 0 || u.IsPremium);
+        var totalRevenue = payments.Sum(p => p.Amount);
+        var conversionRatePercent = totalUsers > 0 ? Math.Round((decimal)payingUsers / totalUsers * 100m, 1) : 0m;
+
+        var convertedUsers = users.Where(u => u.TotalSpent > 0 || u.IsPremium).ToList();
+        var averageMessagesBeforePayment = convertedUsers.Count > 0
+            ? Math.Round((decimal)convertedUsers.Average(u => u.MessageCount), 1)
+            : 0m;
+
+        var usersUsedAllFreeCredits = users.Count(u => u.MessageCount >= freeLimit);
+
+        return new AdminDashboardSummary
+        {
+            TotalUsers = totalUsers,
+            ActiveLast24Hours = activeLast24Hours,
+            PayingUsers = payingUsers,
+            TotalRevenue = totalRevenue,
+            ConversionRatePercent = conversionRatePercent,
+            AverageMessagesBeforePayment = averageMessagesBeforePayment,
+            UsersUsedAllFreeCredits = usersUsedAllFreeCredits,
+            FunnelVisited = totalUsers,
+            FunnelStartedChat = users.Count(u => u.MessageCount > 0),
+            FunnelUsedFreeCredits = usersUsedAllFreeCredits,
+            FunnelPaid = payingUsers,
+            RecentTransactions = payments.Take(10).ToList()
+        };
+    }
+
     public async Task<Visitor?> GetVisitorByIdAsync(string visitorId)
     {
         return await _visitorRepository.GetVisitorAsync(visitorId);
+    }
+
+    public async Task<List<AdminUsageTimelineEntry>> GetUsageTimelineAsync(string visitorId)
+    {
+        var visitor = await _visitorRepository.GetVisitorAsync(visitorId);
+        if (visitor == null)
+        {
+            return new List<AdminUsageTimelineEntry>();
+        }
+
+        var config = await _pricingConfigRepository.GetConfigAsync();
+        var freeLimit = config?.FreeMessageLimit ?? 5;
+
+        var payments = (await _paymentHistoryRepository.GetPaymentsByVisitorIdAsync(visitorId))
+            .Where(p => p.Credits > 0 && string.Equals(p.Status, "completed", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(p => p.PaymentDate)
+            .ToList();
+
+        var sessions = await _chatRepository.GetSessionsAsync(visitorId);
+        var userMessages = new List<ChatMessage>();
+        foreach (var session in sessions)
+        {
+            var messages = await _chatRepository.GetMessagesAsync(session.SessionId);
+            userMessages.AddRange(messages.Where(m => string.Equals(m.Role, "user", StringComparison.OrdinalIgnoreCase)));
+        }
+        userMessages = userMessages.OrderBy(m => m.Timestamp).ToList();
+
+        var timeline = new List<AdminUsageTimelineEntry>();
+        var paidRemaining = 0;
+        var freeUsed = 0;
+        var messagesUsed = 0;
+        var paymentIndex = 0;
+
+        foreach (var message in userMessages)
+        {
+            while (paymentIndex < payments.Count && payments[paymentIndex].PaymentDate <= message.Timestamp)
+            {
+                var payment = payments[paymentIndex];
+                paidRemaining += payment.Credits;
+                timeline.Add(new AdminUsageTimelineEntry
+                {
+                    Timestamp = payment.PaymentDate,
+                    EventType = "payment",
+                    MessagesUsedCumulative = messagesUsed,
+                    RemainingCredits = Math.Max(0, freeLimit - freeUsed) + paidRemaining,
+                    DeltaCredits = payment.Credits,
+                    Details = $"Purchased {payment.Credits} credits ({payment.PlanName})"
+                });
+                paymentIndex++;
+            }
+
+            messagesUsed++;
+            if (paidRemaining > 0)
+            {
+                paidRemaining--;
+            }
+            else if (freeUsed < freeLimit)
+            {
+                freeUsed++;
+            }
+
+            timeline.Add(new AdminUsageTimelineEntry
+            {
+                Timestamp = message.Timestamp,
+                EventType = "message",
+                MessagesUsedCumulative = messagesUsed,
+                RemainingCredits = Math.Max(0, freeLimit - freeUsed) + paidRemaining,
+                DeltaCredits = -1,
+                Details = "User sent a message"
+            });
+        }
+
+        while (paymentIndex < payments.Count)
+        {
+            var payment = payments[paymentIndex];
+            paidRemaining += payment.Credits;
+            timeline.Add(new AdminUsageTimelineEntry
+            {
+                Timestamp = payment.PaymentDate,
+                EventType = "payment",
+                MessagesUsedCumulative = messagesUsed,
+                RemainingCredits = Math.Max(0, freeLimit - freeUsed) + paidRemaining,
+                DeltaCredits = payment.Credits,
+                Details = $"Purchased {payment.Credits} credits ({payment.PlanName})"
+            });
+            paymentIndex++;
+        }
+
+        return timeline.OrderByDescending(t => t.Timestamp).Take(80).ToList();
     }
 
     public async Task AddCreditsAsync(string visitorId, int credits)
@@ -60,6 +255,18 @@ public class AdminService : IAdminService
             visitor.CreditBalance += credits;
             await _visitorRepository.UpdateVisitorAsync(visitor);
         }
+    }
+
+    public async Task ResetCreditsAsync(string visitorId)
+    {
+        var visitor = await _visitorRepository.GetVisitorAsync(visitorId);
+        if (visitor == null)
+        {
+            return;
+        }
+
+        visitor.CreditBalance = 0;
+        await _visitorRepository.UpdateVisitorAsync(visitor);
     }
 
     public async Task ResetVisitorAsync(string visitorId)
@@ -120,6 +327,18 @@ public class AdminService : IAdminService
         await _visitorRepository.UpdateVisitorAsync(visitor);
     }
 
+    public async Task MarkPremiumAsync(string visitorId, bool isPremium = true)
+    {
+        var visitor = await _visitorRepository.GetVisitorAsync(visitorId);
+        if (visitor == null)
+        {
+            return;
+        }
+
+        visitor.IsPremium = isPremium;
+        await _visitorRepository.UpdateVisitorAsync(visitor);
+    }
+
     public async Task<List<PaymentHistory>> GetPaymentHistoryAsync(string? visitorId = null)
     {
         if (!string.IsNullOrWhiteSpace(visitorId))
@@ -130,6 +349,26 @@ public class AdminService : IAdminService
         // Return all payments if no visitorId specified
         Console.WriteLine("[AdminService] GetPaymentHistoryAsync called without visitorId - returning all payments");
         return await _paymentHistoryRepository.GetAllPaymentsAsync();
+    }
+
+    private static string GetConversionStatus(decimal totalSpent, int messageCount, int freeLimit, bool isPremium)
+    {
+        if (totalSpent > 0 || isPremium)
+        {
+            return "Converted";
+        }
+
+        if (messageCount >= freeLimit)
+        {
+            return "Used Free Only";
+        }
+
+        if (messageCount > 0)
+        {
+            return "Engaged";
+        }
+
+        return "New";
     }
 }
 

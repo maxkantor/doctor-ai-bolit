@@ -61,6 +61,42 @@ public class AdminController : ControllerBase
         }
     }
 
+    [HttpGet("users/enriched")]
+    public async Task<ActionResult<List<AdminUserSummary>>> GetEnrichedUsers()
+    {
+        if (!IsAuthorized()) return Unauthorized();
+
+        try
+        {
+            var users = await _adminService.GetEnrichedUsersAsync();
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdminController.GetEnrichedUsers] Error: {ex.Message}");
+            return StatusCode(500, new { error = "Failed to retrieve enriched users", message = ex.Message });
+        }
+    }
+
+    [HttpGet("dashboard/summary")]
+    public async Task<ActionResult<AdminDashboardSummary>> GetDashboardSummary()
+    {
+        if (!IsAuthorized()) return Unauthorized();
+
+        try
+        {
+            var summary = await _adminService.GetDashboardSummaryAsync();
+            var emails = await _contactRepository.GetAllContactMessagesAsync();
+            summary.ContactMessagesCount = emails.Count;
+            return Ok(summary);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdminController.GetDashboardSummary] Error: {ex.Message}");
+            return StatusCode(500, new { error = "Failed to retrieve dashboard summary", message = ex.Message });
+        }
+    }
+
     [HttpGet("user/{visitorId}")]
     public async Task<ActionResult<Visitor>> GetUser(string visitorId)
     {
@@ -72,12 +108,39 @@ public class AdminController : ControllerBase
         return Ok(user);
     }
 
+    [HttpGet("user/{visitorId}/usage-timeline")]
+    public async Task<ActionResult<List<AdminUsageTimelineEntry>>> GetUsageTimeline(string visitorId)
+    {
+        if (!IsAuthorized()) return Unauthorized();
+
+        var timeline = await _adminService.GetUsageTimelineAsync(visitorId);
+        return Ok(timeline);
+    }
+
     [HttpPost("credits")]
     public async Task<ActionResult> AddCredits([FromBody] AddCreditsRequest request)
     {
         if (!IsAuthorized()) return Unauthorized();
 
         await _adminService.AddCreditsAsync(request.VisitorId, request.Credits);
+        return Ok(new { success = true });
+    }
+
+    [HttpPost("reset-credits")]
+    public async Task<ActionResult> ResetCredits([FromBody] ResetVisitorRequest request)
+    {
+        if (!IsAuthorized()) return Unauthorized();
+
+        await _adminService.ResetCreditsAsync(request.VisitorId);
+        return Ok(new { success = true });
+    }
+
+    [HttpPost("mark-premium")]
+    public async Task<ActionResult> MarkPremium([FromBody] MarkPremiumRequest request)
+    {
+        if (!IsAuthorized()) return Unauthorized();
+
+        await _adminService.MarkPremiumAsync(request.VisitorId, request.IsPremium);
         return Ok(new { success = true });
     }
 
@@ -133,6 +196,10 @@ public class AdminController : ControllerBase
             }
 
             await _emailService.SendEmailReplyAsync(request.To, request.Subject, request.Body);
+            if (!string.IsNullOrWhiteSpace(request.MessageId))
+            {
+                await _contactRepository.UpdateContactMessageStatusAsync(request.MessageId, "replied");
+            }
             Console.WriteLine($"[AdminController] Email reply sent successfully");
             return Ok(new { success = true, message = "Email sent successfully" });
         }
@@ -142,6 +209,20 @@ public class AdminController : ControllerBase
             Console.WriteLine($"[AdminController] Stack trace: {ex.StackTrace}");
             return StatusCode(500, new { success = false, message = ex.Message });
         }
+    }
+
+    [HttpPost("email/status")]
+    public async Task<ActionResult> UpdateEmailStatus([FromBody] UpdateEmailStatusRequest request)
+    {
+        if (!IsAuthorized()) return Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(request.MessageId) || string.IsNullOrWhiteSpace(request.Status))
+        {
+            return BadRequest(new { success = false, message = "MessageId and Status are required" });
+        }
+
+        await _contactRepository.UpdateContactMessageStatusAsync(request.MessageId, request.Status.Trim().ToLowerInvariant());
+        return Ok(new { success = true });
     }
 
     [HttpGet("payments")]
@@ -276,10 +357,23 @@ public class ResetMessageCountRequest
     public int? ResetTo { get; set; }
 }
 
+public class MarkPremiumRequest
+{
+    public string VisitorId { get; set; } = string.Empty;
+    public bool IsPremium { get; set; } = true;
+}
+
 public class EmailReplyRequest
 {
+    public string? MessageId { get; set; }
     public string To { get; set; } = string.Empty;
     public string Subject { get; set; } = string.Empty;
     public string Body { get; set; } = string.Empty;
+}
+
+public class UpdateEmailStatusRequest
+{
+    public string MessageId { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
 }
 
