@@ -47,8 +47,13 @@ export default function PremiumNavbar() {
         const freeLimit = config?.freeMessageLimit ?? 5
         if (typeof remaining === 'object' && 'creditBalance' in remaining) {
           if ((remaining.creditBalance || 0) > 0) {
-            // Purchased-credit total history is not tracked client-side; show unknown denominator.
-            setUsageText(`${remaining.remainingMessages}/?`)
+            const purchasedTotal = remaining.purchasedCreditsTotal || 0
+            // Show purchased balance against total purchased when available.
+            if (purchasedTotal > 0) {
+              setUsageText(`${remaining.creditBalance}/${purchasedTotal}`)
+            } else {
+              setUsageText(`${remaining.remainingMessages}/?`)
+            }
           } else {
             setUsageText(`${remaining.freeMessagesRemaining || 0}/${freeLimit}`)
           }

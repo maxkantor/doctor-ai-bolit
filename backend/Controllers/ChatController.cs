@@ -1,4 +1,5 @@
 using DoctorAIBolit.Models;
+using DoctorAIBolit.Repositories;
 using DoctorAIBolit.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -11,11 +12,13 @@ public class ChatController : ControllerBase
 {
     private readonly IChatService _chatService;
     private readonly IVisitorService _visitorService;
+    private readonly IPaymentHistoryRepository _paymentHistoryRepository;
 
-    public ChatController(IChatService chatService, IVisitorService visitorService)
+    public ChatController(IChatService chatService, IVisitorService visitorService, IPaymentHistoryRepository paymentHistoryRepository)
     {
         _chatService = chatService;
         _visitorService = visitorService;
+        _paymentHistoryRepository = paymentHistoryRepository;
     }
 
     [HttpPost]
@@ -140,6 +143,10 @@ public class ChatController : ControllerBase
         }
 
         var remaining = await _visitorService.GetRemainingCreditsAsync(visitorId);
+        var payments = await _paymentHistoryRepository.GetPaymentsByVisitorIdAsync(visitorId);
+        var purchasedCreditsTotal = payments
+            .Where(p => p.Credits > 0 && (string.IsNullOrWhiteSpace(p.Status) || p.Status.Equals("completed", StringComparison.OrdinalIgnoreCase)))
+            .Sum(p => p.Credits);
         
         // Also return breakdown for better UI display
         var visitor = await _visitorService.GetOrCreateVisitorAsync(visitorId);
@@ -154,7 +161,8 @@ public class ChatController : ControllerBase
                 remainingMessages = remaining,
                 creditBalance = creditBalance,
                 freeMessagesRemaining = freeMessagesRemaining,
-                messageCount = visitor.MessageCount
+                messageCount = visitor.MessageCount,
+                purchasedCreditsTotal = purchasedCreditsTotal
             });
         }
         
@@ -164,7 +172,8 @@ public class ChatController : ControllerBase
             remainingMessages = remaining,
             creditBalance = 0,
             freeMessagesRemaining = defaultFreeLimit,
-            messageCount = 0
+            messageCount = 0,
+            purchasedCreditsTotal = purchasedCreditsTotal
         });
     }
 }
