@@ -1018,6 +1018,14 @@
   background-color: transparent !important;
 }
 
+html,
+body,
+main,
+.landing-page,
+.hero {
+  overflow-x: hidden;
+}
+
 .landing-page::before {
   content: none;
 }
@@ -1026,7 +1034,7 @@
 .hero-section,
 .landing-hero {
   text-align: left;
-  padding: 120px 24px 80px;
+  padding: 120px 0 80px;
   min-height: 720px;
   isolation: isolate;
   background:
@@ -1050,10 +1058,16 @@
 
 .hero-grid {
   display: grid;
-  grid-template-columns: 52% 48%;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 560px);
   gap: 48px;
   align-items: center;
   width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+  box-sizing: border-box;
+  overflow: visible;
 }
 
 .hero-content {
@@ -1179,6 +1193,11 @@
 }
 
 .hero-preview {
+  width: 100%;
+  max-width: 560px;
+  min-width: 0;
+  justify-self: end;
+  box-sizing: border-box;
   background: rgba(255, 255, 255, 0.97);
   border: 1px solid rgba(37, 99, 235, 0.18);
   border-radius: 20px;
@@ -1360,8 +1379,9 @@
   }
 
   .hero-preview {
-    max-width: 720px;
+    max-width: 100%;
     width: 100%;
+    justify-self: stretch;
   }
 
   .steps {
@@ -1376,13 +1396,15 @@
   }
 
   .hero {
-    padding: 96px 16px 56px;
+    padding: 96px 0 56px;
     min-height: auto;
   }
 
   .hero-grid {
     grid-template-columns: 1fr;
     gap: 24px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .hero-kicker {
