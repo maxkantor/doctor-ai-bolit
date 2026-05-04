@@ -12,6 +12,7 @@ export default function PremiumNavbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [usageText, setUsageText] = useState('5/5')
+  const [usageTooltip, setUsageTooltip] = useState('Available messages')
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -51,17 +52,24 @@ export default function PremiumNavbar() {
             // Show purchased balance against total purchased when available.
             if (purchasedTotal > 0) {
               setUsageText(`${remaining.creditBalance}/${purchasedTotal}`)
+              setUsageTooltip(`${remaining.creditBalance} out of ${purchasedTotal} purchased`)
             } else {
               setUsageText(`${remaining.remainingMessages}/?`)
+              setUsageTooltip(`${remaining.remainingMessages} messages remaining`)
             }
           } else {
             setUsageText(`${remaining.freeMessagesRemaining || 0}/${freeLimit}`)
+            setUsageTooltip(`${remaining.freeMessagesRemaining || 0} out of ${freeLimit} free messages remaining`)
           }
         } else {
           setUsageText(`${remaining}/${freeLimit}`)
+          setUsageTooltip(`${remaining} out of ${freeLimit} free messages remaining`)
         }
       } catch {
-        if (isActive) setUsageText('5/5')
+        if (isActive) {
+          setUsageText('5/5')
+          setUsageTooltip('5 out of 5 free messages remaining')
+        }
       }
     }
 
@@ -89,7 +97,7 @@ export default function PremiumNavbar() {
         </nav>
 
         <div className="premium-navbar-actions">
-          <span className="premium-navbar-usage" aria-label="Available messages">
+          <span className="premium-navbar-usage" aria-label={usageTooltip} title={usageTooltip}>
             {usageText}
           </span>
           <LanguageSwitcher compact />
