@@ -17,9 +17,9 @@ export const chatService = {
     return response.data
   },
 
-  async getRemainingMessages(visitorId: string): Promise<number | { remainingMessages: number; creditBalance: number; freeMessagesRemaining: number; messageCount: number; purchasedCreditsTotal?: number; totalCreditsAdded?: number }> {
+  async getRemainingMessages(visitorId: string): Promise<number | { remainingMessages: number; creditBalance: number; freeMessagesRemaining: number; messageCount: number; purchasedCreditsTotal?: number; totalCreditsAdded?: number; inferredPurchasedCreditsTotal?: number }> {
     console.log('🔍 Fetching remaining messages for visitorId:', visitorId)
-    const response = await api.get<{ remainingMessages: number; creditBalance?: number; freeMessagesRemaining?: number; messageCount?: number; purchasedCreditsTotal?: number; totalCreditsAdded?: number }>(`/chat/remaining-messages?visitorId=${visitorId}`)
+    const response = await api.get<{ remainingMessages: number; creditBalance?: number; freeMessagesRemaining?: number; messageCount?: number; purchasedCreditsTotal?: number; totalCreditsAdded?: number; inferredPurchasedCreditsTotal?: number }>(`/chat/remaining-messages?visitorId=${visitorId}`)
     console.log('📊 Remaining messages response:', response.data)
     // Return full object if available, otherwise just the number for backward compatibility
     if (response.data.creditBalance !== undefined) {
@@ -29,7 +29,8 @@ export const chatService = {
         freeMessagesRemaining: response.data.freeMessagesRemaining || 0,
         messageCount: response.data.messageCount || 0,
         purchasedCreditsTotal: response.data.purchasedCreditsTotal || 0,
-        totalCreditsAdded: response.data.totalCreditsAdded || 0
+        totalCreditsAdded: response.data.totalCreditsAdded || 0,
+        inferredPurchasedCreditsTotal: response.data.inferredPurchasedCreditsTotal || 0
       }
     }
     return response.data.remainingMessages

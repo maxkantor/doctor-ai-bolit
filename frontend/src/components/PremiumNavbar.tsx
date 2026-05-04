@@ -49,12 +49,15 @@ export default function PremiumNavbar() {
         if (typeof remaining === 'object' && 'creditBalance' in remaining) {
           const purchasedTotal = (remaining as any).purchasedCreditsTotal || 0
           const totalCreditsAdded = (remaining as any).totalCreditsAdded || 0
-          const denominator = purchasedTotal > 0 ? purchasedTotal : totalCreditsAdded
+          const inferredPurchasedTotal = (remaining as any).inferredPurchasedCreditsTotal || 0
+          const denominator = purchasedTotal || totalCreditsAdded || inferredPurchasedTotal
+          const hasPaidCredits = (remaining.creditBalance || 0) > 0 || denominator > 0
 
-          if (denominator > 0) {
+          if (hasPaidCredits) {
             const numerator = remaining.remainingMessages || 0
-            setUsageText(`${numerator}/${denominator}`)
-            setUsageTooltip(`${numerator} of ${denominator} purchased messages remaining`)
+            const safeDenominator = denominator > 0 ? denominator : Math.max(numerator, remaining.creditBalance || 0)
+            setUsageText(`${numerator}/${safeDenominator}`)
+            setUsageTooltip(`${numerator} of ${safeDenominator} purchased messages remaining`)
           } else {
             const freeRemaining = remaining.freeMessagesRemaining || 0
             setUsageText(`${freeRemaining}/${freeLimit}`)

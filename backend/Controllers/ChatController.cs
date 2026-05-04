@@ -156,6 +156,8 @@ public class ChatController : ControllerBase
             var freeMessagesUsed = Math.Min(visitor.MessageCount, freeLimit);
             var freeMessagesRemaining = Math.Max(0, freeLimit - freeMessagesUsed);
             var creditBalance = visitor.CreditBalance;
+            var paidMessagesUsed = Math.Max(0, visitor.MessageCount - freeLimit);
+            var inferredPurchasedCreditsTotal = Math.Max(0, creditBalance + paidMessagesUsed);
             
             return Ok(new { 
                 remainingMessages = remaining,
@@ -163,7 +165,8 @@ public class ChatController : ControllerBase
                 freeMessagesRemaining = freeMessagesRemaining,
                 messageCount = visitor.MessageCount,
                 purchasedCreditsTotal = purchasedCreditsTotal,
-                totalCreditsAdded = visitor.TotalCreditsAdded
+                totalCreditsAdded = visitor.TotalCreditsAdded,
+                inferredPurchasedCreditsTotal = inferredPurchasedCreditsTotal
             });
         }
         
@@ -175,7 +178,8 @@ public class ChatController : ControllerBase
             freeMessagesRemaining = defaultFreeLimit,
             messageCount = 0,
             purchasedCreditsTotal = purchasedCreditsTotal,
-            totalCreditsAdded = 0
+            totalCreditsAdded = 0,
+            inferredPurchasedCreditsTotal = 0
         });
     }
 }
