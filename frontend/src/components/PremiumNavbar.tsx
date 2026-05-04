@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from './LanguageSwitcher'
+import { getOrCreateVisitorId } from '../utils/visitorId'
+import { chatService } from '../services/chatService'
+import { pricingService } from '../services/pricingService'
 import './PremiumNavbar.css'
 
 export default function PremiumNavbar() {
   const { t } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [usageText, setUsageText] = useState('5/5')
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -27,6 +31,45 @@ export default function PremiumNavbar() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  useEffect(() => {
+    let isActive = true
+
+    const loadUsage = async () => {
+      try {
+        const visitorId = getOrCreateVisitorId()
+        const [remaining, config] = await Promise.all([
+          chatService.getRemainingMessages(visitorId),
+          pricingService.getConfig(),
+        ])
+
+        if (!isActive) return
+
+        const freeLimit = config?.freeMessageLimit ?? 5
+        if (typeof remaining === 'object' && 'creditBalance' in remaining) {
+          if ((remaining.creditBalance || 0) > 0) {
+            // Purchased-credit total history is not tracked client-side; show unknown denominator.
+            setUsageText(`${remaining.remainingMessages}/?`)
+          } else {
+            setUsageText(`${remaining.freeMessagesRemaining || 0}/${freeLimit}`)
+          }
+        } else {
+          setUsageText(`${remaining}/${freeLimit}`)
+        }
+      } catch {
+        if (isActive) setUsageText('5/5')
+      }
+    }
+
+    loadUsage()
+    const onFocus = () => loadUsage()
+    window.addEventListener('focus', onFocus)
+
+    return () => {
+      isActive = false
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [])
+
   return (
     <header className={`premium-navbar ${scrolled ? 'is-scrolled' : ''}`}>
       <div className="premium-navbar-inner">
@@ -41,6 +84,9 @@ export default function PremiumNavbar() {
         </nav>
 
         <div className="premium-navbar-actions">
+          <span className="premium-navbar-usage" aria-label="Available messages">
+            {usageText}
+          </span>
           <LanguageSwitcher compact />
           <Link to="/chat" className="premium-navbar-cta">
             {t('landing.navCta')}
