@@ -51,13 +51,14 @@ export default function PremiumNavbar() {
           const totalCreditsAdded = (remaining as any).totalCreditsAdded || 0
           const inferredPurchasedTotal = (remaining as any).inferredPurchasedCreditsTotal || 0
           const denominator = purchasedTotal || totalCreditsAdded || inferredPurchasedTotal
-          const hasPaidCredits = (remaining.creditBalance || 0) > 0 || denominator > 0
+          const purchasedRemaining = remaining.creditBalance || 0
+          const hasPaidCredits = purchasedRemaining > 0 || denominator > 0
 
           if (hasPaidCredits) {
-            const numerator = remaining.remainingMessages || 0
-            const safeDenominator = denominator > 0 ? denominator : Math.max(numerator, remaining.creditBalance || 0)
-            setUsageText(`${numerator}/${safeDenominator}`)
-            setUsageTooltip(`${numerator} of ${safeDenominator} purchased messages remaining`)
+            const safeDenominator = Math.max(denominator, purchasedRemaining)
+            const safeNumerator = Math.min(purchasedRemaining, safeDenominator)
+            setUsageText(`${safeNumerator}/${safeDenominator}`)
+            setUsageTooltip(`${safeNumerator} of ${safeDenominator} purchased messages remaining`)
           } else {
             const freeRemaining = remaining.freeMessagesRemaining || 0
             setUsageText(`${freeRemaining}/${freeLimit}`)
