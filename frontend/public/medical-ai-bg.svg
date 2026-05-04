@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Base gradients -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1920" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="0.55" stop-color="#123062"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+
+    <!-- Subtle cyan wash on the right (kept low to avoid hotspots) -->
+    <radialGradient id="rightWash" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1580 520) rotate(12) scale(820 560)">
+      <stop offset="0" stop-color="#67e8f9" stop-opacity="0.10"/>
+      <stop offset="0.45" stop-color="#67e8f9" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#67e8f9" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Edge vignette -->
+    <radialGradient id="vignette" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(960 540) scale(1280 820)">
+      <stop offset="0.65" stop-color="#0f172a" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0f172a" stop-opacity="0.38"/>
+    </radialGradient>
+
+    <!-- Grid pattern (very subtle) -->
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" stroke="#E2E8F0" stroke-opacity="0.07" stroke-width="1"/>
+    </pattern>
+
+    <!-- Mask: fade details out on the left to keep copy legible -->
+    <linearGradient id="rightFade" x1="0" y1="0" x2="1920" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="white" stop-opacity="0"/>
+      <stop offset="0.52" stop-color="white" stop-opacity="0"/>
+      <stop offset="0.72" stop-color="white" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="white" stop-opacity="1"/>
+    </linearGradient>
+    <mask id="maskRight" maskUnits="userSpaceOnUse" x="0" y="0" width="1920" height="1080">
+      <rect x="0" y="0" width="1920" height="1080" fill="url(#rightFade)"/>
+    </mask>
+
+    <!-- Soft line bloom (very subtle; not a hotspot) -->
+    <filter id="softStroke" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="1.6" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="
+        1 0 0 0 0
+        0 1 0 0 0
+        0 0 1 0 0
+        0 0 0 0.22 0" result="soft"/>
+      <feMerge>
+        <feMergeNode in="soft"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Tech ring stroke style -->
+    <linearGradient id="ring" x1="1200" y1="200" x2="1820" y2="820" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E2E8F0" stop-opacity="0.10"/>
+      <stop offset="0.6" stop-color="#67e8f9" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#E2E8F0" stop-opacity="0.06"/>
+    </linearGradient>
+
+    <!-- Light highlight gradient for small accents -->
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#67e8f9" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#E2E8F0" stop-opacity="0.30"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background base -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#rightWash)"/>
+
+  <!-- Very subtle grid; faded out on the left -->
+  <g mask="url(#maskRight)">
+    <rect width="1920" height="1080" fill="url(#grid)" opacity="0.65"/>
+  </g>
+
+  <!-- Right-side tech interface elements (low opacity, no labels) -->
+  <g mask="url(#maskRight)" opacity="0.9">
+    <!-- Large rings -->
+    <g opacity="0.95">
+      <circle cx="1540" cy="520" r="270" stroke="url(#ring)" stroke-width="2"/>
+      <circle cx="1540" cy="520" r="210" stroke="#E2E8F0" stroke-opacity="0.08" stroke-width="2" stroke-dasharray="10 12"/>
+      <circle cx="1540" cy="520" r="154" stroke="#67e8f9" stroke-opacity="0.08" stroke-width="2" stroke-dasharray="2 10"/>
+      <circle cx="1540" cy="520" r="110" stroke="#E2E8F0" stroke-opacity="0.06" stroke-width="1"/>
+    </g>
+
+    <!-- Small ticks / arcs -->
+    <path d="M1540 248 A272 272 0 0 1 1790 400" stroke="#E2E8F0" stroke-opacity="0.08" stroke-width="3" stroke-linecap="round"/>
+    <path d="M1320 690 A246 246 0 0 0 1500 795" stroke="#67e8f9" stroke-opacity="0.08" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Subtle nodes -->
+    <circle cx="1768" cy="420" r="4" fill="#67e8f9" fill-opacity="0.18"/>
+    <circle cx="1388" cy="300" r="3" fill="#E2E8F0" fill-opacity="0.14"/>
+    <circle cx="1678" cy="760" r="3" fill="#E2E8F0" fill-opacity="0.12"/>
+
+    <!-- Very subtle medical cross silhouette (background) -->
+    <g opacity="0.08">
+      <path d="M1650 382 h58 a18 18 0 0 1 18 18 v60 h60 a18 18 0 0 1 18 18 v58 a18 18 0 0 1-18 18 h-60 v60 a18 18 0 0 1-18 18 h-58 a18 18 0 0 1-18-18 v-60 h-60 a18 18 0 0 1-18-18 v-58 a18 18 0 0 1 18-18 h60 v-60 a18 18 0 0 1 18-18z" fill="#E2E8F0"/>
+    </g>
+  </g>
+
+  <!-- ECG line (subtle, balanced brightness; more activity on the right) -->
+  <g opacity="0.9">
+    <!-- Base line (very subtle) -->
+    <path d="M0 684 H960" stroke="#E2E8F0" stroke-opacity="0.10" stroke-width="3"/>
+
+    <!-- Activity mostly on right; keep left/center calm -->
+    <g filter="url(#softStroke)" mask="url(#maskRight)">
+      <path
+        d="M860 684 H1125 L1165 684 L1190 640 L1215 748 L1240 672 L1260 706 L1286 684 L1310 592 L1334 836 L1360 656 L1392 710 L1422 684 L1452 732 L1486 650 L1520 684 L1562 684 L1602 612 L1636 684 L1678 726 L1710 684 L1750 640 L1792 684 H1920"
+        stroke="url(#accent)"
+        stroke-opacity="0.55"
+        stroke-width="5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <!-- Thin crisp pass on top for definition (still subtle) -->
+      <path
+        d="M860 684 H1125 L1165 684 L1190 640 L1215 748 L1240 672 L1260 706 L1286 684 L1310 592 L1334 836 L1360 656 L1392 710 L1422 684 L1452 732 L1486 650 L1520 684 L1562 684 L1602 612 L1636 684 L1678 726 L1710 684 L1750 640 L1792 684 H1920"
+        stroke="#E2E8F0"
+        stroke-opacity="0.16"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </g>
+  </g>
+
+  <!-- Edge vignette to keep cinematic focus and avoid harsh hotspots -->
+  <rect width="1920" height="1080" fill="url(#vignette)"/>
+
+  <!-- Slight top-to-bottom balancing overlay (keeps center from glowing) -->
+  <rect width="1920" height="1080" fill="#0f172a" opacity="0.08"/>
+</svg>

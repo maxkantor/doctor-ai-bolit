@@ -156,6 +156,15 @@ export default function LandingPage() {
             >
               {t('landing.newSubtitle')}
             </motion.p>
+
+            <motion.p
+              className="hero-urgency"
+              initial="hidden"
+              animate={heroInView ? 'visible' : 'hidden'}
+              variants={fadeInUp}
+            >
+              {t('landing.heroUrgency')}
+            </motion.p>
             <motion.div
               className="hero-cta-row"
               initial="hidden"
@@ -187,6 +196,15 @@ export default function LandingPage() {
                 <span>{t('landing.trustPoint3')}</span>
               </motion.div>
             </motion.div>
+
+            <motion.p
+              className="trust-proof"
+              initial="hidden"
+              animate={heroInView ? 'visible' : 'hidden'}
+              variants={fadeInUp}
+            >
+              {t('landing.socialProofLine')}
+            </motion.p>
 
             <motion.p
               className="trust-disclaimer"

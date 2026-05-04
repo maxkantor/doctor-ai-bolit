@@ -4,9 +4,9 @@
   z-index: 1800;
   height: 64px;
   transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, backdrop-filter 180ms ease;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.3);
   border-bottom: 1px solid transparent;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(10px);
 }
 
 .premium-navbar.is-scrolled {
@@ -145,9 +145,15 @@
 }
 
 @media (max-width: 900px) {
-  .premium-navbar-links,
-  .premium-navbar-cta {
+  .premium-navbar-links {
     display: none;
+  }
+
+  .premium-navbar-cta {
+    height: 36px;
+    border-radius: 12px;
+    padding: 0 0.85rem;
+    font-size: 0.82rem;
   }
 
   .premium-navbar-menu-button {
