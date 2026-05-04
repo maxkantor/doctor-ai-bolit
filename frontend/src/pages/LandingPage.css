@@ -1065,7 +1065,7 @@ main,
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(440px, 560px);
   gap: 48px;
-  align-items: center;
+  align-items: start;
   width: 100%;
   max-width: 100%;
   margin: 0;
@@ -1120,6 +1120,9 @@ main,
 
 .hero-copy,
 .hero-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   min-width: 0;
   max-width: 660px;
 }
@@ -1130,6 +1133,7 @@ main,
   width: 100%;
   display: flex;
   justify-content: flex-end;
+  align-items: flex-start;
   padding-right: 16px;
   box-sizing: border-box;
   overflow: visible;
@@ -1227,8 +1231,7 @@ main,
   max-width: 560px;
   min-width: 0;
   justify-self: end;
-  align-self: center;
-  margin-top: -24px;
+  align-self: start;
   transform: none;
   flex-shrink: 1;
   box-sizing: border-box;
@@ -1246,6 +1249,7 @@ main,
   width: 100%;
   max-width: 560px;
   min-width: 0;
+  margin-top: 0;
   flex-shrink: 1;
   overflow: hidden;
   border-radius: 18px;
@@ -1448,6 +1452,7 @@ main,
   .hero-grid {
     grid-template-columns: 1fr;
     gap: 32px;
+    align-items: start;
     padding-left: 0;
     padding-right: 0;
   }
