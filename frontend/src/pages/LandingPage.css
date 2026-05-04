@@ -1015,29 +1015,31 @@
   padding-right: 24px;
   overflow-x: hidden;
   background: transparent;
+  background-color: transparent !important;
 }
 
 .landing-page::before {
   content: none;
 }
 
-.hero {
+.hero,
+.hero-section,
+.landing-hero {
   text-align: left;
   padding: 120px 24px 80px;
   min-height: 720px;
   isolation: isolate;
-  background-image:
-    linear-gradient(90deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.58) 45%, rgba(255,255,255,0.28) 100%),
-    url("/images/medical-bg.png");
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-color: transparent;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.70), rgba(255,255,255,0.45)),
+    url('/images/medical-bg.png') center right / cover no-repeat !important;
+  background-color: transparent !important;
   border-radius: 0;
   overflow: hidden;
 }
 
-.hero::before {
+.hero::before,
+.hero-section::before,
+.landing-hero::before {
   content: none;
 }
 
@@ -1376,12 +1378,6 @@
   .hero {
     padding: 96px 16px 56px;
     min-height: auto;
-    background-image:
-      linear-gradient(90deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.58) 45%, rgba(255,255,255,0.28) 100%),
-      url("/images/medical-bg.png");
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
   }
 
   .hero-grid {
