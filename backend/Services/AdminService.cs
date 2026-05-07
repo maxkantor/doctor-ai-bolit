@@ -86,6 +86,13 @@ public class AdminService : IAdminService
             }
 
             var sessions = await _chatRepository.GetSessionsAsync(visitor.VisitorId);
+            var allUserMessages = new List<ChatMessage>();
+            foreach (var session in sessions)
+            {
+                var messages = await _chatRepository.GetMessagesAsync(session.SessionId);
+                allUserMessages.AddRange(messages.Where(m => string.Equals(m.Role, "user", StringComparison.OrdinalIgnoreCase)));
+            }
+
             var latestSession = sessions.FirstOrDefault();
             var lastSessionMessages = 0;
             if (latestSession != null)
@@ -93,6 +100,8 @@ public class AdminService : IAdminService
                 var lastMessages = await _chatRepository.GetMessagesAsync(latestSession.SessionId);
                 lastSessionMessages = lastMessages.Count(m => string.Equals(m.Role, "user", StringComparison.OrdinalIgnoreCase));
             }
+
+            var photoCheckCount = allUserMessages.Count(m => string.Equals(m.MessageType, "photo-check", StringComparison.OrdinalIgnoreCase));
 
             summaries.Add(new AdminUserSummary
             {
@@ -106,7 +115,8 @@ public class AdminService : IAdminService
                 TotalSpent = totalSpent,
                 CreditsPurchased = creditsPurchased,
                 ConversionStatus = GetConversionStatus(totalSpent, visitor.MessageCount, freeLimit, visitor.IsPremium),
-                LastSessionMessages = lastSessionMessages
+                LastSessionMessages = lastSessionMessages,
+                PhotoCheckCount = photoCheckCount
             });
         }
 
@@ -149,6 +159,7 @@ public class AdminService : IAdminService
             FunnelStartedChat = users.Count(u => u.MessageCount > 0),
             FunnelUsedFreeCredits = usersUsedAllFreeCredits,
             FunnelPaid = payingUsers,
+            PhotoCheckUsageCount = users.Sum(u => u.PhotoCheckCount),
             RecentTransactions = payments.Take(10).ToList()
         };
     }
@@ -217,14 +228,19 @@ public class AdminService : IAdminService
                 freeUsed++;
             }
 
+            var isPhotoCheck = string.Equals(message.MessageType, "photo-check", StringComparison.OrdinalIgnoreCase);
             timeline.Add(new AdminUsageTimelineEntry
             {
                 Timestamp = message.Timestamp,
-                EventType = "message",
+                EventType = isPhotoCheck ? "photo-check" : "message",
                 MessagesUsedCumulative = messagesUsed,
                 RemainingCredits = Math.Max(0, freeLimit - freeUsed) + paidRemaining,
                 DeltaCredits = -1,
-                Details = "User sent a message"
+                Details = isPhotoCheck
+                    ? $"AI Photo Check submitted. Question: {TruncateForAdmin(message.Content, 180)}"
+                    : "User sent a message",
+                QuestionText = isPhotoCheck ? message.Content : null,
+                CreditsUsed = isPhotoCheck ? (message.CreditsUsed ?? 1) : 1
             });
         }
 
@@ -370,6 +386,16 @@ public class AdminService : IAdminService
         }
 
         return "New";
+    }
+
+    private static string TruncateForAdmin(string value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length <= maxLength)
+        {
+            return value;
+        }
+
+        return value.Substring(0, maxLength) + "...";
     }
 }
 

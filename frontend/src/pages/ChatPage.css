@@ -496,6 +496,18 @@
   font-size: 0.9375rem;
 }
 
+.message-photo-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0.45rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
 .typing-indicator {
   display: flex;
   gap: 0.5rem;
@@ -537,6 +549,129 @@
   flex-shrink: 0;
   min-width: 0;
   box-sizing: border-box;
+}
+
+.photo-check-panel {
+  border: 1px solid rgba(15, 118, 110, 0.16);
+  background: linear-gradient(135deg, #f8fffc 0%, #f0fdfa 55%, #eff6ff 100%);
+  border-radius: 16px;
+  padding: 0.85rem;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.photo-check-action-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.photo-upload-btn {
+  border: 1px solid rgba(13, 148, 136, 0.35);
+  background: linear-gradient(135deg, #0f766e 0%, #0ea5e9 100%);
+  color: white;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(14, 165, 233, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.photo-upload-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(14, 165, 233, 0.28);
+}
+
+.photo-upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.photo-file-input {
+  display: none;
+}
+
+.photo-privacy-pill {
+  color: #0f766e;
+  background: rgba(240, 253, 250, 0.95);
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.photo-helper-text,
+.photo-consent-text,
+.photo-upload-error {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.photo-helper-text {
+  color: #475569;
+}
+
+.photo-consent-text {
+  color: #0f766e;
+  font-weight: 700;
+}
+
+.photo-upload-error {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.photo-preview-card {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  margin-top: 0.7rem;
+  padding: 0.65rem;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 14px;
+}
+
+.photo-preview-image {
+  width: 76px;
+  height: 76px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.photo-preview-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  color: #0f172a;
+  font-size: 0.8125rem;
+}
+
+.photo-preview-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.photo-preview-copy span {
+  color: #64748b;
+}
+
+.photo-remove-btn {
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  padding: 0;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.8rem;
 }
 
 .chat-input-wrapper {

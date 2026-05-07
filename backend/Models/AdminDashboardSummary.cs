@@ -14,5 +14,6 @@ public class AdminDashboardSummary
     public int FunnelUsedFreeCredits { get; set; }
     public int FunnelPaid { get; set; }
     public int ContactMessagesCount { get; set; }
+    public int PhotoCheckUsageCount { get; set; }
     public List<PaymentHistory> RecentTransactions { get; set; } = new();
 }

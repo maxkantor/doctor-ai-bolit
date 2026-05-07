@@ -108,7 +108,17 @@
     "freeMessagesRemaining_one": "{{count}} free message remaining",
     "freeMessagesRemaining_other": "{{count}} free messages remaining",
     "paymentSuccess_one": "Successfully added {{count}} credit to your account!",
-    "paymentSuccess_other": "Successfully added {{count}} credits to your account!"
+    "paymentSuccess_other": "Successfully added {{count}} credits to your account!",
+    "photoCheckUploadButton": "📷 Upload Photo — 1 Credit",
+    "photoCheckHelper": "Upload a photo for educational guidance about rashes, irritation, swelling, bruises, bites, minor injuries, or wellness concerns. Not for emergencies or diagnosis.",
+    "photoCheckPlaceholder": "Ask what you want guidance on…",
+    "photoCheckConsent": "By submitting, you understand this is educational guidance only and not medical diagnosis.",
+    "photoCheckPrivateUpload": "Private upload",
+    "photoCheckPreviewMeta": "{{size}} MB • 1 credit when submitted",
+    "photoCheckRemove": "Remove photo",
+    "photoCheckInvalidType": "Please upload a JPG, PNG, or WebP image.",
+    "photoCheckFileTooLarge": "Photo must be 5MB or smaller.",
+    "photoCheckMessageChip": "AI Photo Check • 1 credit • Image kept private"
   },
   "prompts": {
     "sleep": "How can I improve my sleep naturally?",

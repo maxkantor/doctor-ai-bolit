@@ -13,4 +13,5 @@ public class AdminUserSummary
     public int CreditsPurchased { get; set; }
     public string ConversionStatus { get; set; } = "New";
     public int LastSessionMessages { get; set; }
+    public int PhotoCheckCount { get; set; }
 }

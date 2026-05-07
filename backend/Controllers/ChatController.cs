@@ -13,12 +13,25 @@ public class ChatController : ControllerBase
     private readonly IChatService _chatService;
     private readonly IVisitorService _visitorService;
     private readonly IPaymentHistoryRepository _paymentHistoryRepository;
+    private readonly IPhotoStorageService _photoStorageService;
+    private static readonly HashSet<string> AllowedPhotoContentTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    };
+    private const long MaxPhotoBytes = 5 * 1024 * 1024;
 
-    public ChatController(IChatService chatService, IVisitorService visitorService, IPaymentHistoryRepository paymentHistoryRepository)
+    public ChatController(
+        IChatService chatService,
+        IVisitorService visitorService,
+        IPaymentHistoryRepository paymentHistoryRepository,
+        IPhotoStorageService photoStorageService)
     {
         _chatService = chatService;
         _visitorService = visitorService;
         _paymentHistoryRepository = paymentHistoryRepository;
+        _photoStorageService = photoStorageService;
     }
 
     [HttpPost]
@@ -31,6 +44,102 @@ public class ChatController : ControllerBase
 
         var response = await _chatService.ProcessMessageAsync(request);
         return Ok(response);
+    }
+
+    [HttpPost("photo-check")]
+    [RequestSizeLimit(MaxPhotoBytes + 1024 * 1024)]
+    public async Task<ActionResult<ChatResponse>> PhotoCheck([FromForm] PhotoCheckRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.VisitorId) || string.IsNullOrWhiteSpace(request.SessionId) || string.IsNullOrWhiteSpace(request.Message))
+        {
+            return BadRequest("VisitorId, SessionId, and Message are required");
+        }
+
+        if (request.Image == null || request.Image.Length == 0)
+        {
+            return BadRequest("Image is required");
+        }
+
+        if (request.Image.Length > MaxPhotoBytes)
+        {
+            return BadRequest("Image must be 5MB or smaller");
+        }
+
+        if (!AllowedPhotoContentTypes.Contains(request.Image.ContentType))
+        {
+            return BadRequest("Only JPG, PNG, and WebP images are supported");
+        }
+
+        if (!await _visitorService.CanSendMessageAsync(request.VisitorId))
+        {
+            var remainingCredits = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
+            return Ok(new ChatResponse
+            {
+                Message = string.Empty,
+                RemainingMessages = remainingCredits,
+                RequiresPayment = true
+            });
+        }
+
+        byte[] imageBytes;
+        await using (var memoryStream = new MemoryStream())
+        {
+            await request.Image.CopyToAsync(memoryStream, cancellationToken);
+            imageBytes = memoryStream.ToArray();
+        }
+
+        if (!IsSupportedImageSignature(imageBytes, request.Image.ContentType))
+        {
+            return BadRequest("Uploaded file does not match a supported image format");
+        }
+
+        var imageMetadata = await _photoStorageService.StoreTemporaryPhotoAsync(
+            request.VisitorId,
+            request.SessionId,
+            request.Image.FileName,
+            request.Image.ContentType,
+            imageBytes,
+            cancellationToken);
+
+        var response = await _chatService.ProcessPhotoCheckAsync(
+            new ChatRequest
+            {
+                VisitorId = request.VisitorId,
+                SessionId = request.SessionId,
+                Message = request.Message
+            },
+            imageMetadata,
+            imageBytes,
+            request.Image.ContentType,
+            cancellationToken);
+
+        return Ok(response);
+    }
+
+    private static bool IsSupportedImageSignature(byte[] bytes, string contentType)
+    {
+        if (bytes.Length < 12)
+        {
+            return false;
+        }
+
+        if (contentType.Equals("image/jpeg", StringComparison.OrdinalIgnoreCase))
+        {
+            return bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF;
+        }
+
+        if (contentType.Equals("image/png", StringComparison.OrdinalIgnoreCase))
+        {
+            return bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47;
+        }
+
+        if (contentType.Equals("image/webp", StringComparison.OrdinalIgnoreCase))
+        {
+            return bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46 &&
+                   bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50;
+        }
+
+        return false;
     }
 
     [HttpPost("stream")]

@@ -29,7 +29,9 @@ public class OpenAIService : IOpenAIService
         "heavy bleeding", "severe bleeding", "overdose", "poisoning", "suicidal", "want to die",
         "severe alcohol withdrawal", "dt s", "delirium tremens", "dangerous interaction", "drug interaction",
         "pregnancy emergency", "ectopic", "severe abdominal", "sudden severe headache", "can't move",
-        "numbness face", "slurred speech", "vision loss", "severe burn", "choking", "not breathing"
+        "numbness face", "slurred speech", "vision loss", "severe burn", "severe burns", "choking",
+        "not breathing", "deep wound", "deep cut", "spreading infection", "red streak", "eye injury",
+        "swollen throat", "self-harm", "self harm"
     };
 
     public OpenAIService(SecretsService secretsService, IHttpClientFactory httpClientFactory)
@@ -130,6 +132,92 @@ This is general information only. When in doubt, seek in-person care.";
             // Log error and return fallback
             Console.WriteLine($"OpenAI API error: {ex.Message}");
             return GetFallbackResponse(userMessage);
+        }
+    }
+
+    public async Task<string> GeneratePhotoGuidanceAsync(
+        string userMessage,
+        byte[] imageBytes,
+        string imageContentType,
+        List<ChatMessage> conversationHistory,
+        CancellationToken cancellationToken = default)
+    {
+        if (DetectCrisis(userMessage))
+            return EnsurePhotoCheckDisclaimer(GetCrisisResponse());
+        if (DetectEmergency(userMessage))
+            return EnsurePhotoCheckDisclaimer(GetEmergencyResponse());
+
+        if (string.IsNullOrWhiteSpace(_apiKey))
+        {
+            return GetPhotoFallbackResponse();
+        }
+
+        try
+        {
+            var recentHistoryText = string.Join("\n", conversationHistory
+                .OrderBy(m => m.Timestamp)
+                .TakeLast(6)
+                .Select(m => $"{m.Role}: {m.Content}"));
+
+            var imageBase64 = Convert.ToBase64String(imageBytes);
+            var requestBody = new
+            {
+                model = _model,
+                messages = new object[]
+                {
+                    new
+                    {
+                        role = "system",
+                        content = GetPhotoCheckSystemPrompt()
+                    },
+                    new
+                    {
+                        role = "user",
+                        content = new object[]
+                        {
+                            new
+                            {
+                                type = "text",
+                                text = $"""
+Question: {userMessage}
+
+Recent conversation context:
+{recentHistoryText}
+
+Respond using the required section headings exactly.
+"""
+                            },
+                            new
+                            {
+                                type = "image_url",
+                                image_url = new
+                                {
+                                    url = $"data:{imageContentType};base64,{imageBase64}"
+                                }
+                            }
+                        }
+                    }
+                },
+                temperature = 0.3f,
+                max_tokens = MaxResponseTokens
+            };
+
+            var json = JsonSerializer.Serialize(requestBody);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
+            var responseObj = JsonSerializer.Deserialize<OpenAIResponse>(responseJson);
+            var answer = responseObj?.choices?.FirstOrDefault()?.message?.content?.Trim();
+
+            return EnsurePhotoCheckDisclaimer(string.IsNullOrWhiteSpace(answer) ? GetPhotoFallbackResponse() : answer);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"OpenAI photo guidance error: {ex.Message}");
+            return GetPhotoFallbackResponse();
         }
     }
 
@@ -299,7 +387,7 @@ CORE BEHAVIOR
 - Lead with a direct, helpful answer. Do not start with refusals or "I cannot provide…" for normal questions.
 - Give 3–7 practical suggestions when relevant (lifestyle, self-care, over-the-counter options, when to see a doctor only if needed).
 - Use a supportive, concise tone. Be empathetic but not overdramatic.
-- Do not diagnose conditions with certainty. Do not prescribe prescription medication. Do not recommend dangerous actions.
+- Do not state conditions with certainty. Do not prescribe prescription medication. Do not recommend dangerous actions.
 - Mention seeing a doctor or seeking care only when: symptoms are severe, dangerous, persistent, worsening, or clearly need professional evaluation.
 - Avoid repeating the same disclaimer in every answer. If you add a short disclaimer, put it once at the end and keep it brief (e.g. "This is general guidance; if symptoms are severe or worsening, seek medical care.").
 - Never sound cold, robotic, or defensive. Avoid: "I must clarify…", "I encourage you to speak with a healthcare professional…", "Consult a healthcare professional…" unless the situation truly warrants it.
@@ -343,9 +431,70 @@ Keep responses focused, readable, and helpful. Prioritize usefulness and clarity
 """;
     }
 
+    private static string GetPhotoCheckSystemPrompt()
+    {
+        return """
+You are Doctor Aibolit's premium AI Photo Check. Give educational AI photo guidance only.
+
+Safety and wording rules:
+- Never provide a definitive diagnosis from an image.
+- Do not name a condition with certainty from the photo.
+- Do not recommend prescription medication.
+- Use careful language such as "possible explanations", "may be consistent with", "what to watch for", and "next steps".
+- If the image or question suggests chest pain, trouble breathing, severe allergic reaction, stroke symptoms, deep wounds, spreading infection, eye injury, severe burns, or suicidal/self-harm content, tell the user to seek urgent or emergency care immediately.
+- Always include the exact sentence: "This is educational guidance only and not a medical diagnosis."
+
+Use this exact response format:
+What I can see
+Possible explanations, not a diagnosis
+What you can do safely at home
+Red flags to watch for
+When to seek medical care
+Emergency warning
+
+Keep the answer concise, calm, practical, and privacy-minded.
+""";
+    }
+
     private string GetFallbackResponse(string userMessage)
     {
         return "I’m here to help. That might be something I can give practical guidance on — try asking in a sentence or two (e.g. what’s bothering you or what you’ve already tried). If it’s urgent or severe, please seek in-person care. What would you like to focus on?";
+    }
+
+    private static string GetPhotoFallbackResponse()
+    {
+        return """
+What I can see
+I could not complete a full visual review right now.
+
+Possible explanations, not a diagnosis
+There are many possible explanations for changes like irritation, bruising, bites, swelling, rashes, or minor injuries, and an in-person clinician can assess details that a photo cannot.
+
+What you can do safely at home
+Keep the area clean, avoid picking or scratching, use a cool compress for comfort, and monitor whether it is improving or worsening.
+
+Red flags to watch for
+Watch for fast spreading redness, increasing swelling, severe pain, pus, fever, red streaking, numbness, or symptoms that rapidly worsen.
+
+When to seek medical care
+Seek medical care if symptoms are worsening, not improving, involve the eye or face, follow a deep injury, or you are concerned.
+
+Emergency warning
+For trouble breathing, chest pain, stroke symptoms, severe allergic reaction, deep wounds, severe burns, or self-harm concerns, seek emergency care now.
+
+This is educational guidance only and not a medical diagnosis.
+""";
+    }
+
+    private static string EnsurePhotoCheckDisclaimer(string response)
+    {
+        const string required = "This is educational guidance only and not a medical diagnosis.";
+        if (response.Contains(required, StringComparison.OrdinalIgnoreCase))
+        {
+            return response;
+        }
+
+        return $"{response.Trim()}\n\n{required}";
     }
 
     private IEnumerable<string> SplitIntoChunks(string text, int chunkSize)

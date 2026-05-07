@@ -20,6 +20,13 @@ export interface ChatMessage {
   timestamp: string
   role: 'user' | 'assistant'
   content: string
+  messageType?: string
+  imageS3Key?: string
+  imageFileName?: string
+  imageContentType?: string
+  imageSizeBytes?: number
+  creditsUsed?: number
+  imagePreviewUrl?: string
 }
 
 export interface ChatRequest {
@@ -32,6 +39,13 @@ export interface ChatResponse {
   message: string
   remainingMessages: number
   requiresPayment: boolean
+}
+
+export interface PhotoCheckRequest {
+  visitorId: string
+  sessionId: string
+  message: string
+  image: File
 }
 
 export interface ContactMessage {
@@ -101,6 +115,7 @@ export interface AdminUserSummary {
   creditsPurchased: number
   conversionStatus: string
   lastSessionMessages: number
+  photoCheckCount: number
 }
 
 export interface AdminUsageTimelineEntry {
@@ -110,6 +125,8 @@ export interface AdminUsageTimelineEntry {
   remainingCredits: number
   deltaCredits: number
   details: string
+  questionText?: string
+  creditsUsed: number
 }
 
 export interface AdminDashboardSummary {
@@ -125,6 +142,7 @@ export interface AdminDashboardSummary {
   funnelUsedFreeCredits: number
   funnelPaid: number
   contactMessagesCount: number
+  photoCheckUsageCount: number
   recentTransactions: PaymentHistory[]
 }
 

@@ -57,6 +57,7 @@ public class Startup
         services.AddScoped<IPricingConfigService, PricingConfigService>();
         services.AddScoped<IOpenAIService, OpenAIService>();
         services.AddScoped<IChatService, ChatService>();
+        services.AddScoped<IPhotoStorageService, PhotoStorageService>();
         services.AddScoped<IStripeService, StripeService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IOgImageService, OgImageService>();

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type ChangeEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { scrollToTop } from '../utils/scrollToTop'
@@ -45,6 +45,9 @@ export default function ChatPage() {
   const [freeMessageLimit, setFreeMessageLimit] = useState(5)
   const [creditBalance, setCreditBalance] = useState(0)
   const [freeMessagesRemaining, setFreeMessagesRemaining] = useState(5)
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null)
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null)
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const [showPaywallModal, setShowPaywallModal] = useState(false)
@@ -53,6 +56,7 @@ export default function ChatPage() {
   const [paymentSuccessMessage, setPaymentSuccessMessage] = useState<{ credits: number; visible: boolean } | null>(null)
   const previousCreditBalanceRef = useRef<number>(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const photoInputRef = useRef<HTMLInputElement>(null)
   const isSendingRef = useRef(false) // Use ref to track if request is in flight (prevents race conditions)
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -197,6 +201,12 @@ export default function ChatPage() {
     scrollToBottom()
   }, [messages])
 
+  useEffect(() => {
+    return () => {
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl)
+    }
+  }, [photoPreviewUrl])
+
   const loadSessions = async () => {
     try {
       console.log('📚 Loading chat sessions for visitor:', visitorId)
@@ -250,6 +260,52 @@ export default function ChatPage() {
   ]
 
   const showEmptyState = messages.length === 1 && messages[0]?.role === 'assistant'
+
+  const clearSelectedPhoto = () => {
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl)
+    setSelectedPhoto(null)
+    setPhotoPreviewUrl(null)
+    setPhotoUploadError(null)
+    if (photoInputRef.current) photoInputRef.current.value = ''
+  }
+
+  const handlePhotoSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    setPhotoUploadError(null)
+
+    if (!file) return
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      setPhotoUploadError(t('chat.photoCheckInvalidType'))
+      event.target.value = ''
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoUploadError(t('chat.photoCheckFileTooLarge'))
+      event.target.value = ''
+      return
+    }
+
+    if (remainingMessages <= 0) {
+      setShowPaywallModal(true)
+      event.target.value = ''
+      return
+    }
+
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl)
+    setSelectedPhoto(file)
+    setPhotoPreviewUrl(URL.createObjectURL(file))
+  }
+
+  const handleUploadPhotoClick = () => {
+    if (remainingMessages <= 0) {
+      setShowPaywallModal(true)
+      return
+    }
+    photoInputRef.current?.click()
+  }
 
   const handleNewSession = async () => {
     const newSessionId = generateSessionId()
@@ -324,25 +380,35 @@ export default function ChatPage() {
     }
 
     const messageToSend = inputMessage.trim()
-    console.log('📤 Sending message:', messageToSend, 'for visitor:', visitorId)
+    const photoToSend = selectedPhoto
+    console.log('📤 Sending message:', messageToSend, 'for visitor:', visitorId, 'photo:', Boolean(photoToSend))
 
     const userMessage: ChatMessage = {
       sessionId,
       timestamp: new Date().toISOString(),
       role: 'user',
       content: messageToSend,
+      messageType: photoToSend ? 'photo-check' : undefined,
+      imageFileName: photoToSend?.name,
     }
 
     setMessages((prev) => [...prev, userMessage])
     setInputMessage('')
 
     try {
-      console.log('🔄 Calling chatService.sendMessage with:', { visitorId, sessionId, message: messageToSend })
-      const response = await chatService.sendMessage({
-        visitorId,
-        sessionId,
-        message: messageToSend,
-      })
+      console.log('🔄 Calling chat service with:', { visitorId, sessionId, message: messageToSend, photo: Boolean(photoToSend) })
+      const response = photoToSend
+        ? await chatService.sendPhotoCheck({
+            visitorId,
+            sessionId,
+            message: messageToSend,
+            image: photoToSend,
+          })
+        : await chatService.sendMessage({
+            visitorId,
+            sessionId,
+            message: messageToSend,
+          })
       console.log('✅ Received response from chatService:', response)
 
       console.log('📨 Chat response received:', JSON.stringify(response, null, 2))
@@ -362,6 +428,9 @@ export default function ChatPage() {
       }
 
       setMessages((prev) => [...prev, assistantMessage])
+      if (photoToSend) {
+        clearSelectedPhoto()
+      }
       
       // Reload sessions after sending message (in case a new session was created)
       await loadSessions()
@@ -531,6 +600,9 @@ export default function ChatPage() {
                 key={index}
                 className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
               >
+                {message.messageType === 'photo-check' && message.role === 'user' && (
+                  <div className="message-photo-chip">{t('chat.photoCheckMessageChip')}</div>
+                )}
                 <div className="message-content">{message.content}</div>
               </div>
             ))}
@@ -566,6 +638,47 @@ export default function ChatPage() {
           </div>
 
           <div className="chat-input-container">
+            <div className="photo-check-panel">
+              <div className="photo-check-action-row">
+                <button
+                  type="button"
+                  className="photo-upload-btn"
+                  onClick={handleUploadPhotoClick}
+                  disabled={isLoading}
+                >
+                  {t('chat.photoCheckUploadButton')}
+                </button>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="photo-file-input"
+                  onChange={handlePhotoSelect}
+                />
+                <span className="photo-privacy-pill">{t('chat.photoCheckPrivateUpload')}</span>
+              </div>
+              <p className="photo-helper-text">
+                {t('chat.photoCheckHelper')}
+              </p>
+              {photoUploadError && <p className="photo-upload-error">{photoUploadError}</p>}
+              {photoPreviewUrl && selectedPhoto && (
+                <div className="photo-preview-card">
+                  <img src={photoPreviewUrl} alt="Selected photo preview" className="photo-preview-image" />
+                  <div className="photo-preview-copy">
+                    <strong>{selectedPhoto.name}</strong>
+                    <span>{t('chat.photoCheckPreviewMeta', { size: (selectedPhoto.size / (1024 * 1024)).toFixed(2) })}</span>
+                    <button type="button" onClick={clearSelectedPhoto} className="photo-remove-btn">
+                      {t('chat.photoCheckRemove')}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {selectedPhoto && (
+                <p className="photo-consent-text">
+                  {t('chat.photoCheckConsent')}
+                </p>
+              )}
+            </div>
             <div className="chat-input-wrapper">
               <textarea
                 value={inputMessage}
@@ -578,7 +691,7 @@ export default function ChatPage() {
                 }}
                 className="chat-input"
                 disabled={isLoading || remainingMessages === 0}
-                placeholder={remainingMessages === 0 ? t('chat.placeholderLimit') : t('chat.placeholder')}
+                placeholder={remainingMessages === 0 ? t('chat.placeholderLimit') : selectedPhoto ? t('chat.photoCheckPlaceholder') : t('chat.placeholder')}
                 rows={1}
                 aria-label={t('contact.message')}
               />

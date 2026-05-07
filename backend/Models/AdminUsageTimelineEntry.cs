@@ -8,4 +8,6 @@ public class AdminUsageTimelineEntry
     public int RemainingCredits { get; set; }
     public int DeltaCredits { get; set; }
     public string Details { get; set; } = string.Empty;
+    public string? QuestionText { get; set; }
+    public int CreditsUsed { get; set; }
 }

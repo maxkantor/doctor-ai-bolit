@@ -55,6 +55,7 @@ export default function AdminDashboard() {
   const funnelUsedFree = dashboardSummary?.funnelUsedFreeCredits ?? usersUsedAllFree
   const funnelPaid = dashboardSummary?.funnelPaid ?? payingUsers
   const contactMessagesCount = dashboardSummary?.contactMessagesCount ?? emails.length
+  const photoCheckUsageCount = dashboardSummary?.photoCheckUsageCount ?? enrichedUsers.reduce((acc, user) => acc + (user.photoCheckCount || 0), 0)
   const sortedTransactions = (dashboardSummary?.recentTransactions?.length ? dashboardSummary.recentTransactions : dashboardPayments)
     .slice()
     .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())
@@ -497,6 +498,10 @@ export default function AdminDashboard() {
                 <h3>Contact Messages</h3>
                 <p className="metric-value">{contactMessagesCount}</p>
               </div>
+              <div className="metric-card">
+                <h3>AI Photo Checks</h3>
+                <p className="metric-value">{photoCheckUsageCount}</p>
+              </div>
             </div>
 
             <div className="user-detail-card" style={{ marginTop: '1.5rem' }}>
@@ -586,6 +591,7 @@ export default function AdminDashboard() {
                       <th>Created</th>
                       <th>Total Spent</th>
                       <th>Credits Purchased</th>
+                      <th>Photo Checks</th>
                       <th>Conversion Status</th>
                       <th>Last Session Messages</th>
                       <th>Last Active</th>
@@ -609,6 +615,7 @@ export default function AdminDashboard() {
                           <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                           <td>${user.totalSpent.toFixed(2)}</td>
                           <td>{user.creditsPurchased}</td>
+                          <td>{user.photoCheckCount || 0}</td>
                           <td>
                             <span className={`status-chip ${conversionClass}`}>{user.conversionStatus}</span>
                           </td>
@@ -1162,6 +1169,10 @@ export default function AdminDashboard() {
                 <span>{selectedUserSummary?.lastSessionMessages || 0}</span>
               </div>
               <div className="detail-row">
+                <strong>AI Photo Checks:</strong>
+                <span>{selectedUserSummary?.photoCheckCount || 0}</span>
+              </div>
+              <div className="detail-row">
                 <strong>Conversion Status:</strong>
                 <span className={`status-chip ${selectedUserSummary?.conversionStatus === 'Converted' ? 'status-converted' : selectedUserSummary?.conversionStatus === 'Used Free Only' ? 'status-free-only' : selectedUserSummary?.conversionStatus === 'Engaged' ? 'status-engaged' : 'status-new'}`}>
                   {selectedUserSummary?.conversionStatus || 'New'}
@@ -1273,6 +1284,7 @@ export default function AdminDashboard() {
                         <th>Messages Used (Cumulative)</th>
                         <th>Remaining Credits</th>
                         <th>Delta</th>
+                        <th>Credits Used</th>
                         <th>Details</th>
                       </tr>
                     </thead>
@@ -1284,6 +1296,7 @@ export default function AdminDashboard() {
                           <td>{entry.messagesUsedCumulative}</td>
                           <td>{entry.remainingCredits}</td>
                           <td>{entry.deltaCredits > 0 ? `+${entry.deltaCredits}` : entry.deltaCredits}</td>
+                          <td>{entry.creditsUsed || Math.abs(entry.deltaCredits)}</td>
                           <td>{entry.details}</td>
                         </tr>
                       ))}

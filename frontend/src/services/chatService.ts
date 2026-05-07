@@ -1,9 +1,22 @@
 import api from './api'
-import { ChatRequest, ChatResponse, ChatSession, ChatMessage } from '../types'
+import { ChatRequest, ChatResponse, ChatSession, ChatMessage, PhotoCheckRequest } from '../types'
 
 export const chatService = {
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
     const response = await api.post<ChatResponse>('/chat', request)
+    return response.data
+  },
+
+  async sendPhotoCheck(request: PhotoCheckRequest): Promise<ChatResponse> {
+    const formData = new FormData()
+    formData.append('visitorId', request.visitorId)
+    formData.append('sessionId', request.sessionId)
+    formData.append('message', request.message)
+    formData.append('image', request.image)
+
+    const response = await api.post<ChatResponse>('/chat/photo-check', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return response.data
   },
 

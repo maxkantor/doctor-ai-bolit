@@ -280,6 +280,102 @@ public class ChatService : IChatService
         }
     }
 
+    public async Task<ChatResponse> ProcessPhotoCheckAsync(
+        ChatRequest request,
+        PhotoCheckImageMetadata imageMetadata,
+        byte[] imageBytes,
+        string imageContentType,
+        CancellationToken cancellationToken = default)
+    {
+        var requestId = Guid.NewGuid().ToString().Substring(0, 8);
+        Console.WriteLine($"[PhotoCheck-{requestId}] Processing photo check for visitor: {request.VisitorId}, session: {request.SessionId}");
+
+        var processingLock = GetProcessingLock(request.VisitorId);
+        await processingLock.WaitAsync(cancellationToken);
+
+        try
+        {
+            var canSend = await _visitorService.CanSendMessageAsync(request.VisitorId);
+            if (!canSend)
+            {
+                var remainingCredits = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
+                return new ChatResponse
+                {
+                    Message = string.Empty,
+                    RemainingMessages = remainingCredits,
+                    RequiresPayment = true
+                };
+            }
+
+            var existingSessions = await _chatRepository.GetSessionsAsync(request.VisitorId);
+            var sessionExists = existingSessions.Any(s => s.SessionId == request.SessionId);
+            if (!sessionExists)
+            {
+                var title = request.Message.Length > 42
+                    ? $"Photo check: {request.Message.Substring(0, 42)}..."
+                    : $"Photo check: {request.Message}";
+                await _chatRepository.CreateSessionAsync(request.VisitorId, request.SessionId, title);
+            }
+
+            var conversationHistory = await _chatRepository.GetMessagesAsync(request.SessionId);
+            var aiResponse = await _openAIService.GeneratePhotoGuidanceAsync(
+                request.Message,
+                imageBytes,
+                imageContentType,
+                conversationHistory,
+                cancellationToken);
+
+            var creditDeducted = await _visitorService.DeductCreditAsync(request.VisitorId);
+            if (!creditDeducted)
+            {
+                var remainingCreditsAfterCheck = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
+                return new ChatResponse
+                {
+                    Message = string.Empty,
+                    RemainingMessages = remainingCreditsAfterCheck,
+                    RequiresPayment = true
+                };
+            }
+
+            var userMessage = new ChatMessage
+            {
+                SessionId = request.SessionId,
+                Timestamp = DateTime.UtcNow,
+                Role = "user",
+                Content = request.Message,
+                MessageType = "photo-check",
+                ImageS3Key = imageMetadata.S3Key,
+                ImageFileName = imageMetadata.FileName,
+                ImageContentType = imageMetadata.ContentType,
+                ImageSizeBytes = imageMetadata.SizeBytes,
+                CreditsUsed = 1
+            };
+            await _chatRepository.SaveMessageAsync(userMessage);
+
+            var assistantMessage = new ChatMessage
+            {
+                SessionId = request.SessionId,
+                Timestamp = DateTime.UtcNow,
+                Role = "assistant",
+                Content = aiResponse,
+                MessageType = "photo-check"
+            };
+            await _chatRepository.SaveMessageAsync(assistantMessage);
+
+            var remaining = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
+            return new ChatResponse
+            {
+                Message = aiResponse,
+                RemainingMessages = remaining,
+                RequiresPayment = false
+            };
+        }
+        finally
+        {
+            processingLock.Release();
+        }
+    }
+
     public async Task<List<ChatSession>> GetSessionsAsync(string visitorId)
     {
         return await _chatRepository.GetSessionsAsync(visitorId);

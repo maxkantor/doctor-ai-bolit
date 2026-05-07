@@ -102,6 +102,23 @@ export class DoctorAibolitStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
+    const photoCheckUploadsBucket = new s3.Bucket(this, 'PhotoCheckUploadsBucket', {
+      bucketName: 'doctoraibolit-photo-check-uploads',
+      publicReadAccess: false,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      lifecycleRules: [
+        {
+          id: 'DeletePhotoCheckUploadsAfter7Days',
+          enabled: true,
+          expiration: cdk.Duration.days(7),
+          prefix: 'photo-check/',
+        },
+      ],
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
     // Secrets Manager - Reference existing secret (not creating it)
     const secret = secretsmanager.Secret.fromSecretNameV2(
       this,
@@ -129,6 +146,7 @@ export class DoctorAibolitStack extends cdk.Stack {
         DYNAMODB_TABLE_PAYMENT_HISTORY: paymentHistoryTable.tableName,
         DYNAMODB_TABLE_EMAIL_VISITOR_MAPPING: emailVisitorMappingTable.tableName,
         S3_BUCKET_OG_IMAGES: ogImagesBucket.bucketName,
+        S3_BUCKET_PHOTO_CHECK_UPLOADS: photoCheckUploadsBucket.bucketName,
         SES_FROM_EMAIL: 'noreply@doctoraibolit.com',
         SES_ADMIN_EMAIL: 'admin@doctoraibolit.com',
         // BASE_URL: Frontend URL for Stripe redirects and email links
@@ -151,6 +169,7 @@ export class DoctorAibolitStack extends cdk.Stack {
 
     // Grant S3 permissions
     ogImagesBucket.grantReadWrite(lambdaFunction);
+    photoCheckUploadsBucket.grantReadWrite(lambdaFunction);
 
     // Grant Secrets Manager permissions
     secret.grantRead(lambdaFunction);
@@ -209,6 +228,11 @@ export class DoctorAibolitStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'OgImagesBucketName', {
       value: ogImagesBucket.bucketName,
       description: 'OG Images S3 Bucket Name',
+    });
+
+    new cdk.CfnOutput(this, 'PhotoCheckUploadsBucketName', {
+      value: photoCheckUploadsBucket.bucketName,
+      description: 'Private temporary AI Photo Check uploads bucket',
     });
   }
 }
