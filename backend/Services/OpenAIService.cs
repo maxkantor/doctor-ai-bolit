@@ -11,6 +11,7 @@ public class OpenAIService : IOpenAIService
     private readonly HttpClient _httpClient;
     private readonly string? _apiKey;
     private readonly string _model = "gpt-4o-mini"; // Cost-effective model
+    private readonly string _visionModel = "gpt-4o"; // Use full vision model for paid photo checks.
     private const int MaxResponseTokens = 700; // Enough for direct answer + 3–7 suggestions + optional disclaimer
 
     // Mental health / crisis detection — direct to crisis resources
@@ -140,6 +141,7 @@ This is general information only. When in doubt, seek in-person care.";
         byte[] imageBytes,
         string imageContentType,
         List<ChatMessage> conversationHistory,
+        string? imageUrl = null,
         CancellationToken cancellationToken = default)
     {
         if (DetectCrisis(userMessage))
@@ -159,10 +161,13 @@ This is general information only. When in doubt, seek in-person care.";
                 .TakeLast(6)
                 .Select(m => $"{m.Role}: {m.Content}"));
 
-            var imageBase64 = Convert.ToBase64String(imageBytes);
+            var imageSource = !string.IsNullOrWhiteSpace(imageUrl)
+                ? imageUrl
+                : $"data:{imageContentType};base64,{Convert.ToBase64String(imageBytes)}";
+            Console.WriteLine($"[OpenAIPhoto] Sending vision request. Model={_visionModel}, Source={(string.IsNullOrWhiteSpace(imageUrl) ? "data-url" : "presigned-url")}, ContentType={imageContentType}, Bytes={imageBytes.Length}");
             var requestBody = new
             {
-                model = _model,
+                model = _visionModel,
                 messages = new object[]
                 {
                     new
@@ -179,6 +184,8 @@ This is general information only. When in doubt, seek in-person care.";
                             {
                                 type = "text",
                                 text = $"""
+You are receiving an uploaded image with this request. Carefully inspect the image and answer the user's question.
+
 Question: {userMessage}
 
 Recent conversation context:
@@ -192,7 +199,7 @@ Respond using the required section headings exactly.
                                 type = "image_url",
                                 image_url = new
                                 {
-                                    url = $"data:{imageContentType};base64,{imageBase64}"
+                                    url = imageSource
                                 }
                             }
                         }
@@ -211,14 +218,95 @@ Respond using the required section headings exactly.
             var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
             var responseObj = JsonSerializer.Deserialize<OpenAIResponse>(responseJson);
             var answer = responseObj?.choices?.FirstOrDefault()?.message?.content?.Trim();
+            if (IsImageUnavailableResponse(answer))
+            {
+                Console.WriteLine("[OpenAIPhoto] First vision response could not view image; retrying with simplified prompt.");
+                answer = await GeneratePhotoGuidanceRetryAsync(userMessage, imageSource, cancellationToken);
+            }
+            if (IsImageUnavailableResponse(answer))
+            {
+                throw new InvalidOperationException("OpenAI vision response did not analyze the uploaded image.");
+            }
 
             return EnsurePhotoCheckDisclaimer(string.IsNullOrWhiteSpace(answer) ? GetPhotoFallbackResponse() : answer);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"OpenAI photo guidance error: {ex.Message}");
-            return GetPhotoFallbackResponse();
+            throw;
         }
+    }
+
+    private async Task<string> GeneratePhotoGuidanceRetryAsync(string userMessage, string imageSource, CancellationToken cancellationToken)
+    {
+        var requestBody = new
+        {
+            model = _visionModel,
+            messages = new object[]
+            {
+                new
+                {
+                    role = "user",
+                    content = new object[]
+                    {
+                        new
+                        {
+                            type = "text",
+                            text = $"""
+Look at the attached image and answer this user question: {userMessage}
+
+Use these headings exactly:
+What I can see
+Possible explanations, not a diagnosis
+What you can do safely at home
+Red flags to watch for
+When to seek medical care
+Emergency warning
+
+Never state a definitive diagnosis. Do not recommend prescription medication. Include: "This is educational guidance only and not a medical diagnosis."
+"""
+                        },
+                        new
+                        {
+                            type = "image_url",
+                            image_url = new
+                            {
+                                url = imageSource
+                            }
+                        }
+                    }
+                }
+            },
+            temperature = 0.2f,
+            max_tokens = MaxResponseTokens
+        };
+
+        var json = JsonSerializer.Serialize(requestBody);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
+        var responseObj = JsonSerializer.Deserialize<OpenAIResponse>(responseJson);
+        return responseObj?.choices?.FirstOrDefault()?.message?.content?.Trim() ?? string.Empty;
+    }
+
+    private static bool IsImageUnavailableResponse(string? response)
+    {
+        if (string.IsNullOrWhiteSpace(response))
+        {
+            return false;
+        }
+
+        var lower = response.ToLowerInvariant();
+        return lower.Contains("cannot view") ||
+               lower.Contains("can't view") ||
+               lower.Contains("can’t view") ||
+               lower.Contains("unable to view") ||
+               lower.Contains("cannot analyze") ||
+               lower.Contains("can't analyze") ||
+               lower.Contains("can’t analyze") ||
+               lower.Contains("has not been uploaded");
     }
 
     public async IAsyncEnumerable<string> StreamResponseAsync(string userMessage, List<ChatMessage> conversationHistory, string? systemPrompt = null, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -437,6 +525,7 @@ Keep responses focused, readable, and helpful. Prioritize usefulness and clarity
 You are Doctor Aibolit's premium AI Photo Check. Give educational AI photo guidance only.
 
 Safety and wording rules:
+- You are receiving an image input. Review visible details in the image, but do not overstate certainty.
 - Never provide a definitive diagnosis from an image.
 - Do not name a condition with certainty from the photo.
 - Do not recommend prescription medication.

@@ -127,8 +127,8 @@ export class DoctorAibolitStack extends cdk.Stack {
     );
 
     // Lambda Function
-    // Use pre-built binaries from backend/bin/Release/net8.0
-    const backendBuildPath = path.join(__dirname, '../../../backend/bin/Release/net8.0');
+    // Use the Lambda-ready publish output, not the parent build folder.
+    const backendBuildPath = path.join(__dirname, '../../../backend/bin/Release/net8.0/linux-x64/publish');
     const lambdaFunction = new lambda.Function(this, 'DoctorAibolitApi', {
       runtime: lambda.Runtime.DOTNET_8,
       handler: 'DoctorAIBolit.Api::DoctorAIBolit.LambdaEntryPoint::FunctionHandlerAsync',

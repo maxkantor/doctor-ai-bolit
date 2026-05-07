@@ -323,6 +323,7 @@ public class ChatService : IChatService
                 imageBytes,
                 imageContentType,
                 conversationHistory,
+                imageMetadata.TemporaryAccessUrl,
                 cancellationToken);
 
             var creditDeducted = await _visitorService.DeductCreditAsync(request.VisitorId);

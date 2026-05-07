@@ -51,12 +51,21 @@ public class PhotoStorageService : IPhotoStorageService
 
         await _s3Client.PutObjectAsync(putRequest, cancellationToken);
 
+        var temporaryAccessUrl = _s3Client.GetPreSignedURL(new GetPreSignedUrlRequest
+        {
+            BucketName = _bucketName,
+            Key = objectKey,
+            Expires = DateTime.UtcNow.AddMinutes(10),
+            Protocol = Protocol.HTTPS
+        });
+
         return new PhotoCheckImageMetadata
         {
             S3Key = objectKey,
             FileName = fileName,
             ContentType = contentType,
-            SizeBytes = imageBytes.LongLength
+            SizeBytes = imageBytes.LongLength,
+            TemporaryAccessUrl = temporaryAccessUrl
         };
     }
 }
