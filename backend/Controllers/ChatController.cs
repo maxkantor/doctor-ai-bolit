@@ -93,27 +93,41 @@ public class ChatController : ControllerBase
             return BadRequest("Uploaded file does not match a supported image format");
         }
 
-        var imageMetadata = await _photoStorageService.StoreTemporaryPhotoAsync(
-            request.VisitorId,
-            request.SessionId,
-            request.Image.FileName,
-            request.Image.ContentType,
-            imageBytes,
-            cancellationToken);
+        try
+        {
+            var imageMetadata = await _photoStorageService.StoreTemporaryPhotoAsync(
+                request.VisitorId,
+                request.SessionId,
+                request.Image.FileName,
+                request.Image.ContentType,
+                imageBytes,
+                cancellationToken);
 
-        var response = await _chatService.ProcessPhotoCheckAsync(
-            new ChatRequest
+            var response = await _chatService.ProcessPhotoCheckAsync(
+                new ChatRequest
+                {
+                    VisitorId = request.VisitorId,
+                    SessionId = request.SessionId,
+                    Message = request.Message
+                },
+                imageMetadata,
+                imageBytes,
+                request.Image.ContentType,
+                cancellationToken);
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ChatController.PhotoCheck] Error processing photo check: {ex.Message}");
+            var remainingCredits = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
+            return Ok(new ChatResponse
             {
-                VisitorId = request.VisitorId,
-                SessionId = request.SessionId,
-                Message = request.Message
-            },
-            imageMetadata,
-            imageBytes,
-            request.Image.ContentType,
-            cancellationToken);
-
-        return Ok(response);
+                Message = "I couldn't complete the photo check right now. Your credit was not used. Please try again in a moment, and seek urgent care now if this could be an emergency.\n\nThis is educational guidance only and not a medical diagnosis.",
+                RemainingMessages = remainingCredits,
+                RequiresPayment = false
+            });
+        }
     }
 
     private static bool IsSupportedImageSignature(byte[] bytes, string contentType)

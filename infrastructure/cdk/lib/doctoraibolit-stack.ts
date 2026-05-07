@@ -133,7 +133,7 @@ export class DoctorAibolitStack extends cdk.Stack {
       runtime: lambda.Runtime.DOTNET_8,
       handler: 'DoctorAIBolit.Api::DoctorAIBolit.LambdaEntryPoint::FunctionHandlerAsync',
       code: lambda.Code.fromAsset(backendBuildPath),
-      timeout: cdk.Duration.seconds(30),
+      timeout: cdk.Duration.seconds(60),
       memorySize: 512,
       environment: {
         DYNAMODB_TABLE_VISITORS: visitorsTable.tableName,

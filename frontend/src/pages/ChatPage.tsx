@@ -465,6 +465,15 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error('Failed to send message:', error)
+      if (photoToSend) {
+        const assistantMessage: ChatMessage = {
+          sessionId,
+          timestamp: new Date().toISOString(),
+          role: 'assistant',
+          content: t('chat.photoCheckSubmitFailed'),
+        }
+        setMessages((prev) => [...prev, assistantMessage])
+      }
       // Reload remaining messages on error
       await loadRemainingMessages()
     } finally {

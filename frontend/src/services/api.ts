@@ -31,7 +31,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 second timeout
+  timeout: 60000, // Vision requests can take longer than text-only chat.
 })
 
 // Add visitor ID to all requests
