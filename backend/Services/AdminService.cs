@@ -263,48 +263,61 @@ public class AdminService : IAdminService
         return timeline.OrderByDescending(t => t.Timestamp).Take(80).ToList();
     }
 
-    public async Task AddCreditsAsync(string visitorId, int credits)
-    {
-        var visitor = await _visitorRepository.GetVisitorAsync(visitorId);
-        if (visitor != null)
-        {
-            visitor.CreditBalance += credits;
-            visitor.TotalCreditsAdded += credits;
-            await _visitorRepository.UpdateVisitorAsync(visitor);
-        }
-    }
-
-    public async Task ResetCreditsAsync(string visitorId)
+    public async Task<Visitor?> AddCreditsAsync(string visitorId, int credits)
     {
         var visitor = await _visitorRepository.GetVisitorAsync(visitorId);
         if (visitor == null)
         {
-            return;
+            Console.WriteLine($"[AdminService] Cannot add credits. Visitor not found: {visitorId}");
+            return null;
+        }
+
+        visitor.CreditBalance += credits;
+        visitor.TotalCreditsAdded += credits;
+        visitor.LastActive = DateTime.UtcNow;
+        await _visitorRepository.UpdateVisitorAsync(visitor);
+        return visitor;
+    }
+
+    public async Task<Visitor?> ResetCreditsAsync(string visitorId)
+    {
+        var visitor = await _visitorRepository.GetVisitorAsync(visitorId);
+        if (visitor == null)
+        {
+            Console.WriteLine($"[AdminService] Cannot reset credits. Visitor not found: {visitorId}");
+            return null;
         }
 
         visitor.CreditBalance = 0;
+        visitor.LastActive = DateTime.UtcNow;
         await _visitorRepository.UpdateVisitorAsync(visitor);
+        return visitor;
     }
 
-    public async Task ResetVisitorAsync(string visitorId)
+    public async Task<Visitor?> ResetVisitorAsync(string visitorId)
     {
         var visitor = await _visitorRepository.GetVisitorAsync(visitorId);
-        if (visitor != null)
+        if (visitor == null)
         {
-            visitor.MessageCount = 0;
-            visitor.CreditBalance = 0;
-            visitor.IsPremium = false;
-            await _visitorRepository.UpdateVisitorAsync(visitor);
+            Console.WriteLine($"[AdminService] Cannot reset visitor. Visitor not found: {visitorId}");
+            return null;
         }
+
+        visitor.MessageCount = 0;
+        visitor.CreditBalance = 0;
+        visitor.IsPremium = false;
+        visitor.LastActive = DateTime.UtcNow;
+        await _visitorRepository.UpdateVisitorAsync(visitor);
+        return visitor;
     }
 
-    public async Task ResetMessageCountAsync(string visitorId, int? resetTo = null)
+    public async Task<Visitor?> ResetMessageCountAsync(string visitorId, int? resetTo = null)
     {
         var visitor = await _visitorRepository.GetVisitorAsync(visitorId);
         if (visitor == null)
         {
             Console.WriteLine($"[AdminService] Visitor not found: {visitorId}");
-            return;
+            return null;
         }
         
         var config = await _pricingConfigRepository.GetConfigAsync();
@@ -341,19 +354,24 @@ public class AdminService : IAdminService
             Console.WriteLine($"[AdminService] Full reset to free tier (blank reset) - cleared credits and reset message count to 0 for visitor: {visitorId}");
         }
         
+        visitor.LastActive = DateTime.UtcNow;
         await _visitorRepository.UpdateVisitorAsync(visitor);
+        return visitor;
     }
 
-    public async Task MarkPremiumAsync(string visitorId, bool isPremium = true)
+    public async Task<Visitor?> MarkPremiumAsync(string visitorId, bool isPremium = true)
     {
         var visitor = await _visitorRepository.GetVisitorAsync(visitorId);
         if (visitor == null)
         {
-            return;
+            Console.WriteLine($"[AdminService] Cannot update premium flag. Visitor not found: {visitorId}");
+            return null;
         }
 
         visitor.IsPremium = isPremium;
+        visitor.LastActive = DateTime.UtcNow;
         await _visitorRepository.UpdateVisitorAsync(visitor);
+        return visitor;
     }
 
     public async Task<List<PaymentHistory>> GetPaymentHistoryAsync(string? visitorId = null)

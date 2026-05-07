@@ -3,11 +3,13 @@
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
+  background: #eef3f8;
+  color: #172033;
 }
 
 .admin-sidebar {
-  width: 250px;
-  background-color: #2c3e50;
+  width: 260px;
+  background: linear-gradient(180deg, #122033 0%, #1d3348 100%);
   color: white;
   padding: 2rem 1rem;
   display: flex;
@@ -15,6 +17,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   flex-shrink: 0;
+  box-shadow: 12px 0 30px rgba(15, 23, 42, 0.16);
 }
 
 .admin-sidebar h2 {
@@ -44,7 +47,52 @@
 }
 
 .admin-nav button.active {
-  background-color: #3498db;
+  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
+}
+
+.admin-context-card {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 1rem 0;
+}
+
+.admin-context-title {
+  color: #b9d6ea;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.55rem;
+  text-transform: uppercase;
+}
+
+.admin-context-copy {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 0.6rem 0.7rem;
+  margin-top: 0.45rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-context-copy span {
+  display: block;
+  color: #bfdbfe;
+  font-size: 0.72rem;
+  margin-bottom: 0.15rem;
+}
+
+.admin-context-copy strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.86rem;
 }
 
 .logout-btn {
@@ -65,10 +113,55 @@
 .admin-content {
   flex: 1;
   padding: 2rem;
-  background-color: #f5f5f5;
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 32rem),
+    #eef3f8;
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
+}
+
+.crm-identity-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+}
+
+.crm-identity-banner span {
+  display: block;
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+}
+
+.crm-identity-banner strong {
+  display: block;
+  color: #0f172a;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crm-identity-banner button,
+.copy-id-btn {
+  background: #0f172a;
+  border: 0;
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.75rem 1rem;
 }
 
 .dashboard-metrics h1,
@@ -88,10 +181,11 @@
 }
 
 .metric-card {
-  background-color: white;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
 }
 
 .metric-card h3 {
@@ -109,9 +203,10 @@
 
 .users-table {
   background-color: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 18px;
+  overflow: auto;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
 }
 
 .users-table table {
@@ -127,9 +222,23 @@
 }
 
 .users-table th {
-  background-color: #f8f9fa;
+  background-color: #f8fafc;
   font-weight: 600;
   color: #2c3e50;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.id-pill {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.6rem;
 }
 
 .view-btn {
@@ -236,6 +345,35 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
+}
+
+.admin-reset-target {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #bfdbfe;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+}
+
+.admin-reset-target span {
+  display: block;
+  color: #2563eb;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.admin-reset-target strong {
+  display: block;
+  color: #0f172a;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  overflow-wrap: anywhere;
 }
 
 .detail-row {
@@ -393,5 +531,27 @@ body:has(.admin-dashboard) {
 
 html:has(.admin-dashboard) {
   overflow: hidden !important;
+}
+
+@media (max-width: 980px) {
+  .admin-dashboard {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .admin-sidebar {
+    width: auto;
+    max-height: none;
+  }
+
+  .admin-content {
+    overflow: visible;
+  }
+
+  .crm-identity-banner {
+    grid-template-columns: 1fr;
+  }
 }
 

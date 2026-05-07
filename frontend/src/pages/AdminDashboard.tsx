@@ -4,6 +4,27 @@ import { adminService } from '../services/adminService'
 import { Visitor, ContactMessage, PricingConfig, PricingPlan, PaymentHistory, AdminUserSummary, AdminUsageTimelineEntry, AdminDashboardSummary } from '../types'
 import './AdminDashboard.css'
 
+const ADMIN_SESSION_ID_KEY = 'doctoraibolit_admin_session_id'
+const VISITOR_ID_KEY = 'doctoraibolit_visitor_id'
+
+function getOrCreateAdminSessionId() {
+  let sessionId = sessionStorage.getItem(ADMIN_SESSION_ID_KEY)
+  if (!sessionId) {
+    sessionId = `admin-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+    sessionStorage.setItem(ADMIN_SESSION_ID_KEY, sessionId)
+  }
+  return sessionId
+}
+
+function getStoredVisitorId() {
+  return localStorage.getItem(VISITOR_ID_KEY) || ''
+}
+
+function shortId(value?: string) {
+  if (!value) return 'Not found'
+  return value.length > 18 ? `${value.slice(0, 10)}...${value.slice(-6)}` : value
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -29,6 +50,10 @@ export default function AdminDashboard() {
   const [dashboardPayments, setDashboardPayments] = useState<PaymentHistory[]>([])
   const [dashboardSummary, setDashboardSummary] = useState<AdminDashboardSummary | null>(null)
   const [usageTimeline, setUsageTimeline] = useState<AdminUsageTimelineEntry[]>([])
+  const [adminContext, setAdminContext] = useState(() => ({
+    adminSessionId: getOrCreateAdminSessionId(),
+    browserVisitorId: getStoredVisitorId(),
+  }))
 
   const freeLimit = pricingConfig?.freeMessageLimit ?? 5
   const selectedUserSummary = selectedVisitor
@@ -60,6 +85,9 @@ export default function AdminDashboard() {
     .slice()
     .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())
     .slice(0, 10)
+  const selectedFreeMessagesUsed = selectedVisitor ? Math.min(selectedVisitor.messageCount, freeLimit) : 0
+  const selectedFreeMessagesRemaining = selectedVisitor ? Math.max(0, freeLimit - selectedFreeMessagesUsed) : 0
+  const selectedTotalAvailable = selectedVisitor ? selectedVisitor.creditBalance + selectedFreeMessagesRemaining : 0
 
   const normalizeEmailStatus = (status?: string) => {
     const normalized = (status || '').toLowerCase().trim()
@@ -171,14 +199,31 @@ export default function AdminDashboard() {
       const apiDomain = import.meta.env.VITE_API_DOMAIN || 'api.doctoraibolit.com'
       console.log('📡 API Base URL:', import.meta.env.VITE_API_URL || `https://${apiDomain}/api`)
       console.log('🔑 Admin Key:', sessionStorage.getItem('doctoraibolit_admin_key') ? 'Present' : 'Missing')
+      setAdminContext({
+        adminSessionId: getOrCreateAdminSessionId(),
+        browserVisitorId: getStoredVisitorId(),
+      })
       
-      const [visitorsData, enrichedUsersData, emailsData, paymentsData, summaryData] = await Promise.all([
+      const [visitorsResult, enrichedUsersResult, emailsResult, paymentsResult, summaryResult] = await Promise.allSettled([
         adminService.getUsers(),
         adminService.getEnrichedUsers(),
         adminService.getEmails(),
         adminService.getPaymentHistory(),
         adminService.getDashboardSummary(),
       ])
+
+      const visitorsData = visitorsResult.status === 'fulfilled' ? visitorsResult.value : visitors
+      const enrichedUsersData = enrichedUsersResult.status === 'fulfilled' ? enrichedUsersResult.value : enrichedUsers
+      const emailsData = emailsResult.status === 'fulfilled' ? emailsResult.value : emails
+      const paymentsData = paymentsResult.status === 'fulfilled' ? paymentsResult.value : dashboardPayments
+      const summaryData = summaryResult.status === 'fulfilled' ? summaryResult.value : dashboardSummary
+      const failedLoads = [
+        visitorsResult.status === 'rejected' ? 'users' : null,
+        enrichedUsersResult.status === 'rejected' ? 'enriched users' : null,
+        emailsResult.status === 'rejected' ? 'emails' : null,
+        paymentsResult.status === 'rejected' ? 'payments' : null,
+        summaryResult.status === 'rejected' ? 'dashboard summary' : null,
+      ].filter(Boolean)
       
       console.log('✅ Loaded visitors:', visitorsData?.length || 0, visitorsData)
       console.log('✅ Loaded enriched users:', enrichedUsersData?.length || 0)
@@ -191,6 +236,7 @@ export default function AdminDashboard() {
       setEmails(emailsData || [])
       setDashboardPayments(paymentsData || [])
       setDashboardSummary(summaryData || null)
+      setDataError(failedLoads.length > 0 ? `Some CRM data failed to load: ${failedLoads.join(', ')}. Showing the rest.` : null)
       
       // If we have a selected visitor, update it from the fresh data to prevent stale data
       if (selectedVisitor) {
@@ -347,6 +393,17 @@ export default function AdminDashboard() {
     navigate('/admin/login')
   }
 
+  const copyToClipboard = async (value?: string) => {
+    if (!value) return
+    try {
+      await navigator.clipboard.writeText(value)
+      alert('Copied to clipboard.')
+    } catch (error) {
+      console.error('Failed to copy:', error)
+      alert(value)
+    }
+  }
+
   const loadPricingData = async () => {
     try {
       const [config, plans] = await Promise.all([
@@ -456,12 +513,48 @@ export default function AdminDashboard() {
             Pricing
           </button>
         </nav>
+        <div className="admin-context-card">
+          <div className="admin-context-title">This Browser</div>
+          <button
+            type="button"
+            className="admin-context-copy"
+            onClick={() => copyToClipboard(adminContext.browserVisitorId)}
+            title={adminContext.browserVisitorId || 'No visitor ID found in this browser'}
+          >
+            <span>Visitor</span>
+            <strong>{shortId(adminContext.browserVisitorId)}</strong>
+          </button>
+          <button
+            type="button"
+            className="admin-context-copy"
+            onClick={() => copyToClipboard(adminContext.adminSessionId)}
+            title={adminContext.adminSessionId}
+          >
+            <span>Admin session</span>
+            <strong>{shortId(adminContext.adminSessionId)}</strong>
+          </button>
+        </div>
         <button onClick={handleLogout} className="logout-btn">
           Logout
         </button>
       </div>
 
       <div className="admin-content">
+        <div className="crm-identity-banner">
+          <div>
+            <span>Your browser visitor ID</span>
+            <strong title={adminContext.browserVisitorId || 'No visitor ID found in this browser'}>
+              {adminContext.browserVisitorId || 'Not found in this browser'}
+            </strong>
+          </div>
+          <div>
+            <span>Admin session ID</span>
+            <strong title={adminContext.adminSessionId}>{adminContext.adminSessionId}</strong>
+          </div>
+          <button type="button" onClick={() => copyToClipboard(adminContext.browserVisitorId || adminContext.adminSessionId)}>
+            Copy reset ID
+          </button>
+        </div>
         {activeTab === 'dashboard' && (
           <div className="dashboard-metrics">
             <h1>Dashboard</h1>
@@ -610,7 +703,16 @@ export default function AdminDashboard() {
 
                         return (
                         <tr key={user.visitorId}>
-                          <td>{user.visitorId.substring(0, 8)}...</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="id-pill"
+                              title={user.visitorId}
+                              onClick={() => copyToClipboard(user.visitorId)}
+                            >
+                              {shortId(user.visitorId)}
+                            </button>
+                          </td>
                           <td>{user.email || 'N/A'}</td>
                           <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                           <td>${user.totalSpent.toFixed(2)}</td>
@@ -1140,6 +1242,15 @@ export default function AdminDashboard() {
             </button>
             <h1>User Details</h1>
             <div className="user-detail-card">
+              <div className="admin-reset-target">
+                <div>
+                  <span>Reset target</span>
+                  <strong>{selectedVisitor.visitorId}</strong>
+                </div>
+                <button type="button" className="copy-id-btn" onClick={() => copyToClipboard(selectedVisitor.visitorId)}>
+                  Copy visitor ID
+                </button>
+              </div>
               <div className="detail-row">
                 <strong>Visitor ID:</strong>
                 <span>{selectedVisitor.visitorId}</span>
@@ -1179,16 +1290,18 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <div className="detail-row">
-                <strong>Credits:</strong>
-                <span className={`credits-badge ${selectedVisitor.creditBalance > 0 ? 'has-credits' : 'no-credits'}`}>
-                  🪙 {(() => {
-                    // Calculate total remaining messages (purchased credits + free messages remaining)
-                    const freeMessagesUsed = Math.min(selectedVisitor.messageCount, freeLimit)
-                    const freeMessagesRemaining = Math.max(0, freeLimit - freeMessagesUsed)
-                    const totalRemaining = selectedVisitor.creditBalance + freeMessagesRemaining
-                    return totalRemaining
-                  })()}
+                <strong>Total Available:</strong>
+                <span className={`credits-badge ${selectedTotalAvailable > 0 ? 'has-credits' : 'no-credits'}`}>
+                  {selectedTotalAvailable}
                 </span>
+              </div>
+              <div className="detail-row">
+                <strong>Paid Credit Balance:</strong>
+                <span>{selectedVisitor.creditBalance}</span>
+              </div>
+              <div className="detail-row">
+                <strong>Free Messages Remaining:</strong>
+                <span>{selectedFreeMessagesRemaining} of {freeLimit}</span>
               </div>
               <div className="detail-row">
                 <strong>Premium:</strong>
@@ -1221,10 +1334,10 @@ export default function AdminDashboard() {
             </div>
 
             <div className="message-count-management">
-              <h2>Reset Message Count</h2>
+              <h2>Free Message Reset</h2>
               <div className="reset-messages-form">
                 <label>
-                  Reset to (leave empty to reset to free limit):
+                  Free messages remaining after reset:
                   <input
                     type="number"
                     min="0"
@@ -1232,14 +1345,14 @@ export default function AdminDashboard() {
                     value={resetMessageCountTo !== undefined ? resetMessageCountTo : ''}
                     onChange={(e) => setResetMessageCountTo(e.target.value ? parseInt(e.target.value) : undefined)}
                     className="credits-input"
-                    placeholder="e.g., 5"
+                    placeholder={`blank = ${freeLimit}`}
                   />
                   <small style={{ display: 'block', color: '#6b7280', marginTop: '4px' }}>
-                    Leave empty to reset to free limit (default: 5). Set a number if user purchased something.
+                    Leave blank to restore the full free allowance and clear paid credits. Enter 0 to mark all free messages used.
                   </small>
                 </label>
                 <button onClick={handleResetMessageCount} className="reset-messages-btn">
-                  Reset Message Count
+                  Apply Free Reset
                 </button>
               </div>
             </div>
@@ -1249,7 +1362,7 @@ export default function AdminDashboard() {
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <button onClick={() => handleQuickCredits(5)} className="add-credits-btn">+5 Credits</button>
                 <button onClick={() => handleQuickCredits(20)} className="add-credits-btn">+20 Credits</button>
-                <button onClick={handleResetCredits} className="add-credits-btn" style={{ background: '#ef4444' }}>Reset Credits</button>
+                <button onClick={handleResetCredits} className="add-credits-btn" style={{ background: '#ef4444' }}>Reset Paid Credits</button>
                 <button onClick={handleMarkPremium} className="add-credits-btn" style={{ background: '#0f766e' }}>Mark Premium</button>
               </div>
             </div>

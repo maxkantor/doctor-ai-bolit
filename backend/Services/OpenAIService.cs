@@ -161,10 +161,9 @@ This is general information only. When in doubt, seek in-person care.";
                 .TakeLast(6)
                 .Select(m => $"{m.Role}: {m.Content}"));
 
-            var imageSource = !string.IsNullOrWhiteSpace(imageUrl)
-                ? imageUrl
-                : $"data:{imageContentType};base64,{Convert.ToBase64String(imageBytes)}";
-            Console.WriteLine($"[OpenAIPhoto] Sending vision request. Model={_visionModel}, Source={(string.IsNullOrWhiteSpace(imageUrl) ? "data-url" : "presigned-url")}, ContentType={imageContentType}, Bytes={imageBytes.Length}");
+            var imageDataUrl = $"data:{imageContentType};base64,{Convert.ToBase64String(imageBytes)}";
+            var retryImageSource = string.IsNullOrWhiteSpace(imageUrl) ? imageDataUrl : imageUrl;
+            Console.WriteLine($"[OpenAIPhoto] Sending vision request. Model={_visionModel}, Source=data-url, HasPresignedRetry={!string.IsNullOrWhiteSpace(imageUrl)}, ContentType={imageContentType}, Bytes={imageBytes.Length}");
             var requestBody = new
             {
                 model = _visionModel,
@@ -199,7 +198,7 @@ Respond using the required section headings exactly.
                                 type = "image_url",
                                 image_url = new
                                 {
-                                    url = imageSource
+                                    url = imageDataUrl
                                 }
                             }
                         }
@@ -221,7 +220,7 @@ Respond using the required section headings exactly.
             if (IsImageUnavailableResponse(answer))
             {
                 Console.WriteLine("[OpenAIPhoto] First vision response could not view image; retrying with simplified prompt.");
-                answer = await GeneratePhotoGuidanceRetryAsync(userMessage, imageSource, cancellationToken);
+                answer = await GeneratePhotoGuidanceRetryAsync(userMessage, retryImageSource, cancellationToken);
             }
             if (IsImageUnavailableResponse(answer))
             {
@@ -295,7 +294,7 @@ Never state a definitive diagnosis. Do not recommend prescription medication. In
     {
         if (string.IsNullOrWhiteSpace(response))
         {
-            return false;
+            return true;
         }
 
         var lower = response.ToLowerInvariant();
@@ -306,7 +305,16 @@ Never state a definitive diagnosis. Do not recommend prescription medication. In
                lower.Contains("cannot analyze") ||
                lower.Contains("can't analyze") ||
                lower.Contains("can’t analyze") ||
-               lower.Contains("has not been uploaded");
+               lower.Contains("unable to analyze") ||
+               lower.Contains("has not been uploaded") ||
+               lower.Contains("image wasn't uploaded") ||
+               lower.Contains("image was not uploaded") ||
+               lower.Contains("can't assist with that") ||
+               lower.Contains("cannot assist with that") ||
+               lower.Contains("can’t assist with that") ||
+               lower == "i'm sorry, i can't assist with that." ||
+               lower == "i’m sorry, i can’t assist with that." ||
+               lower == "i am sorry, i cannot assist with that.";
     }
 
     public async IAsyncEnumerable<string> StreamResponseAsync(string userMessage, List<ChatMessage> conversationHistory, string? systemPrompt = null, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)

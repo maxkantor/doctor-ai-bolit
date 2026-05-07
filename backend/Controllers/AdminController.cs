@@ -122,8 +122,18 @@ public class AdminController : ControllerBase
     {
         if (!IsAuthorized()) return Unauthorized();
 
-        await _adminService.AddCreditsAsync(request.VisitorId, request.Credits);
-        return Ok(new { success = true });
+        if (string.IsNullOrWhiteSpace(request.VisitorId) || request.Credits <= 0)
+        {
+            return BadRequest(new { success = false, message = "VisitorId and a positive credit amount are required." });
+        }
+
+        var visitor = await _adminService.AddCreditsAsync(request.VisitorId, request.Credits);
+        if (visitor == null)
+        {
+            return NotFound(new { success = false, message = $"Visitor '{request.VisitorId}' was not found." });
+        }
+
+        return Ok(new { success = true, visitor });
     }
 
     [HttpPost("reset-credits")]
@@ -131,8 +141,18 @@ public class AdminController : ControllerBase
     {
         if (!IsAuthorized()) return Unauthorized();
 
-        await _adminService.ResetCreditsAsync(request.VisitorId);
-        return Ok(new { success = true });
+        if (string.IsNullOrWhiteSpace(request.VisitorId))
+        {
+            return BadRequest(new { success = false, message = "VisitorId is required." });
+        }
+
+        var visitor = await _adminService.ResetCreditsAsync(request.VisitorId);
+        if (visitor == null)
+        {
+            return NotFound(new { success = false, message = $"Visitor '{request.VisitorId}' was not found." });
+        }
+
+        return Ok(new { success = true, visitor });
     }
 
     [HttpPost("mark-premium")]
@@ -140,8 +160,18 @@ public class AdminController : ControllerBase
     {
         if (!IsAuthorized()) return Unauthorized();
 
-        await _adminService.MarkPremiumAsync(request.VisitorId, request.IsPremium);
-        return Ok(new { success = true });
+        if (string.IsNullOrWhiteSpace(request.VisitorId))
+        {
+            return BadRequest(new { success = false, message = "VisitorId is required." });
+        }
+
+        var visitor = await _adminService.MarkPremiumAsync(request.VisitorId, request.IsPremium);
+        if (visitor == null)
+        {
+            return NotFound(new { success = false, message = $"Visitor '{request.VisitorId}' was not found." });
+        }
+
+        return Ok(new { success = true, visitor });
     }
 
     [HttpPost("reset")]
@@ -149,8 +179,18 @@ public class AdminController : ControllerBase
     {
         if (!IsAuthorized()) return Unauthorized();
 
-        await _adminService.ResetVisitorAsync(request.VisitorId);
-        return Ok(new { success = true });
+        if (string.IsNullOrWhiteSpace(request.VisitorId))
+        {
+            return BadRequest(new { success = false, message = "VisitorId is required." });
+        }
+
+        var visitor = await _adminService.ResetVisitorAsync(request.VisitorId);
+        if (visitor == null)
+        {
+            return NotFound(new { success = false, message = $"Visitor '{request.VisitorId}' was not found." });
+        }
+
+        return Ok(new { success = true, visitor });
     }
 
     [HttpPost("reset-messages")]
@@ -158,8 +198,18 @@ public class AdminController : ControllerBase
     {
         if (!IsAuthorized()) return Unauthorized();
 
-        await _adminService.ResetMessageCountAsync(request.VisitorId, request.ResetTo);
-        return Ok(new { success = true });
+        if (string.IsNullOrWhiteSpace(request.VisitorId))
+        {
+            return BadRequest(new { success = false, message = "VisitorId is required." });
+        }
+
+        var visitor = await _adminService.ResetMessageCountAsync(request.VisitorId, request.ResetTo);
+        if (visitor == null)
+        {
+            return NotFound(new { success = false, message = $"Visitor '{request.VisitorId}' was not found." });
+        }
+
+        return Ok(new { success = true, visitor });
     }
 
     [HttpGet("emails")]
