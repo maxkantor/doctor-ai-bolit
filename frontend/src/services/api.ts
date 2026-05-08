@@ -19,12 +19,13 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl()
 
-// Log API configuration for debugging (always log to help diagnose issues)
-console.log('🔧 API Configuration:', {
-  baseURL: API_BASE_URL,
-  envVar: import.meta.env.VITE_API_URL,
-  envUrl: import.meta.env.VITE_API_URL || 'not set',
-})
+if (import.meta.env.DEV) {
+  console.log('🔧 API Configuration:', {
+    baseURL: API_BASE_URL,
+    envVar: import.meta.env.VITE_API_URL,
+    envUrl: import.meta.env.VITE_API_URL || 'not set',
+  })
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
