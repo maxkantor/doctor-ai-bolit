@@ -12,7 +12,7 @@ public class OpenAIService : IOpenAIService
     private readonly string? _apiKey;
     private readonly string _model = "gpt-4o-mini"; // Cost-effective model
     private readonly string _visionModel = "gpt-4o"; // Use full vision model for paid photo checks.
-    private const int MaxResponseTokens = 700; // Enough for direct answer + 3–7 suggestions + optional disclaimer
+    private const int MaxResponseTokens = 1000; // Photo checks need enough room for visible details + targeted next steps.
 
     // Mental health / crisis detection — direct to crisis resources
     private readonly HashSet<string> _crisisKeywords = new(StringComparer.OrdinalIgnoreCase)
@@ -183,12 +183,14 @@ This is general information only. When in doubt, seek in-person care.";
                             {
                                 type = "text",
                                 text = $"""
-You are receiving an uploaded image with this request. Carefully inspect the image and answer the user's question.
+You are receiving an uploaded image with this request. Carefully inspect the image and answer the user's question with photo-specific guidance, not a generic template.
 
 Question: {userMessage}
 
 Recent conversation context:
 {recentHistoryText}
+
+Before writing, identify the most relevant visible clues: location if inferable, color, shape, borders, swelling, drainage, bruising, number of spots, distribution, and whether the surrounding skin looks affected. Only mention clues you can actually see.
 
 Respond using the required section headings exactly.
 """
@@ -252,7 +254,7 @@ Respond using the required section headings exactly.
                         {
                             type = "text",
                             text = $"""
-Look at the attached image and answer this user question: {userMessage}
+Look closely at the attached image and answer this user question with image-specific guidance, not generic advice: {userMessage}
 
 Use these headings exactly:
 What I can see
@@ -262,7 +264,7 @@ Red flags to watch for
 When to seek medical care
 Emergency warning
 
-Never state a definitive diagnosis. Do not recommend prescription medication. Include: "This is educational guidance only and not a medical diagnosis."
+In "What I can see", include 2-4 concrete visual observations from the image. In "Possible explanations", explain why each possibility could fit the visible clues and include uncertainty. Never state a definitive diagnosis. Do not recommend prescription medication. Include: "This is educational guidance only and not a medical diagnosis."
 """
                         },
                         new
@@ -532,6 +534,14 @@ Keep responses focused, readable, and helpful. Prioritize usefulness and clarity
         return """
 You are Doctor Aibolit's premium AI Photo Check. Give educational AI photo guidance only.
 
+Quality bar:
+- Make the answer feel like it was written after actually looking at this image and reading this exact question.
+- Do not give a generic skin/rash/injury checklist. Tie every section to visible details and the user's wording.
+- If the user asks "what is it?", say what the visible pattern may be most consistent with, give 2-4 reasonable possibilities, and explain what visual clues support each one.
+- If the user asks "how to treat this?", answer with practical care steps for the visible issue first, then explain what changes would make the advice different.
+- If important context is missing, ask 1-3 short follow-up questions at the end, but still give useful next steps now.
+- Mention limits of the photo only when relevant, for example if scale, pain, warmth, timing, or spreading cannot be judged visually.
+
 Safety and wording rules:
 - You are receiving an image input. Review visible details in the image, but do not overstate certainty.
 - Never provide a definitive diagnosis from an image.
@@ -549,7 +559,15 @@ Red flags to watch for
 When to seek medical care
 Emergency warning
 
-Keep the answer concise, calm, practical, and privacy-minded.
+Section requirements:
+- What I can see: 2-4 concrete observations, such as color, swelling, shape, borders, visible breaks in skin, discharge, bruising, or distribution. Do not say only "a patch of skin" unless that is truly all that is visible.
+- Possible explanations, not a diagnosis: list the most likely possibilities first. For each, include one image-based reason it could fit and one uncertainty or detail that would change the assessment.
+- What you can do safely at home: give specific, low-risk actions. Include what to avoid, such as scratching, squeezing, harsh chemicals, or covering too tightly when relevant.
+- Red flags to watch for: tailor these to the visible issue and question.
+- When to seek medical care: give concrete timing, for example "today", "within 24-48 hours", or "if it is not improving after a few days", based on severity.
+- Emergency warning: keep it short, direct, and include emergency symptoms only.
+
+Tone: direct, premium, human, and practical. Avoid filler phrases and avoid repeating the same idea in multiple sections.
 """;
     }
 
