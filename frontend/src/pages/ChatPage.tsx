@@ -298,12 +298,23 @@ export default function ChatPage() {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
     if (!allowedTypes.includes(file.type)) {
       setPhotoUploadError(t('chat.photoCheckInvalidType'))
+      void chatService.recordPhotoCheckClientEvent({
+        visitorId,
+        reason: 'invalid_image_type',
+        detail: file.type || 'unknown',
+        fileSizeBytes: file.size,
+      })
       event.target.value = ''
       return
     }
 
     if (file.size > 5 * 1024 * 1024) {
       setPhotoUploadError(t('chat.photoCheckFileTooLarge'))
+      void chatService.recordPhotoCheckClientEvent({
+        visitorId,
+        reason: 'file_too_large',
+        fileSizeBytes: file.size,
+      })
       event.target.value = ''
       return
     }

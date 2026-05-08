@@ -13,5 +13,11 @@ public class ContactMessage
     public string Message { get; set; } = string.Empty;
     public string Status { get; set; } = "new";
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>Optional browser visitor id from X-Visitor-Id for CRM correlation.</summary>
+    public string? VisitorId { get; set; }
+
+    /// <summary>null = legacy row; true after SES notify succeeds; false if notify failed (message still saved).</summary>
+    public bool? EmailSent { get; set; }
 }
 

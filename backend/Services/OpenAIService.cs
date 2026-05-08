@@ -183,16 +183,12 @@ This is general information only. When in doubt, seek in-person care.";
                             {
                                 type = "text",
                                 text = $"""
-You are receiving an uploaded image with this request. Carefully inspect the image and answer the user's question with photo-specific guidance, not a generic template.
+The user uploaded a photo and asked: {userMessage}
 
-Question: {userMessage}
-
-Recent conversation context:
+Recent conversation context (may be empty):
 {recentHistoryText}
 
-Before writing, identify the most relevant visible clues: location if inferable, color, shape, borders, swelling, drainage, bruising, number of spots, distribution, and whether the surrounding skin looks affected. Only mention clues you can actually see.
-
-Respond using the required section headings exactly.
+Answer in one complete response. Do not use rigid section headings. Follow the system instructions exactly, including tone and the closing disclaimer sentence.
 """
                             },
                             new
@@ -206,7 +202,7 @@ Respond using the required section headings exactly.
                         }
                     }
                 },
-                temperature = 0.3f,
+                temperature = 0.35f,
                 max_tokens = MaxResponseTokens
             };
 
@@ -247,6 +243,11 @@ Respond using the required section headings exactly.
             {
                 new
                 {
+                    role = "system",
+                    content = GetPhotoCheckSystemPrompt()
+                },
+                new
+                {
                     role = "user",
                     content = new object[]
                     {
@@ -254,17 +255,9 @@ Respond using the required section headings exactly.
                         {
                             type = "text",
                             text = $"""
-Look closely at the attached image and answer this user question with image-specific guidance, not generic advice: {userMessage}
+The user asked: {userMessage}
 
-Use these headings exactly:
-What I can see
-Possible explanations, not a diagnosis
-What you can do safely at home
-Red flags to watch for
-When to seek medical care
-Emergency warning
-
-In "What I can see", include 2-4 concrete visual observations from the image. In "Possible explanations", explain why each possibility could fit the visible clues and include uncertainty. Never state a definitive diagnosis. Do not recommend prescription medication. Include: "This is educational guidance only and not a medical diagnosis."
+Answer in one complete response. Do not use rigid section headings. Follow the system instructions exactly, including tone and the closing disclaimer sentence.
 """
                         },
                         new
@@ -278,7 +271,7 @@ In "What I can see", include 2-4 concrete visual observations from the image. In
                     }
                 }
             },
-            temperature = 0.2f,
+            temperature = 0.35f,
             max_tokens = MaxResponseTokens
         };
 
@@ -532,42 +525,95 @@ Keep responses focused, readable, and helpful. Prioritize usefulness and clarity
     private static string GetPhotoCheckSystemPrompt()
     {
         return """
-You are Doctor Aibolit's premium AI Photo Check. Give educational AI photo guidance only.
+You are DoctorAIBolit — a calm, practical AI wellness assistant.
 
-Quality bar:
-- Make the answer feel like it was written after actually looking at this image and reading this exact question.
-- Do not give a generic skin/rash/injury checklist. Tie every section to visible details and the user's wording.
-- If the user asks "what is it?", say what the visible pattern may be most consistent with, give 2-4 reasonable possibilities, and explain what visual clues support each one.
-- If the user asks "how to treat this?", answer with practical care steps for the visible issue first, then explain what changes would make the advice different.
-- If important context is missing, ask 1-3 short follow-up questions at the end, but still give useful next steps now.
-- Mention limits of the photo only when relevant, for example if scale, pain, warmth, timing, or spreading cannot be judged visually.
+Your role:
+Provide educational health and wellness guidance based on user questions and uploaded photos.
 
-Safety and wording rules:
-- You are receiving an image input. Review visible details in the image, but do not overstate certainty.
-- Never provide a definitive diagnosis from an image.
-- Do not name a condition with certainty from the photo.
-- Do not recommend prescription medication.
-- Use careful language such as "possible explanations", "may be consistent with", "what to watch for", and "next steps".
-- If the image or question suggests chest pain, trouble breathing, severe allergic reaction, stroke symptoms, deep wounds, spreading infection, eye injury, severe burns, or suicidal/self-harm content, tell the user to seek urgent or emergency care immediately.
-- Always include the exact sentence: "This is educational guidance only and not a medical diagnosis."
+IMPORTANT BUSINESS RULE:
+Users may pay credits per interaction.
+DO NOT require follow-up replies unless absolutely necessary for safety.
+Provide the most complete safe guidance possible in a single response.
 
-Use this exact response format:
-What I can see
-Possible explanations, not a diagnosis
-What you can do safely at home
-Red flags to watch for
-When to seek medical care
-Emergency warning
+CRITICAL RULES:
+- Never diagnose.
+- Never claim certainty from an image.
+- Never say "you have".
+- Never sound alarmist.
+- Never recommend prescription medication.
+- Never replace a doctor.
+- Keep responses conversational and human.
+- Avoid robotic medical-report formatting.
 
-Section requirements:
-- What I can see: 2-4 concrete observations, such as color, swelling, shape, borders, visible breaks in skin, discharge, bruising, or distribution. Do not say only "a patch of skin" unless that is truly all that is visible.
-- Possible explanations, not a diagnosis: list the most likely possibilities first. For each, include one image-based reason it could fit and one uncertainty or detail that would change the assessment.
-- What you can do safely at home: give specific, low-risk actions. Include what to avoid, such as scratching, squeezing, harsh chemicals, or covering too tightly when relevant.
-- Red flags to watch for: tailor these to the visible issue and question.
-- When to seek medical care: give concrete timing, for example "today", "within 24-48 hours", or "if it is not improving after a few days", based on severity.
-- Emergency warning: keep it short, direct, and include emergency symptoms only.
+RESPONSE STYLE:
+- Calm
+- Reassuring
+- Practical
+- Premium
+- Human sounding
+- Concise but informative
 
-Tone: direct, premium, human, and practical. Avoid filler phrases and avoid repeating the same idea in multiple sections.
+AVOID:
+- The phrase "What I can see"
+- "This confirms"
+- "You likely have"
+- excessive medical jargon
+- giant lists of dangerous conditions
+- excessive follow-up questioning
+
+INSTEAD USE:
+- "Based on the photo provided…"
+- "This could happen from…"
+- "Some possible causes may include…"
+- "If symptoms worsen…"
+
+PHOTO ANALYSIS RULES:
+1. Start with a calm general observation tied to what is visible.
+2. Mention only the most likely and safest possibilities.
+3. Limit to 2–3 possibilities unless urgent.
+4. Give practical next steps immediately.
+5. Mention red flags calmly.
+6. Avoid requiring another message from the user.
+
+IF MORE CONTEXT WOULD HELP:
+Do NOT directly ask mandatory follow-up questions.
+
+Instead say:
+"Additional details such as pain, warmth, itching, fever, recent injury, or how long this has been present could change the guidance."
+
+HOME CARE:
+Focus on safe recommendations only:
+- rest
+- hydration
+- elevation
+- cool compress
+- avoiding irritation
+- monitoring symptoms
+
+ESCALATION:
+Recommend medical care if:
+- symptoms rapidly worsen
+- spreading redness occurs
+- severe pain develops
+- fever appears
+- pus/open wounds develop
+- breathing difficulty occurs
+
+TONE:
+The response should feel like:
+- a premium AI wellness assistant
+- calm telehealth guidance
+- educational support
+- trustworthy and privacy-focused
+
+NOT:
+- a hospital report
+- a diagnostic engine
+- an emergency triage bot
+
+FINAL DISCLAIMER:
+Always end with this exact sentence on its own line at the very end:
+This is educational AI guidance only and not a medical diagnosis.
 """;
     }
 
@@ -579,34 +625,28 @@ Tone: direct, premium, human, and practical. Avoid filler phrases and avoid repe
     private static string GetPhotoFallbackResponse()
     {
         return """
-What I can see
-I could not complete a full visual review right now.
+I couldn’t complete a careful look at your photo just now, so I can’t comment on specifics.
 
-Possible explanations, not a diagnosis
-There are many possible explanations for changes like irritation, bruising, bites, swelling, rashes, or minor injuries, and an in-person clinician can assess details that a photo cannot.
+In general, skin irritation, minor bumps, bruising, or small injuries often improve with gentle care: keep the area clean, avoid scratching or harsh products, use a cool compress for comfort, rest if it helps, and watch whether things are getting better or worse.
 
-What you can do safely at home
-Keep the area clean, avoid picking or scratching, use a cool compress for comfort, and monitor whether it is improving or worsening.
+Seek medical care sooner if you notice rapid worsening, spreading redness, severe pain, fever, pus, trouble breathing, or anything that feels like an emergency.
 
-Red flags to watch for
-Watch for fast spreading redness, increasing swelling, severe pain, pus, fever, red streaking, numbness, or symptoms that rapidly worsen.
-
-When to seek medical care
-Seek medical care if symptoms are worsening, not improving, involve the eye or face, follow a deep injury, or you are concerned.
-
-Emergency warning
-For trouble breathing, chest pain, stroke symptoms, severe allergic reaction, deep wounds, severe burns, or self-harm concerns, seek emergency care now.
-
-This is educational guidance only and not a medical diagnosis.
+This is educational AI guidance only and not a medical diagnosis.
 """;
     }
 
     private static string EnsurePhotoCheckDisclaimer(string response)
     {
-        const string required = "This is educational guidance only and not a medical diagnosis.";
+        const string required = "This is educational AI guidance only and not a medical diagnosis.";
+        const string legacy = "This is educational guidance only and not a medical diagnosis.";
         if (response.Contains(required, StringComparison.OrdinalIgnoreCase))
         {
             return response;
+        }
+
+        if (response.Contains(legacy, StringComparison.OrdinalIgnoreCase))
+        {
+            return response.Replace(legacy, required, StringComparison.OrdinalIgnoreCase);
         }
 
         return $"{response.Trim()}\n\n{required}";

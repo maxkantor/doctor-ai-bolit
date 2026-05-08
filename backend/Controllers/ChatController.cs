@@ -1,3 +1,4 @@
+using System.Text.Json;
 using DoctorAIBolit.Models;
 using DoctorAIBolit.Repositories;
 using DoctorAIBolit.Services;
@@ -123,11 +124,25 @@ public class ChatController : ControllerBase
             var remainingCredits = await _visitorService.GetRemainingCreditsAsync(request.VisitorId);
             return Ok(new ChatResponse
             {
-                Message = "I couldn't complete the photo check right now. Your credit was not used. Please try again in a moment, and seek urgent care now if this could be an emergency.\n\nThis is educational guidance only and not a medical diagnosis.",
+                Message = "I couldn't complete the photo check right now. Your credit was not used. Please try again in a moment, and seek urgent care now if this could be an emergency.\n\nThis is educational AI guidance only and not a medical diagnosis.",
                 RemainingMessages = remainingCredits,
                 RequiresPayment = false
             });
         }
+    }
+
+    /// <summary>Client-side validation failures (e.g. file too large) never hit photo-check; this records activity for CRM and logs.</summary>
+    [HttpPost("photo-check-client-event")]
+    public async Task<IActionResult> RecordPhotoCheckClientEvent([FromBody] PhotoCheckClientEventRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.VisitorId) || string.IsNullOrWhiteSpace(request.Reason))
+        {
+            return BadRequest("VisitorId and Reason are required");
+        }
+
+        await _visitorService.RecordVisitorActivityAsync(request.VisitorId.Trim(), cancellationToken);
+        Console.WriteLine($"[PhotoCheckClientEvent] {JsonSerializer.Serialize(request)}");
+        return Ok(new { success = true });
     }
 
     private static bool IsSupportedImageSignature(byte[] bytes, string contentType)

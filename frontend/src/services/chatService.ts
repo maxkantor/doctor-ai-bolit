@@ -20,6 +20,19 @@ export const chatService = {
     return response.data
   },
 
+  async recordPhotoCheckClientEvent(payload: {
+    visitorId: string
+    reason: string
+    fileSizeBytes?: number
+    detail?: string
+  }): Promise<void> {
+    try {
+      await api.post('/chat/photo-check-client-event', payload)
+    } catch {
+      // Fire-and-forget; do not block the user if logging fails
+    }
+  },
+
   async getSessions(visitorId: string): Promise<ChatSession[]> {
     const response = await api.get<ChatSession[]>(`/chat/sessions?visitorId=${visitorId}`)
     return response.data

@@ -767,6 +767,16 @@ export default function AdminDashboard() {
                   <div className="email-address">
                     <a href={`mailto:${email.email}`}>{email.email}</a>
                   </div>
+                  {email.visitorId ? (
+                    <div className="email-visitor-id" style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+                      Visitor ID: <code style={{ userSelect: 'all' }}>{email.visitorId}</code>
+                    </div>
+                  ) : null}
+                  {email.emailSent === false ? (
+                    <div style={{ marginTop: '8px', fontSize: '13px', color: '#b45309', fontWeight: 500 }}>
+                      Admin email notification failed — message is saved in CRM.
+                    </div>
+                  ) : null}
                   <div className="email-message">{email.message}</div>
                   <div className="email-actions" style={{ marginTop: '12px' }}>
                     <button

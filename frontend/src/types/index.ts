@@ -55,6 +55,8 @@ export interface ContactMessage {
   message: string
   status: string
   createdAt: string
+  visitorId?: string | null
+  emailSent?: boolean | null
 }
 
 export interface PricingConfig {

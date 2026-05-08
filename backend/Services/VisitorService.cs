@@ -40,6 +40,14 @@ public class VisitorService : IVisitorService
         return visitor;
     }
 
+    public async Task RecordVisitorActivityAsync(string visitorId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var visitor = await _visitorRepository.GetOrCreateVisitorAsync(visitorId);
+        visitor.LastActive = DateTime.UtcNow;
+        await _visitorRepository.UpdateVisitorAsync(visitor);
+    }
+
     private string GetSessionDate()
     {
         return DateTime.UtcNow.ToString("yyyy-MM-dd");
