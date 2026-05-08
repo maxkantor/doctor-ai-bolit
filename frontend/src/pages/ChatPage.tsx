@@ -50,6 +50,7 @@ export default function ChatPage() {
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null)
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null)
   const [photoUploadError, setPhotoUploadError] = useState<string | null>(null)
+  const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const [showPaywallModal, setShowPaywallModal] = useState(false)
@@ -59,12 +60,14 @@ export default function ChatPage() {
   const previousCreditBalanceRef = useRef<number>(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
+  const attachmentMenuRef = useRef<HTMLDivElement>(null)
   const isSendingRef = useRef(false) // Use ref to track if request is in flight (prevents race conditions)
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const closeSidebar = () => setSidebarOpen(false)
   const greetingText = t('chat.greeting')
   const hasUnlimitedMessages = remainingMessages >= UNLIMITED_MESSAGES_THRESHOLD
+  const isAnalyzingPhoto = isLoading && Boolean(selectedPhoto)
 
   useEffect(() => {
     scrollToTop()
@@ -210,6 +213,20 @@ export default function ChatPage() {
     }
   }, [photoPreviewUrl])
 
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!attachmentMenuRef.current?.contains(event.target as Node)) {
+        setIsAttachmentMenuOpen(false)
+      }
+    }
+
+    if (isAttachmentMenuOpen) {
+      document.addEventListener('mousedown', handleOutsideClick)
+    }
+
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [isAttachmentMenuOpen])
+
   const loadSessions = async () => {
     try {
       console.log('📚 Loading chat sessions for visitor:', visitorId)
@@ -300,6 +317,7 @@ export default function ChatPage() {
     if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl)
     setSelectedPhoto(file)
     setPhotoPreviewUrl(URL.createObjectURL(file))
+    setIsAttachmentMenuOpen(false)
   }
 
   const handleUploadPhotoClick = () => {
@@ -307,6 +325,7 @@ export default function ChatPage() {
       setShowPaywallModal(true)
       return
     }
+    setIsAttachmentMenuOpen(false)
     photoInputRef.current?.click()
   }
 
@@ -641,26 +660,55 @@ export default function ChatPage() {
             )}
             {isLoading && (
               <div className="message assistant-message">
-                <div className="typing-indicator">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
+                {isAnalyzingPhoto ? (
+                  <div className="photo-analysis-status">
+                    <span className="photo-analysis-pulse" aria-hidden="true"></span>
+                    <span>{t('chat.photoCheckAnalyzing', { defaultValue: 'Analyzing image privately…' })}</span>
+                  </div>
+                ) : (
+                  <div className="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                )}
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
           <div className="chat-input-container">
-            <div className="photo-check-panel">
-              <div className="photo-check-action-row">
+            {photoUploadError && <p className="photo-upload-error">{photoUploadError}</p>}
+            {photoPreviewUrl && selectedPhoto && (
+              <div className="photo-preview-card">
+                <img src={photoPreviewUrl} alt="Selected photo preview" className="photo-preview-image" />
+                <div className="photo-preview-copy">
+                  <strong>{t('chat.photoCheckPreviewTitle', { defaultValue: 'AI Photo Check' })}</strong>
+                  <span>{t('chat.photoCheckPreviewCredit', { defaultValue: '1 Credit' })}</span>
+                </div>
                 <button
                   type="button"
-                  className="photo-upload-btn"
-                  onClick={handleUploadPhotoClick}
-                  disabled={isLoading}
+                  onClick={clearSelectedPhoto}
+                  className="photo-remove-btn"
+                  aria-label={t('chat.photoCheckRemove')}
+                  title={t('chat.photoCheckRemove')}
                 >
-                  {t('chat.photoCheckUploadButton')}
+                  ×
+                </button>
+              </div>
+            )}
+            <div className="chat-input-wrapper">
+              <div className="attachment-control" ref={attachmentMenuRef}>
+                <button
+                  type="button"
+                  className={`attachment-plus-btn ${isAttachmentMenuOpen ? 'open' : ''}`}
+                  onClick={() => setIsAttachmentMenuOpen((open) => !open)}
+                  disabled={isLoading}
+                  aria-label={t('chat.attachmentButtonTooltip', { defaultValue: 'Add photo or health context' })}
+                  title={t('chat.attachmentButtonTooltip', { defaultValue: 'Add photo or health context' })}
+                  aria-expanded={isAttachmentMenuOpen}
+                >
+                  +
                 </button>
                 <input
                   ref={photoInputRef}
@@ -669,31 +717,38 @@ export default function ChatPage() {
                   className="photo-file-input"
                   onChange={handlePhotoSelect}
                 />
-                <span className="photo-privacy-pill">{t('chat.photoCheckPrivateUpload')}</span>
-              </div>
-              <p className="photo-helper-text">
-                {t('chat.photoCheckHelper')}
-              </p>
-              {photoUploadError && <p className="photo-upload-error">{photoUploadError}</p>}
-              {photoPreviewUrl && selectedPhoto && (
-                <div className="photo-preview-card">
-                  <img src={photoPreviewUrl} alt="Selected photo preview" className="photo-preview-image" />
-                  <div className="photo-preview-copy">
-                    <strong>{selectedPhoto.name}</strong>
-                    <span>{t('chat.photoCheckPreviewMeta', { size: (selectedPhoto.size / (1024 * 1024)).toFixed(2) })}</span>
-                    <button type="button" onClick={clearSelectedPhoto} className="photo-remove-btn">
-                      {t('chat.photoCheckRemove')}
+                {isAttachmentMenuOpen && (
+                  <div className="attachment-menu" role="menu">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={handleUploadPhotoClick}
+                      title={t('chat.photoUploadOptionTooltip', { defaultValue: 'Upload a photo for educational AI guidance' })}
+                    >
+                      <span>📷</span>
+                      {t('chat.photoUploadOption', { defaultValue: 'Upload Photo' })}
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={handleUploadPhotoClick}
+                      title={t('chat.photoCreditTooltip', { defaultValue: '1 credit charged only after successful analysis' })}
+                    >
+                      <span>🩺</span>
+                      {t('chat.photoCheckMenuOption', { defaultValue: 'AI Photo Check' })} <em>{t('chat.photoCheckPreviewCredit', { defaultValue: '1 Credit' })}</em>
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      title={t('chat.photoPrivacyTooltip', { defaultValue: 'Images are private and automatically removed after processing' })}
+                      onClick={() => setIsAttachmentMenuOpen(false)}
+                    >
+                      <span>🔒</span>
+                      {t('chat.privateUploadOption', { defaultValue: 'Private Upload' })}
                     </button>
                   </div>
-                </div>
-              )}
-              {selectedPhoto && (
-                <p className="photo-consent-text">
-                  {t('chat.photoCheckConsent')}
-                </p>
-              )}
-            </div>
-            <div className="chat-input-wrapper">
+                )}
+              </div>
               <textarea
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
