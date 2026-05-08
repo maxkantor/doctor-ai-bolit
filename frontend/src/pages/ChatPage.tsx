@@ -16,6 +16,8 @@ function generateSessionId(): string {
   return `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 }
 
+const UNLIMITED_MESSAGES_THRESHOLD = 1_000_000
+
 export default function ChatPage() {
   const { t, i18n } = useTranslation()
   const [visitorId] = useState(() => {
@@ -62,6 +64,7 @@ export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const closeSidebar = () => setSidebarOpen(false)
   const greetingText = t('chat.greeting')
+  const hasUnlimitedMessages = remainingMessages >= UNLIMITED_MESSAGES_THRESHOLD
 
   useEffect(() => {
     scrollToTop()
@@ -584,9 +587,11 @@ export default function ChatPage() {
               <div className="credits-info">
                 <span className="credits-icon">💬</span>
                 <span className="remaining-messages">
-                  {creditBalance > 0 
-                    ? t('chat.messagesRemaining', { count: remainingMessages })
-                    : t('chat.freeMessagesRemaining', { count: remainingMessages })
+                  {hasUnlimitedMessages
+                    ? t('chat.unlimitedMessages', { defaultValue: 'Premium unlimited' })
+                    : creditBalance > 0
+                      ? t('chat.messagesRemaining', { count: remainingMessages })
+                      : t('chat.freeMessagesRemaining', { count: remainingMessages })
                   }
                 </span>
               </div>

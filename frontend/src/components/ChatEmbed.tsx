@@ -16,6 +16,8 @@ function generateSessionId(): string {
   return `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 }
 
+const UNLIMITED_MESSAGES_THRESHOLD = 1_000_000
+
 export default function ChatEmbed({ systemPrompt }: ChatEmbedProps) {
   const [visitorId] = useState(() => getOrCreateVisitorId())
   const [sessionId] = useState(() => generateSessionId())
@@ -104,6 +106,7 @@ export default function ChatEmbed({ systemPrompt }: ChatEmbedProps) {
   ]
 
   const showEmptyState = messages.length === 0
+  const hasUnlimitedMessages = remainingMessages >= UNLIMITED_MESSAGES_THRESHOLD
 
   const handleSuggestedPrompt = async (prompt: string) => {
     if (!prompt.trim() || isLoading || remainingMessages <= 0) return
@@ -134,7 +137,10 @@ export default function ChatEmbed({ systemPrompt }: ChatEmbedProps) {
       <div className="chat-embed-header">
         <h3>Practical health guidance — free to start, no signup.</h3>
         <div className="chat-embed-credits">
-          {remainingMessages} free {remainingMessages === 1 ? 'message' : 'messages'} left
+          {hasUnlimitedMessages
+            ? 'Premium unlimited'
+            : `${remainingMessages} free ${remainingMessages === 1 ? 'message' : 'messages'} left`
+          }
         </div>
       </div>
 

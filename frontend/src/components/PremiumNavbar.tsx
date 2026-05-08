@@ -7,6 +7,8 @@ import { chatService } from '../services/chatService'
 import { pricingService } from '../services/pricingService'
 import './PremiumNavbar.css'
 
+const UNLIMITED_MESSAGES_THRESHOLD = 1_000_000
+
 export default function PremiumNavbar() {
   const { t } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
@@ -54,7 +56,10 @@ export default function PremiumNavbar() {
           const purchasedRemaining = remaining.creditBalance || 0
           const hasPaidCredits = purchasedRemaining > 0 || purchasedTotal > 0 || totalCreditsAdded > 0 || inferredPurchasedTotal > 0
 
-          if (hasPaidCredits) {
+          if (chatRemaining >= UNLIMITED_MESSAGES_THRESHOLD) {
+            setUsageText('Premium')
+            setUsageTooltip('Unlimited premium messages')
+          } else if (hasPaidCredits) {
             const baseDenominator = Math.max(purchasedTotal, totalCreditsAdded, inferredPurchasedTotal, purchasedRemaining)
             // Aggressive safety guard: never show X/X for paid users when totals are partially missing.
             const safeDenominator = baseDenominator > chatRemaining ? baseDenominator : chatRemaining + 2
