@@ -1496,3 +1496,158 @@ main,
     grid-template-columns: 1fr;
   }
 }
+
+/* Homepage SEO expansion (below-the-fold; matches premium medical grid) */
+.landing-seo-expansion {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 1.5rem) clamp(2.5rem, 6vw, 4rem);
+  box-sizing: border-box;
+}
+
+.landing-seo-section {
+  margin-top: clamp(2rem, 5vw, 3rem);
+}
+
+.landing-seo-title {
+  text-align: left;
+  margin-bottom: 0.5rem;
+}
+
+.landing-seo-subtitle {
+  margin: 0 0 1.25rem;
+  max-width: 720px;
+  color: #475569;
+  font-size: clamp(0.9rem, 1.8vw, 1rem);
+  line-height: 1.55;
+}
+
+.landing-seo-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.landing-seo-pill {
+  display: block;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  text-decoration: none;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.landing-seo-pill:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+  transform: translateY(-2px);
+}
+
+.landing-seo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: clamp(0.75rem, 2vw, 1rem);
+}
+
+.landing-seo-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.1rem;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  min-height: 96px;
+  box-sizing: border-box;
+}
+
+.landing-seo-card:hover {
+  transform: translateY(-3px);
+  border-color: #93c5fd;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.12);
+}
+
+.landing-seo-card-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin-bottom: 0.35rem;
+}
+
+.landing-seo-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.landing-seo-row-link {
+  margin-top: 1rem;
+}
+
+.landing-seo-row-link a {
+  color: #2563eb;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.landing-seo-row-link a:hover {
+  text-decoration: underline;
+}
+
+.landing-seo-clusters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.landing-seo-cluster {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1rem 1.15rem;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+}
+
+.landing-seo-cluster-title {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.landing-seo-cluster-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.landing-seo-cluster-list a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.landing-seo-cluster-list a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .landing-seo-title {
+    font-size: 1.35rem;
+  }
+}

@@ -35,21 +35,32 @@ export default function Footer() {
               {t('footer.platform')}
             </Link>
           </div>
-          <div className="footer-symptom-links" aria-label="Symptom guides">
+          <div className="footer-symptom-links" aria-label="Educational content">
             <Link to="/symptoms" className="footer-symptom-link">
               Symptoms
             </Link>
             <span className="footer-symptom-sep" aria-hidden="true">
               ·
             </span>
-            <Link to="/symptoms/chest-pain" className="footer-symptom-link">
-              Chest Pain
+            <Link to="/guides" className="footer-symptom-link">
+              Guides
             </Link>
             <span className="footer-symptom-sep" aria-hidden="true">
               ·
             </span>
-            <Link to="/symptoms/rash" className="footer-symptom-link">
-              Rash
+            <Link to="/tools" className="footer-symptom-link">
+              Tools
+            </Link>
+            <span className="footer-symptom-sep" aria-hidden="true">
+              ·
+            </span>
+            <Link to="/faq" className="footer-symptom-link">
+              FAQ
+            </Link>
+          </div>
+          <div className="footer-symptom-links" aria-label="Popular symptom guides">
+            <Link to="/symptoms/chest-pain" className="footer-symptom-link">
+              Chest Pain
             </Link>
             <span className="footer-symptom-sep" aria-hidden="true">
               ·
@@ -60,8 +71,26 @@ export default function Footer() {
             <span className="footer-symptom-sep" aria-hidden="true">
               ·
             </span>
+            <Link to="/symptoms/rash" className="footer-symptom-link">
+              Rash
+            </Link>
+            <span className="footer-symptom-sep" aria-hidden="true">
+              ·
+            </span>
+            <Link to="/symptoms/anxiety-symptoms" className="footer-symptom-link">
+              Anxiety Symptoms
+            </Link>
+            <span className="footer-symptom-sep" aria-hidden="true">
+              ·
+            </span>
             <Link to="/symptoms/urgent-symptom-checker" className="footer-symptom-link">
               Urgent Symptom Checker
+            </Link>
+            <span className="footer-symptom-sep" aria-hidden="true">
+              ·
+            </span>
+            <Link to="/tools/symptom-urgency-checker" className="footer-symptom-link">
+              Urgency Tool
             </Link>
           </div>
           <div className="footer-copyright">

@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
 
+# Admin dashboard and APIs exposed under this path should not be indexed
+Disallow: /admin/
+
+# Crawl-delay is not used by Googlebot; omit to avoid confusing other bots
+
 Sitemap: https://doctoraibolit.com/sitemap.xml

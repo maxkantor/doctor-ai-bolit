@@ -14,7 +14,16 @@ export default function Layout({ children }: LayoutProps) {
   const hideNavbar = location.pathname.startsWith('/chat') || location.pathname.startsWith('/admin')
 
   useEffect(() => {
-    if (!location.pathname.startsWith('/symptoms')) {
+    const pathsWithStaticMeta = [
+      '/symptoms',
+      '/guides',
+      '/faq',
+      '/tools',
+      '/conditions',
+    ]
+    const keepSeoMeta =
+      pathsWithStaticMeta.some((p) => location.pathname === p || location.pathname.startsWith(`${p}/`))
+    if (!keepSeoMeta) {
       document.title = DEFAULT_DOCUMENT_TITLE
       const m = document.querySelector('meta[name="description"]') as HTMLMetaElement | null
       if (m) m.setAttribute('content', DEFAULT_META_DESCRIPTION)

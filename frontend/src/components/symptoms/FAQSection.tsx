@@ -4,7 +4,7 @@ import './SymptomsPages.css'
 export default function FAQSection({ faqs }: { faqs: SymptomFaq[] }) {
   return (
     <section className="symptom-faq-section" aria-labelledby="faq-heading">
-      <h2 id="faq-heading">Common questions</h2>
+      <h2 id="faq-heading">Frequently asked questions</h2>
       <div className="symptom-faq-list">
         {faqs.map((item) => (
           <article key={item.question} className="symptom-faq-item">

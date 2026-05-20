@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { SYMPTOMS_HUB, getAllSymptomPages } from '../data/symptomPages'
 import { SITE_ORIGIN } from '../constants/siteOrigin'
 import SEOHead from '../components/symptoms/SEOHead'
@@ -65,6 +66,23 @@ export default function SymptomsHubPage() {
         </header>
 
         <MedicalDisclaimerBox />
+
+        <section className="symptom-content-card" style={{ marginTop: '1rem' }} aria-labelledby="library-links">
+          <h2 id="library-links" className="sr-only">
+            More education
+          </h2>
+          <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.6, color: '#475569' }}>
+            <Link to="/guides">Guides</Link>
+            {' · '}
+            <Link to="/tools">Free tools</Link>
+            {' · '}
+            <Link to="/faq">FAQ</Link>
+            {' · '}
+            <Link to="/conditions">Symptom categories</Link>
+            {' · '}
+            <Link to="/">Home</Link>
+          </p>
+        </section>
 
         <section aria-labelledby="guides-heading">
           <h2 id="guides-heading" className="sr-only">

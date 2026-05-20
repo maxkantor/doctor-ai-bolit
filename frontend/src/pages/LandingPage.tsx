@@ -9,6 +9,7 @@ import { getOrCreateVisitorId } from '../utils/visitorId'
 import { PricingPlan, PricingConfig } from '../types'
 import './LandingPage.css'
 import PopularSymptomsSection from '../components/PopularSymptomsSection'
+import LandingSeoExpansion from '../components/LandingSeoExpansion'
 
 export default function LandingPage() {
   const { t } = useTranslation()
@@ -406,6 +407,8 @@ export default function LandingPage() {
           <motion.li variants={fadeInUp}>✗ {t('landing.capability5')}</motion.li>
         </motion.ul>
       </section>
+
+      <LandingSeoExpansion />
 
       {/* Sticky CTA Button for Mobile */}
       <motion.div 

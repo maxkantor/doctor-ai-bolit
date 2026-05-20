@@ -1,3 +1,5 @@
+import { SYMPTOM_ENRICHMENT } from './symptomEnrichment'
+
 export const MEDICAL_DISCLAIMER_FULL =
   'DoctorAIBolit does not provide a medical diagnosis and is not a replacement for a licensed clinician. For severe or life-threatening symptoms, call emergency services immediately.'
 
@@ -14,6 +16,8 @@ export interface SymptomPageData {
   metaTitle: string
   metaDescription: string
   intro: string
+  /** Second hero paragraph merged from enrichment for depth and SEO. */
+  introSecondary: string
   whatItCanMean: string
   whenToSeekUrgent: string[]
   emergencyWarnings: string[]
@@ -23,7 +27,23 @@ export interface SymptomPageData {
   howAiCanHelp: string[]
   faqs: SymptomFaq[]
   relatedSlugs: string[]
+  deepDiveParagraphs: string[]
+  clinicianQuestions: string[]
+  trackAtHome: string[]
+  relatedGuideSlugs: string[]
+  relatedToolSlugs: string[]
 }
+
+/** Base records in `PAGES` before merge with `symptomEnrichment.ts`. */
+export type SymptomPageSeed = Omit<
+  SymptomPageData,
+  | 'introSecondary'
+  | 'deepDiveParagraphs'
+  | 'clinicianQuestions'
+  | 'trackAtHome'
+  | 'relatedGuideSlugs'
+  | 'relatedToolSlugs'
+>
 
 export interface SymptomsHubData {
   route: string
@@ -60,7 +80,7 @@ export const SYMPTOM_SLUGS = [
 
 export type SymptomSlug = (typeof SYMPTOM_SLUGS)[number]
 
-const PAGES: Record<SymptomSlug, SymptomPageData> = {
+const PAGES: Record<SymptomSlug, SymptomPageSeed> = {
   'chest-pain': {
     slug: 'chest-pain',
     label: 'Chest Pain',
@@ -765,17 +785,31 @@ const PAGES: Record<SymptomSlug, SymptomPageData> = {
   },
 }
 
+function mergeSymptomData(slug: SymptomSlug): SymptomPageData {
+  const seed = PAGES[slug]
+  const en = SYMPTOM_ENRICHMENT[slug]
+  if (!en) throw new Error(`Missing symptom enrichment for slug: ${slug}`)
+  return {
+    ...seed,
+    introSecondary: en.introSecondary,
+    deepDiveParagraphs: [...en.deepDiveParagraphs],
+    clinicianQuestions: [...en.clinicianQuestions],
+    trackAtHome: [...en.trackAtHome],
+    relatedGuideSlugs: [...en.relatedGuideSlugs],
+    relatedToolSlugs: [...en.relatedToolSlugs],
+    faqs: [...seed.faqs, ...en.additionalFaqs],
+  }
+}
+
 export function getSymptomBySlug(slug: string): SymptomPageData | undefined {
-  if (SYMPTOM_SLUGS.includes(slug as SymptomSlug)) return PAGES[slug as SymptomSlug]
-  return undefined
+  if (!SYMPTOM_SLUGS.includes(slug as SymptomSlug)) return undefined
+  return mergeSymptomData(slug as SymptomSlug)
 }
 
 export function getAllSymptomPages(): SymptomPageData[] {
-  return SYMPTOM_SLUGS.map((s) => PAGES[s])
+  return SYMPTOM_SLUGS.map((s) => mergeSymptomData(s))
 }
 
 export function getRelatedSymptomPages(slugs: string[]): SymptomPageData[] {
-  return slugs
-    .filter((s): s is SymptomSlug => SYMPTOM_SLUGS.includes(s as SymptomSlug))
-    .map((s) => PAGES[s])
+  return slugs.map((s) => getSymptomBySlug(s)).filter((p): p is SymptomPageData => Boolean(p))
 }
