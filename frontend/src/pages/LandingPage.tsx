@@ -8,6 +8,7 @@ import { stripeService } from '../services/stripeService'
 import { getOrCreateVisitorId } from '../utils/visitorId'
 import { PricingPlan, PricingConfig } from '../types'
 import './LandingPage.css'
+import PopularSymptomsSection from '../components/PopularSymptomsSection'
 
 export default function LandingPage() {
   const { t } = useTranslation()
@@ -251,6 +252,8 @@ export default function LandingPage() {
           </motion.aside>
         </div>
       </header>
+
+      <PopularSymptomsSection />
 
       <section className="pricing-preview" ref={pricingRef} aria-labelledby="pricing-title">
         <motion.h2 

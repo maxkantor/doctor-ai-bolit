@@ -82,3 +82,41 @@
   color: #94a3b8;
   font-size: 0.8125rem;
 }
+
+.footer-symptom-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  padding: 0.25rem 0 0.5rem;
+  box-sizing: border-box;
+}
+
+.footer-symptom-link {
+  color: #94a3b8;
+  font-size: 0.8125rem;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.2rem 0.15rem;
+  border-radius: 4px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.footer-symptom-link:hover {
+  color: #ffffff;
+  background-color: rgba(59, 130, 246, 0.12);
+}
+
+.footer-symptom-link:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+.footer-symptom-sep {
+  color: #475569;
+  font-size: 0.75rem;
+  user-select: none;
+}
