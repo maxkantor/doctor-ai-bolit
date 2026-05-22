@@ -24,7 +24,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/generate-sitemap.js && node scripts/replace-domain.js",
+    "validate:product-schema": "node scripts/validate-product-schema.mjs",
+    "prebuild": "node scripts/generate-sitemap.js && node scripts/replace-domain.js && node scripts/validate-product-schema.mjs",
     "build": "vite build",
     "preview": "vite preview"
   }

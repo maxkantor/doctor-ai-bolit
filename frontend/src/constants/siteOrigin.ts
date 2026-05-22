@@ -9,3 +9,9 @@ export const DEFAULT_META_DESCRIPTION =
 
 export const DEFAULT_OG_IMAGE =
   'https://doctoraibolit-og-images.s3.us-east-1.amazonaws.com/og-image-20260508.png'
+
+/** Served from origin; same artwork as OG, resampled ≥1200px wide for Product / Google rich-result image requirements */
+export const PRODUCT_SCHEMA_PRIMARY_IMAGE = `${SITE_ORIGIN}/og-schema-product.jpg`
+
+export const PRODUCT_SCHEMA_PRIMARY_IMAGE_WIDTH = 1200
+export const PRODUCT_SCHEMA_PRIMARY_IMAGE_HEIGHT = 1023
