@@ -204,10 +204,12 @@
 
 @media (max-width: 900px) {
   .premium-navbar {
-    width: min(calc(100% - 24px), 1280px);
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
     top: 12px;
     margin-top: 8px;
     height: 60px;
+    box-sizing: border-box;
   }
 
   .premium-navbar-links {

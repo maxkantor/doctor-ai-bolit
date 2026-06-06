@@ -106,17 +106,89 @@
   }
 }
 
-/* Chat: compact header row + scrollable actions (phones) */
+/* Landing: prevent horizontal bleed on iPhone (hero width + nested padding) */
+@media (max-width: 768px) {
+  .main-content:has(.landing-page) {
+    overflow-x: clip;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .landing-page {
+    width: 100%;
+    max-width: 100%;
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    overflow-x: clip;
+  }
+
+  .hero,
+  .hero-section,
+  .landing-hero {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 36px 16px 40px !important;
+    min-height: auto !important;
+    box-sizing: border-box;
+  }
+
+  .hero-title,
+  .hero h1 {
+    font-size: clamp(1.65rem, 8.2vw, 2.15rem) !important;
+    line-height: 1.12 !important;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem !important;
+    line-height: 1.45 !important;
+    max-width: 100% !important;
+  }
+
+  .hero-urgency {
+    font-size: 0.9rem !important;
+    max-width: 100% !important;
+  }
+
+  .hero-cta-row {
+    width: 100%;
+  }
+
+  .cta-button {
+    white-space: normal !important;
+    width: 100%;
+    max-width: 100% !important;
+    text-align: center;
+    line-height: 1.35;
+  }
+
+  .trust-badges {
+    width: 100%;
+  }
+
+  .badge {
+    max-width: 100%;
+    flex: 1 1 auto;
+  }
+}
+
+/* Chat: stacked header + scrollable actions (phones) */
 @media (max-width: 768px) {
   .chat-header {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 0.35rem;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 0.45rem;
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
   }
 
   .chat-header-left {
-    width: auto;
-    flex: 1 1 52%;
+    width: 100%;
+    flex: 0 0 auto;
     min-width: 0;
   }
 
@@ -125,12 +197,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 100%;
+    max-width: min(120px, 28vw);
   }
 
   .chat-actions {
     width: 100%;
-    flex: 1 1 100%;
+    flex: 0 0 auto;
     justify-content: flex-start;
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -149,23 +221,73 @@
     display: none;
   }
 
+  .share-btn {
+    display: none;
+  }
+
+  .restore-credits-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
   .chat-trust-line,
   .chat-disclaimer-light {
     font-size: 0.6875rem;
+    line-height: 1.35;
+  }
+
+  .chat-input-wrapper {
+    align-items: flex-end;
+    gap: 0.35rem;
+    padding: 0.35rem;
+  }
+
+  .attachment-plus-btn {
+    width: 2.35rem;
+    height: 2.35rem;
+    min-width: 2.35rem;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  }
+
+  .chat-input {
+    min-height: 38px;
+    padding: 0.5rem 0.2rem;
+  }
+
+  .chat-input-actions {
+    gap: 0.25rem;
+  }
+
+  .dictate-btn {
+    width: 2.35rem;
+    height: 2.35rem;
+    min-height: 40px;
+  }
+
+  .send-btn {
+    padding: 0.55rem 0.7rem;
+    min-height: 40px;
+    font-size: 0.8125rem;
   }
 }
 
-/* Chat layout: full height, menus not clipped */
+/* Chat layout: full height flex column (keep overflow hidden) */
 .chat-page {
   height: 100%;
 }
 
 .chat-container {
-  overflow: visible;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .chat-main {
-  overflow: visible;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
   position: relative;
   z-index: 1;
 }
@@ -174,17 +296,26 @@
   overflow: visible;
   position: relative;
   z-index: 40;
+  flex-shrink: 0;
 }
 
 .chat-input-container {
   position: relative;
-  z-index: 20;
+  z-index: 30;
+  flex-shrink: 0;
   padding-left: max(1rem, env(safe-area-inset-left, 0px));
   padding-right: max(1rem, env(safe-area-inset-right, 0px));
 }
 
 .messages-container {
   overscroll-behavior: contain;
+  flex: 1;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.attachment-menu {
+  z-index: 50;
 }
 
 .language-switcher--compact .language-menu {
