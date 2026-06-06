@@ -837,6 +837,75 @@
   outline: none;
 }
 
+.chat-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.dictate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  min-height: 48px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.dictate-btn:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.45);
+  color: #2563eb;
+  background: #eff6ff;
+  transform: translateY(-1px);
+}
+
+.dictate-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.dictate-btn.listening {
+  border-color: rgba(239, 68, 68, 0.55);
+  background: linear-gradient(180deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+  animation: dictatePulse 1.6s ease-in-out infinite;
+}
+
+.dictate-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes dictatePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.08);
+  }
+}
+
+.dictate-error {
+  margin: 0 0 0.45rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
 .chat-input:disabled {
   background: #f1f5f9;
   cursor: not-allowed;
@@ -1128,6 +1197,12 @@
   .send-btn {
     padding: 0.65rem 0.85rem;
     font-size: 0.875rem;
+  }
+
+  .dictate-btn {
+    width: 2.55rem;
+    height: 2.55rem;
+    min-height: 44px;
   }
 }
 

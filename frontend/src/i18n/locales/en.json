@@ -129,7 +129,12 @@
     "privateUploadOption": "Private Upload",
     "photoCheckPreviewTitle": "AI Photo Check",
     "photoCheckPreviewCredit": "1 Credit",
-    "photoCheckAnalyzing": "Analyzing image privately…"
+    "photoCheckAnalyzing": "Analyzing image privately…",
+    "dictate": "Dictate message",
+    "dictateListening": "Listening… tap to stop",
+    "dictateUnsupported": "Voice dictation is not supported in this browser.",
+    "dictateError": "Could not start voice dictation. Check microphone permissions and try again.",
+    "dictatePermissionDenied": "Microphone access was denied. Enable it in your browser settings to dictate messages."
   },
   "prompts": {
     "sleep": "How can I improve my sleep naturally?",

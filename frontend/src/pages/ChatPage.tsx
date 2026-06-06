@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, type ChangeEvent } from 'react'
+import { useState, useEffect, useRef, useCallback, type ChangeEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { scrollToTop } from '../utils/scrollToTop'
 import { getOrCreateVisitorId } from '../utils/visitorId'
+import { useSpeechDictation } from '../utils/useSpeechDictation'
 import { chatService } from '../services/chatService'
 import { pricingService } from '../services/pricingService'
 import { ChatMessage, ChatSession } from '../types'
@@ -65,6 +66,8 @@ export default function ChatPage() {
   const isSendingRef = useRef(false) // Use ref to track if request is in flight (prevents race conditions)
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [dictateError, setDictateError] = useState<string | null>(null)
+  const dictationPrefixRef = useRef('')
   const closeSidebar = () => setSidebarOpen(false)
   const greetingText = t('chat.greeting')
   const hasUnlimitedMessages = remainingMessages >= UNLIMITED_MESSAGES_THRESHOLD
@@ -371,6 +374,53 @@ export default function ChatPage() {
     closeSidebar()
   }
 
+  const handleDictationTranscript = useCallback((text: string, isFinal: boolean) => {
+    if (!text) return
+    const prefix = dictationPrefixRef.current
+    if (isFinal) {
+      const separator = prefix && !prefix.endsWith(' ') ? ' ' : ''
+      dictationPrefixRef.current = prefix + separator + text
+      setInputMessage(dictationPrefixRef.current)
+      return
+    }
+    const separator = prefix && !prefix.endsWith(' ') ? ' ' : ''
+    setInputMessage(prefix + separator + text)
+  }, [])
+
+  const handleDictationError = useCallback((code: string) => {
+    if (code === 'unsupported') {
+      setDictateError(t('chat.dictateUnsupported'))
+      return
+    }
+    if (code === 'not-allowed') {
+      setDictateError(t('chat.dictatePermissionDenied'))
+      return
+    }
+    setDictateError(t('chat.dictateError'))
+  }, [t])
+
+  const { isSupported: isDictationSupported, isListening, toggleListening, stopListening } = useSpeechDictation({
+    language: i18n.language,
+    onTranscript: handleDictationTranscript,
+    onError: handleDictationError,
+  })
+
+  useEffect(() => {
+    if (!dictateError) return
+    const timer = window.setTimeout(() => setDictateError(null), 4500)
+    return () => window.clearTimeout(timer)
+  }, [dictateError])
+
+  const handleToggleDictation = () => {
+    if (isListening) {
+      toggleListening()
+      return
+    }
+    dictationPrefixRef.current = inputMessage.trimEnd()
+    setDictateError(null)
+    toggleListening()
+  }
+
   const handleSuggestedPrompt = async (prompt: string) => {
     if (!prompt.trim() || isLoading || isSendingRef.current || remainingMessages <= 0) return
     isSendingRef.current = true
@@ -407,6 +457,8 @@ export default function ChatPage() {
   }
 
   const handleSendMessage = async () => {
+    if (isListening) stopListening()
+
     // Prevent double-clicks and concurrent requests - check ref FIRST (synchronous check)
     if (!inputMessage.trim() || isLoading || isSendingRef.current) {
       console.log('⚠️ Message send blocked - isLoading:', isLoading, 'isSendingRef:', isSendingRef.current, 'inputMessage:', inputMessage.trim())
@@ -702,6 +754,7 @@ export default function ChatPage() {
           </div>
 
           <div className="chat-input-container">
+            {dictateError && <p className="dictate-error">{dictateError}</p>}
             {photoUploadError && <p className="photo-upload-error">{photoUploadError}</p>}
             {photoPreviewUrl && selectedPhoto && (
               <div className="photo-preview-card">
@@ -789,14 +842,34 @@ export default function ChatPage() {
                 rows={1}
                 aria-label={t('contact.message')}
               />
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isLoading || remainingMessages === 0}
-                className="send-btn"
-                aria-label={t('common.send')}
-              >
-                {t('common.send')}
-              </button>
+              <div className="chat-input-actions">
+                {isDictationSupported && (
+                  <button
+                    type="button"
+                    onClick={handleToggleDictation}
+                    disabled={isLoading || remainingMessages === 0}
+                    className={`dictate-btn ${isListening ? 'listening' : ''}`}
+                    aria-label={isListening ? t('chat.dictateListening') : t('chat.dictate')}
+                    title={isListening ? t('chat.dictateListening') : t('chat.dictate')}
+                    aria-pressed={isListening}
+                  >
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="23" />
+                      <line x1="8" y1="23" x2="16" y2="23" />
+                    </svg>
+                  </button>
+                )}
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!inputMessage.trim() || isLoading || remainingMessages === 0}
+                  className="send-btn"
+                  aria-label={t('common.send')}
+                >
+                  {t('common.send')}
+                </button>
+              </div>
             </div>
             <p className="chat-trust-line">{t('chat.trust')}</p>
             <p className="chat-disclaimer-light">{t('chat.disclaimer')}</p>
