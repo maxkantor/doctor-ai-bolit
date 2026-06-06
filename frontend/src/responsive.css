@@ -1,0 +1,201 @@
+/**
+ * Cross-device responsive polish: iPhone, iPad, MacBook, and common breakpoints.
+ * Loaded after page CSS so targeted overrides apply last.
+ */
+
+/* Floating navbar: respect notch on iPhone */
+.premium-navbar {
+  margin-top: max(16px, env(safe-area-inset-top, 0px));
+}
+
+.premium-mobile-menu.open {
+  padding-bottom: max(0.65rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* Modals & paywall: safe areas + dynamic viewport height */
+.modal-overlay {
+  padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px))
+    max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
+}
+
+.paywall-modal {
+  max-height: min(90dvh, calc(100dvh - 2rem));
+}
+
+.modal-content {
+  max-height: min(90dvh, calc(100dvh - 2rem));
+}
+
+/* iOS Safari: avoid zoom-on-focus for form fields */
+@media (max-width: 768px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* Content pages */
+.contact-page,
+.privacy-policy-page,
+.disclaimer-page {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.contact-page {
+  min-height: min(calc(100dvh - 120px), calc(100vh - 120px));
+}
+
+.privacy-policy-page,
+.disclaimer-page {
+  min-height: min(calc(100dvh - 160px), calc(100vh - 160px));
+}
+
+/* Platform embed */
+.platform-page {
+  min-height: 100dvh;
+  min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .platform-iframe {
+    min-height: calc(100dvh - 88px);
+  }
+}
+
+/* SEO / landing grids: tablet & phone */
+@media (max-width: 640px) {
+  .symptom-hub-grid,
+  .landing-seo-grid,
+  .popular-symptom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-seo-clusters {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .symptom-hub-grid,
+  .landing-seo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .popular-symptom-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* MacBook / small laptop: keep pricing cards readable */
+@media (min-width: 1024px) and (max-width: 1280px) {
+  .pricing-cards {
+    gap: 1rem;
+  }
+}
+
+/* Footer link rows on narrow phones */
+@media (max-width: 480px) {
+  .footer-symptom-links {
+    gap: 0.25rem 0.35rem;
+  }
+
+  .footer-symptom-link {
+    font-size: 0.75rem;
+  }
+}
+
+/* Chat: compact header row + scrollable actions (phones) */
+@media (max-width: 768px) {
+  .chat-header {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .chat-header-left {
+    width: auto;
+    flex: 1 1 52%;
+    min-width: 0;
+  }
+
+  .chat-header-left h2 {
+    font-size: 0.9375rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  .chat-actions {
+    width: 100%;
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0.35rem;
+    padding-bottom: 0.15rem;
+  }
+
+  .chat-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chat-premium-badge--header {
+    display: none;
+  }
+
+  .chat-trust-line,
+  .chat-disclaimer-light {
+    font-size: 0.6875rem;
+  }
+}
+
+/* Chat layout: full height, menus not clipped */
+.chat-page {
+  height: 100%;
+}
+
+.chat-container {
+  overflow: visible;
+}
+
+.chat-main {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+.chat-header {
+  overflow: visible;
+  position: relative;
+  z-index: 40;
+}
+
+.chat-input-container {
+  position: relative;
+  z-index: 20;
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+.messages-container {
+  overscroll-behavior: contain;
+}
+
+.language-switcher--compact .language-menu {
+  z-index: 2200;
+}
+
+@media (max-width: 768px) {
+  .language-switcher--compact .language-menu {
+    max-width: min(280px, calc(100vw - 1.5rem));
+    max-height: min(50dvh, 360px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

@@ -2,6 +2,7 @@
   background: #0f172a;
   color: #cbd5e1;
   padding: clamp(1.25rem, 3vh, 1.75rem);
+  padding-bottom: max(clamp(1.25rem, 3vh, 1.75rem), env(safe-area-inset-bottom, 0px));
   margin-top: 0;
   flex-shrink: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.06);

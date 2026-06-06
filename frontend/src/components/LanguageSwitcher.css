@@ -111,9 +111,19 @@
 
 .language-switcher--compact .language-menu {
   min-width: 210px;
+  z-index: 2200;
 }
 
 @media (max-width: 768px) {
+  .language-switcher--compact .language-menu {
+    right: 0;
+    left: auto;
+    max-width: min(280px, calc(100vw - 1.5rem));
+    max-height: min(50dvh, 360px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .language-current-text {
     max-width: 110px;
     overflow: hidden;

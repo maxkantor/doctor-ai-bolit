@@ -11,18 +11,16 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
-  const hideNavbar = location.pathname.startsWith('/chat') || location.pathname.startsWith('/admin')
+  const isChat = location.pathname.startsWith('/chat')
+  const isAdmin = location.pathname.startsWith('/admin')
+  const hideNavbar = isChat || isAdmin
+  const hideFooter = isChat || isAdmin
 
   useEffect(() => {
-    const pathsWithStaticMeta = [
-      '/symptoms',
-      '/guides',
-      '/faq',
-      '/tools',
-      '/conditions',
-    ]
-    const keepSeoMeta =
-      pathsWithStaticMeta.some((p) => location.pathname === p || location.pathname.startsWith(`${p}/`))
+    const pathsWithStaticMeta = ['/symptoms', '/guides', '/faq', '/tools', '/conditions']
+    const keepSeoMeta = pathsWithStaticMeta.some(
+      (p) => location.pathname === p || location.pathname.startsWith(`${p}/`),
+    )
     if (!keepSeoMeta) {
       document.title = DEFAULT_DOCUMENT_TITLE
       const m = document.querySelector('meta[name="description"]') as HTMLMetaElement | null
@@ -31,10 +29,10 @@ export default function Layout({ children }: LayoutProps) {
   }, [location.pathname])
 
   return (
-    <div className="layout">
+    <div className={`layout${isChat ? ' layout--chat' : ''}`}>
       {!hideNavbar && <PremiumNavbar />}
       <main className="main-content">{children}</main>
-      <Footer />
+      {!hideFooter && <Footer />}
     </div>
   )
 }

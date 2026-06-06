@@ -59,6 +59,7 @@ export default function ChatPage() {
   const [paymentSuccessMessage, setPaymentSuccessMessage] = useState<{ credits: number; visible: boolean } | null>(null)
   const previousCreditBalanceRef = useRef<number>(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatInputRef = useRef<HTMLTextAreaElement>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const attachmentMenuRef = useRef<HTMLDivElement>(null)
   const isSendingRef = useRef(false) // Use ref to track if request is in flight (prevents race conditions)
@@ -79,6 +80,18 @@ export default function ChatPage() {
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useEffect(() => {
+    const textarea = chatInputRef.current
+    if (!textarea) return
+    const keepInputVisible = () => {
+      window.requestAnimationFrame(() => {
+        textarea.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+      })
+    }
+    textarea.addEventListener('focus', keepInputVisible)
+    return () => textarea.removeEventListener('focus', keepInputVisible)
   }, [])
 
   useEffect(() => {
@@ -761,6 +774,7 @@ export default function ChatPage() {
                 )}
               </div>
               <textarea
+                ref={chatInputRef}
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={(e) => {
