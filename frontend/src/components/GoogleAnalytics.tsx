@@ -1,23 +1,32 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void
-  }
-}
+import { buildAnalyticsPageView, initGoogleAnalytics, trackPageView } from '../lib/googleAnalytics'
 
 export default function GoogleAnalytics() {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
 
   useEffect(() => {
-    if (typeof window.gtag === 'function') {
-      window.gtag('config', 'G-CBL1LQSJSP', {
-        page_path: pathname,
-        page_title: document.title,
+    void initGoogleAnalytics()
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    // Defer until after SEOHead / Layout title updates on the same navigation.
+    const frame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (cancelled) return
+        const view = buildAnalyticsPageView(pathname, search)
+        if (!view) return
+        void initGoogleAnalytics().then((ready) => {
+          if (ready && !cancelled) trackPageView(view)
+        })
       })
+    })
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(frame)
     }
-  }, [pathname])
+  }, [pathname, search])
 
   return null
 }

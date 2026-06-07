@@ -1,8 +1,11 @@
 User-agent: *
 Allow: /
 
-# Admin dashboard and APIs exposed under this path should not be indexed
+# Admin dashboard — not for indexing
 Disallow: /admin/
+
+# Chat session URLs are private; index /chat only (listed in sitemap)
+Disallow: /chat?session=
 
 # Crawl-delay is not used by Googlebot; omit to avoid confusing other bots
 

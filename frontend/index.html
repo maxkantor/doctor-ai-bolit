@@ -40,17 +40,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     
-    <!-- Google Analytics 4 (Doctor AI Bolit web stream) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CBL1LQSJSP"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-CBL1LQSJSP', {
-        'anonymize_ip': true,
-        'cookie_flags': 'SameSite=None;Secure'
-      });
-    </script> 
+    <!-- GA4: loaded only on doctoraibolit.com via src/components/GoogleAnalytics.tsx -->
     
     <!-- Google Search Console verification - Add your verification meta tag here -->
    <meta name="google-site-verification" content="5X2POZPS2hMMeUTDiXiYYw6r9G-XHd9MewG6BFrfcB0" /> 
@@ -234,6 +224,23 @@
       "specialty": {
         "@type": "MedicalSpecialty",
         "name": "General Health Information"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": "https://doctoraibolit.com/#website",
+      "name": "DoctorAibolit",
+      "alternateName": "Doctor AI Bolit",
+      "url": "https://doctoraibolit.com",
+      "description": "AI health guidance and private symptom support. Educational information only — not a medical service.",
+      "inLanguage": "en-US",
+      "publisher": {
+        "@type": "Organization",
+        "name": "DoctorAibolit",
+        "url": "https://doctoraibolit.com"
       }
     }
     </script>
