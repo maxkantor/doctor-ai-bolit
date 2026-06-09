@@ -432,23 +432,53 @@ export default function ChatPage() {
       content: prompt,
     }
     setMessages((prev) => [...prev, userMessage])
+    const streamingAssistant: ChatMessage = {
+      sessionId,
+      timestamp: new Date().toISOString(),
+      role: 'assistant',
+      content: '',
+    }
+    setMessages((prev) => [...prev, streamingAssistant])
     try {
-      const response = await chatService.sendMessage({ visitorId, sessionId, message: prompt })
-      if (response.requiresPayment || response.remainingMessages <= 0) {
+      const streamResult = await chatService.streamMessage(
+        { visitorId, sessionId, message: prompt },
+        (chunk) => {
+          setMessages((prev) => {
+            const next = [...prev]
+            for (let i = next.length - 1; i >= 0; i -= 1) {
+              if (next[i].role === 'assistant') {
+                next[i] = { ...next[i], content: next[i].content + chunk }
+                break
+              }
+            }
+            return next
+          })
+        },
+      )
+      if (streamResult.requiresPayment) {
         setShowPaywallModal(true)
         return
       }
-      const assistantMessage: ChatMessage = {
-        sessionId,
-        timestamp: new Date().toISOString(),
-        role: 'assistant',
-        content: response.message,
-      }
-      setMessages((prev) => [...prev, assistantMessage])
       await loadRemainingMessages()
       await loadSessions()
-      if (response.remainingMessages === 0) setTimeout(() => setShowPaywallModal(true), 500)
+      if (streamResult.remainingMessages === 0) setTimeout(() => setShowPaywallModal(true), 500)
     } catch {
+      setMessages((prev) => {
+        const next = [...prev]
+        for (let i = next.length - 1; i >= 0; i -= 1) {
+          if (next[i].role === 'assistant' && !next[i].content.trim()) {
+            next.splice(i, 1)
+            break
+          }
+        }
+        next.push({
+          sessionId,
+          timestamp: new Date().toISOString(),
+          role: 'assistant',
+          content: t('chat.sendFailed'),
+        })
+        return next
+      })
       await loadRemainingMessages()
     } finally {
       isSendingRef.current = false
@@ -495,74 +525,112 @@ export default function ChatPage() {
 
     try {
       console.log('🔄 Calling chat service with:', { visitorId, sessionId, message: messageToSend, photo: Boolean(photoToSend) })
-      const response = photoToSend
-        ? await chatService.sendPhotoCheck({
-            visitorId,
-            sessionId,
-            message: messageToSend,
-            image: photoToSend,
-          })
-        : await chatService.sendMessage({
-            visitorId,
-            sessionId,
-            message: messageToSend,
-          })
-      console.log('✅ Received response from chatService:', response)
 
-      console.log('📨 Chat response received:', JSON.stringify(response, null, 2))
-
-      if (response.requiresPayment || response.remainingMessages <= 0) {
-        isSendingRef.current = false
-        setShowPaywallModal(true)
-        setIsLoading(false)
-        return
-      }
-
-      const assistantMessage: ChatMessage = {
-        sessionId,
-        timestamp: new Date().toISOString(),
-        role: 'assistant',
-        content: response.message,
-      }
-
-      setMessages((prev) => [...prev, assistantMessage])
       if (photoToSend) {
+        const response = await chatService.sendPhotoCheck({
+          visitorId,
+          sessionId,
+          message: messageToSend,
+          image: photoToSend,
+        })
+        console.log('✅ Received response from chatService:', response)
+
+        if (response.requiresPayment || response.remainingMessages <= 0) {
+          isSendingRef.current = false
+          setShowPaywallModal(true)
+          setIsLoading(false)
+          return
+        }
+
+        const assistantMessage: ChatMessage = {
+          sessionId,
+          timestamp: new Date().toISOString(),
+          role: 'assistant',
+          content: response.message,
+        }
+        setMessages((prev) => [...prev, assistantMessage])
         clearSelectedPhoto()
+      } else {
+        const streamingAssistant: ChatMessage = {
+          sessionId,
+          timestamp: new Date().toISOString(),
+          role: 'assistant',
+          content: '',
+        }
+        setMessages((prev) => [...prev, streamingAssistant])
+
+        const appendStreamChunk = (chunk: string) => {
+          setMessages((prev) => {
+            const next = [...prev]
+            for (let i = next.length - 1; i >= 0; i -= 1) {
+              if (next[i].role === 'assistant') {
+                next[i] = { ...next[i], content: next[i].content + chunk }
+                break
+              }
+            }
+            return next
+          })
+        }
+
+        const streamResult = await chatService.streamMessage(
+          { visitorId, sessionId, message: messageToSend },
+          appendStreamChunk,
+        )
+
+        if (streamResult.requiresPayment) {
+          isSendingRef.current = false
+          setShowPaywallModal(true)
+          setIsLoading(false)
+          return
+        }
+
+        if (streamResult.remainingMessages !== undefined) {
+          setRemainingMessages(streamResult.remainingMessages)
+        }
       }
-      
+
       // Reload sessions after sending message (in case a new session was created)
       await loadSessions()
-      
-      // ALWAYS fetch remaining messages after sending to ensure accurate count
-      // Don't rely on response value as it may not be serialized correctly
-      try {
-        console.log('🔄 Fetching updated remaining messages...')
-        const response = await chatService.getRemainingMessages(visitorId)
-        const updatedRemaining = typeof response === 'number' ? response : response.remainingMessages
-        if (typeof response === 'object' && 'creditBalance' in response) {
-          setCreditBalance(response.creditBalance || 0)
-          setFreeMessagesRemaining(response.freeMessagesRemaining || 0)
+
+      if (!photoToSend) {
+        try {
+          const creditsResponse = await chatService.getRemainingMessages(visitorId)
+          const updatedRemaining = typeof creditsResponse === 'number' ? creditsResponse : creditsResponse.remainingMessages
+          if (typeof creditsResponse === 'object' && 'creditBalance' in creditsResponse) {
+            setCreditBalance(creditsResponse.creditBalance || 0)
+            setFreeMessagesRemaining(creditsResponse.freeMessagesRemaining || 0)
+          }
+          setRemainingMessages(updatedRemaining)
+          if (updatedRemaining === 0) {
+            setTimeout(() => setShowPaywallModal(true), 500)
+          }
+        } catch (error) {
+          console.error('❌ Failed to fetch remaining messages:', error)
         }
-        console.log('📥 Received remaining messages:', response)
-        console.log('📝 Current state before update:', remainingMessages)
-        setRemainingMessages(updatedRemaining)
-        console.log('✅ State updated to:', updatedRemaining)
-        
-        // Show paywall if we've reached the limit
-        if (updatedRemaining === 0) {
-          setTimeout(() => setShowPaywallModal(true), 500)
-        }
-      } catch (error) {
-        console.error('❌ Failed to fetch remaining messages:', error)
-        console.error('Error details:', error)
-        // Fallback: try to use response value if API call fails
-        if (response.remainingMessages !== undefined && response.remainingMessages >= 0) {
-          console.log('⚠️ Using response value as fallback:', response.remainingMessages)
-          setRemainingMessages(response.remainingMessages)
+      } else {
+        try {
+          console.log('🔄 Fetching updated remaining messages...')
+          const response = await chatService.getRemainingMessages(visitorId)
+          const updatedRemaining = typeof response === 'number' ? response : response.remainingMessages
+          if (typeof response === 'object' && 'creditBalance' in response) {
+            setCreditBalance(response.creditBalance || 0)
+            setFreeMessagesRemaining(response.freeMessagesRemaining || 0)
+          }
+          setRemainingMessages(updatedRemaining)
+          if (updatedRemaining === 0) {
+            setTimeout(() => setShowPaywallModal(true), 500)
+          }
+        } catch (error) {
+          console.error('❌ Failed to fetch remaining messages:', error)
         }
       }
     } catch (error) {
       console.error('Failed to send message:', error)
+      const status = typeof error === 'object' && error !== null && 'status' in error
+        ? Number((error as { status?: number }).status)
+        : undefined
+      const isTimeout = status === 504 || (error instanceof Error && /504|timeout|timed out/i.test(error.message))
+
       if (photoToSend) {
         const assistantMessage: ChatMessage = {
           sessionId,
@@ -571,8 +639,24 @@ export default function ChatPage() {
           content: t('chat.photoCheckSubmitFailed'),
         }
         setMessages((prev) => [...prev, assistantMessage])
+      } else {
+        setMessages((prev) => {
+          const next = [...prev]
+          for (let i = next.length - 1; i >= 0; i -= 1) {
+            if (next[i].role === 'assistant' && !next[i].content.trim()) {
+              next.splice(i, 1)
+              break
+            }
+          }
+          next.push({
+            sessionId,
+            timestamp: new Date().toISOString(),
+            role: 'assistant',
+            content: isTimeout ? t('chat.timeoutError') : t('chat.sendFailed'),
+          })
+          return next
+        })
       }
-      // Reload remaining messages on error
       await loadRemainingMessages()
     } finally {
       // Always reset both state and ref

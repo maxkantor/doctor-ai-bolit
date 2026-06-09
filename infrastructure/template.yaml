@@ -10,7 +10,7 @@ Globals:
       AllowOrigin: "'*'"
       MaxAge: "'600'"
   Function:
-    Timeout: 30
+    Timeout: 60
     MemorySize: 512
     Runtime: dotnet8
     Environment:

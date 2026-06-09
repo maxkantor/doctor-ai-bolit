@@ -12,7 +12,7 @@ public class OpenAIService : IOpenAIService
     private readonly string? _apiKey;
     private readonly string _model = "gpt-4o-mini"; // Cost-effective model
     private readonly string _visionModel = "gpt-4o"; // Use full vision model for paid photo checks.
-    private const int MaxResponseTokens = 1000; // Photo checks need enough room for visible details + targeted next steps.
+    private const int MaxResponseTokens = 750;
 
     // Mental health / crisis detection — direct to crisis resources
     private readonly HashSet<string> _crisisKeywords = new(StringComparer.OrdinalIgnoreCase)
@@ -452,10 +452,10 @@ Answer in one complete response. Do not use rigid section headings. Follow the s
         var systemPromptContent = customSystemPrompt ?? GetDefaultSystemPrompt();
         messages.Add(new { role = "system", content = systemPromptContent });
 
-        // Add conversation history (last 10 messages for context)
+        // Add conversation history (last 8 messages for context — keeps latency down on long sessions)
         var recentHistory = conversationHistory
             .OrderBy(m => m.Timestamp)
-            .TakeLast(10)
+            .TakeLast(8)
             .ToList();
 
         foreach (var msg in recentHistory)

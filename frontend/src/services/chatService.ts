@@ -1,10 +1,119 @@
-import api from './api'
+import api, { getApiBaseUrl } from './api'
 import { ChatRequest, ChatResponse, ChatSession, ChatMessage, PhotoCheckRequest } from '../types'
+
+export type StreamMessageResult = {
+  remainingMessages?: number
+  requiresPayment?: boolean
+}
+
+function getVisitorIdHeader(): Record<string, string> {
+  const visitorId = localStorage.getItem('doctoraibolit_visitor_id')
+  return visitorId ? { 'X-Visitor-Id': visitorId } : {}
+}
+
+function parseStreamMetadata(payload: string): StreamMessageResult | null {
+  const match = payload.match(/\{"type":"metadata"[^}]+\}/)
+  if (!match) return null
+  try {
+    const parsed = JSON.parse(match[0]) as { type?: string; remainingCredits?: number }
+    if (parsed.type === 'metadata' && typeof parsed.remainingCredits === 'number') {
+      return { remainingMessages: parsed.remainingCredits }
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
+function parseStreamError(payload: string): StreamMessageResult | null {
+  const match = payload.match(/\{"type":"error"[^}]+\}/)
+  if (!match) return null
+  try {
+    const parsed = JSON.parse(match[0]) as { type?: string; requiresPayment?: boolean }
+    if (parsed.type === 'error' && parsed.requiresPayment) {
+      return { requiresPayment: true }
+    }
+  } catch {
+    return null
+  }
+  return null
+}
 
 export const chatService = {
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
     const response = await api.post<ChatResponse>('/chat', request)
     return response.data
+  },
+
+  /**
+   * Stream assistant tokens via SSE. Keeps the HTTP connection active while the model responds,
+   * which avoids API Gateway 504 timeouts on longer answers.
+   */
+  async streamMessage(
+    request: ChatRequest,
+    onChunk: (text: string) => void,
+    signal?: AbortSignal,
+  ): Promise<StreamMessageResult> {
+    const response = await fetch(`${getApiBaseUrl()}/chat/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+        ...getVisitorIdHeader(),
+      },
+      body: JSON.stringify(request),
+      signal,
+    })
+
+    if (!response.ok) {
+      const err = new Error(`Chat stream failed (${response.status})`) as Error & { status?: number }
+      err.status = response.status
+      throw err
+    }
+
+    if (!response.body) {
+      throw new Error('Chat stream returned no body')
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let result: StreamMessageResult = {}
+
+    const handleEvent = (event: string) => {
+      if (!event.startsWith('data: ')) return
+      const payload = event.slice(6)
+      const errorMeta = parseStreamError(payload)
+      if (errorMeta) {
+        result = { ...result, ...errorMeta }
+        return
+      }
+      const metadata = parseStreamMetadata(payload)
+      if (metadata) {
+        result = { ...result, ...metadata }
+        return
+      }
+      if (payload) onChunk(payload)
+    }
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+
+      let boundary = buffer.indexOf('\n\n')
+      while (boundary !== -1) {
+        const event = buffer.slice(0, boundary).trimEnd()
+        buffer = buffer.slice(boundary + 2)
+        if (event) handleEvent(event)
+        boundary = buffer.indexOf('\n\n')
+      }
+    }
+
+    const trailing = buffer.trimEnd()
+    if (trailing) handleEvent(trailing)
+
+    return result
   },
 
   async sendPhotoCheck(request: PhotoCheckRequest): Promise<ChatResponse> {
@@ -62,4 +171,3 @@ export const chatService = {
     return response.data.remainingMessages
   },
 }
-

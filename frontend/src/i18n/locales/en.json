@@ -134,7 +134,9 @@
     "dictateListening": "Listening… tap to stop",
     "dictateUnsupported": "Voice dictation is not supported in this browser.",
     "dictateError": "Could not start voice dictation. Check microphone permissions and try again.",
-    "dictatePermissionDenied": "Microphone access was denied. Enable it in your browser settings to dictate messages."
+    "dictatePermissionDenied": "Microphone access was denied. Enable it in your browser settings to dictate messages.",
+    "timeoutError": "That reply took too long and timed out. Please try sending your question again — if it was already answered, you may see the response after refreshing.",
+    "sendFailed": "I couldn't send that message right now. Please try again in a moment."
   },
   "prompts": {
     "sleep": "How can I improve my sleep naturally?",

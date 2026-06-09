@@ -58,7 +58,8 @@ public class ChatService : IChatService
         {
             // AGGRESSIVE IDEMPOTENCY CHECK: Check for ANY recent user message in last 3 seconds (not just same content)
         // This prevents race conditions where two requests check simultaneously before either saves
-        var recentMessages = await _chatRepository.GetMessagesAsync(request.SessionId);
+        var sessionMessages = (await _chatRepository.GetMessagesAsync(request.SessionId)).ToList();
+        var recentMessages = sessionMessages;
         var veryRecentUserMessages = recentMessages
             .Where(m => m.Role == "user" && (DateTime.UtcNow - m.Timestamp).TotalSeconds < 3)
             .OrderByDescending(m => m.Timestamp)
@@ -88,11 +89,10 @@ public class ChatService : IChatService
                 Console.WriteLine($"[ChatService-{requestId}] Exact duplicate message detected - checking for existing response");
                 
                 // Find the corresponding assistant response
-                var allMessages = await _chatRepository.GetMessagesAsync(request.SessionId);
-                var duplicateIndex = allMessages.FindIndex(m => m.Timestamp == recentMessage.Timestamp);
-                if (duplicateIndex >= 0 && duplicateIndex + 1 < allMessages.Count)
+                var duplicateIndex = sessionMessages.FindIndex(m => m.Timestamp == recentMessage.Timestamp);
+                if (duplicateIndex >= 0 && duplicateIndex + 1 < sessionMessages.Count)
                 {
-                    var existingResponse = allMessages[duplicateIndex + 1];
+                    var existingResponse = sessionMessages[duplicateIndex + 1];
                     if (existingResponse.Role == "assistant")
                     {
                         existingAssistantResponse = existingResponse.Content;
@@ -134,11 +134,10 @@ public class ChatService : IChatService
             Console.WriteLine($"[ChatService-{requestId}] ⚠️ EXACT DUPLICATE MESSAGE DETECTED (30s window) - Same message '{messagePreview}' was already processed at {duplicateMessage.Timestamp:yyyy-MM-dd HH:mm:ss} UTC");
             
             // Find the corresponding assistant response
-            var allMessages = await _chatRepository.GetMessagesAsync(request.SessionId);
-            var duplicateIndex = allMessages.FindIndex(m => m.Timestamp == duplicateMessage.Timestamp);
-            if (duplicateIndex >= 0 && duplicateIndex + 1 < allMessages.Count)
+            var duplicateIndex30 = sessionMessages.FindIndex(m => m.Timestamp == duplicateMessage.Timestamp);
+            if (duplicateIndex30 >= 0 && duplicateIndex30 + 1 < sessionMessages.Count)
             {
-                var existingResponse = allMessages[duplicateIndex + 1];
+                var existingResponse = sessionMessages[duplicateIndex30 + 1];
                 if (existingResponse.Role == "assistant")
                 {
                     existingAssistantResponse = existingResponse.Content;
@@ -236,6 +235,7 @@ public class ChatService : IChatService
                 Content = request.Message
             };
             await _chatRepository.SaveMessageAsync(userMessage);
+            sessionMessages.Add(userMessage);
             Console.WriteLine($"[ChatService-{requestId}] Saved user message");
         }
         else
@@ -243,8 +243,8 @@ public class ChatService : IChatService
             Console.WriteLine($"[ChatService-{requestId}] Skipping user message save - duplicate detected (already saved)");
         }
 
-        // Get conversation history for context
-        var conversationHistory = await _chatRepository.GetMessagesAsync(request.SessionId);
+        // Get conversation history for context (reuse in-memory list — avoids extra DynamoDB round trip)
+        var conversationHistory = sessionMessages;
         
         // Generate AI response with conversation history
         var aiResponse = await _openAIService.GenerateResponseAsync(

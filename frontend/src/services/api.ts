@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Ensure API URL includes /api suffix
-const getApiBaseUrl = () => {
+export const getApiBaseUrl = () => {
   // Use VITE_API_URL if set, otherwise construct from VITE_API_DOMAIN or default
   const apiDomain = import.meta.env.VITE_API_DOMAIN || 'api.doctoraibolit.com'
   let envUrl = import.meta.env.VITE_API_URL || `https://${apiDomain}/api`
@@ -32,7 +32,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 60000, // Vision requests can take longer than text-only chat.
+  timeout: 90000, // Photo-check vision requests can exceed API Gateway limits.
 })
 
 // Add visitor ID to all requests
