@@ -13,8 +13,12 @@ let initPromise: Promise<boolean> | null = null
 function ensureDataLayer(): void {
   window.dataLayer = window.dataLayer || []
   if (typeof window.gtag !== 'function') {
-    window.gtag = function gtag(...args: unknown[]) {
-      window.dataLayer!.push(args)
+    // gtag.js only processes entries pushed as the raw `arguments` object.
+    // Pushing a plain array makes gtag.js ignore the config/event commands,
+    // so no hits are ever sent. This matches the canonical gtag snippet.
+    window.gtag = function gtag() {
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer!.push(arguments)
     }
   }
 }
