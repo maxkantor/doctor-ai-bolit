@@ -4,7 +4,7 @@
  * remove it from other sites or rotate VITE_GA_MEASUREMENT_ID to a new web stream.
  */
 export const GA_MEASUREMENT_ID =
-  import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() || 'G-CBL1LQSJSP'
+  import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() || 'G-L6LJY9KESH'
 
 /** Hostnames that may send hits to GA4 (production + www). */
 export const ANALYTICS_ALLOWED_HOSTS = new Set([
