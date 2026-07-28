@@ -11,6 +11,7 @@ import ShareModal from '../components/ShareModal'
 import PaywallModal from '../components/PaywallModal'
 import EmailRestoreModal from '../components/EmailRestoreModal'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import ChatMessageContent from '../components/ChatMessageContent'
 import './ChatPage.css'
 
 function generateSessionId(): string {
@@ -796,7 +797,10 @@ export default function ChatPage() {
                 {message.messageType === 'photo-check' && message.role === 'user' && (
                   <div className="message-photo-chip">{t('chat.photoCheckMessageChip')}</div>
                 )}
-                <div className="message-content">{message.content}</div>
+                <ChatMessageContent
+                  content={message.content}
+                  variant={message.role === 'user' ? 'user' : 'assistant'}
+                />
               </div>
             ))}
             {showEmptyState && (

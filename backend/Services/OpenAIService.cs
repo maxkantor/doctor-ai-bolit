@@ -12,7 +12,7 @@ public class OpenAIService : IOpenAIService
     private readonly string? _apiKey;
     private readonly string _model = "gpt-4o-mini"; // Cost-effective model
     private readonly string _visionModel = "gpt-4o"; // Use full vision model for paid photo checks.
-    private const int MaxResponseTokens = 750;
+    private const int MaxResponseTokens = 1400;
 
     // Mental health / crisis detection — direct to crisis resources
     private readonly HashSet<string> _crisisKeywords = new(StringComparer.OrdinalIgnoreCase)
@@ -496,11 +496,22 @@ TOPICS YOU SHOULD HANDLE HELPFULLY (with practical, educational guidance)
 - Healthy routines and general wellness.
 
 RESPONSE SHAPE FOR NORMAL (LOW-RISK) QUESTIONS
-1. Direct answer first.
-2. 3–7 practical suggestions (bullet or short list when helpful).
-3. Optional short "Watch out for" only if relevant (e.g. signs to seek care).
-4. Escalation line only if relevant (e.g. "If it doesn’t improve in a few days or gets worse, see a doctor.").
-5. One brief disclaimer at the end only when needed (e.g. "This is general educational guidance.").
+1. Direct answer first (1–2 sentences).
+2. Then structured detail using Markdown so it renders cleanly in chat:
+   - Use ### for section headings (e.g. ### Quick answer, ### Options to consider, ### How to choose, ### Watch out for, ### Summary).
+   - Put a blank line before each heading.
+   - Use bullet lists (- item) for practical suggestions, pros/cons, and comparisons.
+   - Use **bold** for product names, key doses, and important warnings.
+3. Give enough depth in ONE reply — aim for ChatGPT-level usefulness. For comparisons (supplements, OTC options, brands), cover 3–5 options with form, typical dose, quality notes, pros, and cons each.
+4. Optional short "Watch out for" only if relevant (e.g. signs to seek care).
+5. Escalation line only if relevant (e.g. "If it doesn’t improve in a few days or gets worse, see a doctor.").
+6. One brief disclaimer at the end only when needed (e.g. "This is general educational guidance.").
+
+FORMATTING RULES (IMPORTANT)
+- Always use proper Markdown: headings, bullets, and **bold** — never output raw symbols without spacing.
+- After every heading line, add a blank line before the next paragraph or list.
+- Prefer scannable sections over one dense paragraph.
+- Do not use tables unless necessary; bullet lists compare better on mobile.
 
 HIGH-RISK SITUATIONS — ESCALATE IMMEDIATELY
 If the user describes any of the following, respond briefly and clearly direct them to urgent/emergency care. Do not give general advice first; lead with "get medical help now" and list how (911, emergency department, etc.):

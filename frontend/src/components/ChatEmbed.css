@@ -110,8 +110,35 @@
 }
 
 .chat-embed-message .message-content {
-  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 0.9375rem;
   word-wrap: break-word;
+}
+
+.chat-embed-message .message-content--plain {
+  white-space: pre-wrap;
+}
+
+.chat-embed-message .message-content--rich {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.chat-embed-message .message-content--rich .chat-md-h3 {
+  margin: 0.25rem 0 0.1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.chat-embed-message .message-content--rich .chat-md-list {
+  margin: 0.1rem 0 0.2rem;
+  padding-left: 1.15rem;
+}
+
+.chat-embed-message .message-content--rich .chat-md-list li {
+  margin: 0.3rem 0;
 }
 
 .typing-indicator {

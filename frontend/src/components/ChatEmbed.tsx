@@ -6,6 +6,7 @@ import { chatService } from '../services/chatService'
 import { pricingService } from '../services/pricingService'
 import { ChatMessage } from '../types'
 import PaywallModal from './PaywallModal'
+import ChatMessageContent from './ChatMessageContent'
 import './ChatEmbed.css'
 
 interface ChatEmbedProps {
@@ -169,7 +170,10 @@ export default function ChatEmbed({ systemPrompt }: ChatEmbedProps) {
             key={index}
             className={`chat-embed-message ${message.role === 'user' ? 'user' : 'assistant'}`}
           >
-            <div className="message-content">{message.content}</div>
+            <ChatMessageContent
+              content={message.content}
+              variant={message.role === 'user' ? 'user' : 'assistant'}
+            />
           </div>
         ))}
         {isLoading && (
