@@ -81,8 +81,17 @@ export const chatService = {
     let result: StreamMessageResult = {}
 
     const handleEvent = (event: string) => {
-      if (!event.startsWith('data: ')) return
-      const payload = event.slice(6)
+      if (!event.startsWith('data:')) return
+      const raw = event.slice(event.indexOf(':') + 1).replace(/^ /, '')
+      // The backend JSON-encodes each chunk so markdown newlines survive the SSE frame.
+      // Decode it back to the original text. Fall back to the raw payload for older backends.
+      let payload = raw
+      try {
+        const decoded = JSON.parse(raw)
+        if (typeof decoded === 'string') payload = decoded
+      } catch {
+        // Not JSON-encoded (older backend) — use the raw payload as-is.
+      }
       const errorMeta = parseStreamError(payload)
       if (errorMeta) {
         result = { ...result, ...errorMeta }

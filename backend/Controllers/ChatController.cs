@@ -187,7 +187,11 @@ public class ChatController : ControllerBase
 
         await foreach (var chunk in _chatService.StreamMessageAsync(request, cancellationToken))
         {
-            var data = $"data: {chunk}\n\n";
+            // JSON-encode the chunk so newlines (markdown headings/lists/paragraphs) survive the
+            // SSE frame. A raw "\n" inside the payload would otherwise break the "data: ...\n\n"
+            // framing and the client would drop everything after the first newline, collapsing the
+            // whole answer into one run-on paragraph.
+            var data = $"data: {JsonSerializer.Serialize(chunk)}\n\n";
             await Response.WriteAsync(data, cancellationToken);
             await Response.Body.FlushAsync(cancellationToken);
         }
