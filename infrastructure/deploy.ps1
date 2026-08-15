@@ -8,7 +8,7 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-dotnet publish --configuration Release --output bin/Release/net8.0
+dotnet publish --configuration Release --output bin/Release/net10.0
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Publish failed!" -ForegroundColor Red
     exit 1

@@ -6,11 +6,12 @@ set -e
 echo "🚀 Building backend..."
 cd "$(dirname "$0")/../../backend"
 dotnet restore
-dotnet publish -c Release -o bin/Release/net8.0
+# Publish to the exact path the CDK Lambda asset consumes (see doctoraibolit-stack.ts).
+dotnet publish -c Release -r linux-x64 --self-contained false -o bin/Release/net10.0/linux-x64/publish
 
-if [ ! -d "bin/Release/net8.0" ]; then
+if [ ! -d "bin/Release/net10.0/linux-x64/publish" ]; then
   echo "❌ Error: Backend build failed or output directory not found"
-  echo "Please ensure .NET 8 SDK is installed and build succeeds"
+  echo "Please ensure .NET 10 SDK is installed and build succeeds"
   exit 1
 fi
 
